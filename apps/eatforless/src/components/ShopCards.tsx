@@ -1,8 +1,16 @@
 // Shop cards in the Home artboard's four shapes: the compact featured card,
 // the "Order again" card, the wide deal card and the full-width list card.
+//
+// Sponsored shops (shop.sponsored set by the API) carry a "Sponsored" label on
+// every card that can show one, and a tap on that card reports the ad tap.
+// The label and the report live together in openShop()/SponsoredTag so a
+// shop is never charged for a tap the customer didn't see labelled as an ad.
+// "Order again" is the customer's own history, not a placement: no label,
+// no charge.
 
 import { memo } from "react";
 import { StyleSheet, View } from "react-native";
+import { adTap } from "@/api/efl";
 import type { Shop } from "@/api/types";
 import { foodKind } from "@/lib/menu";
 import { money } from "@/lib/money";
@@ -46,19 +54,49 @@ const dealOf = (shop: Shop): string | null => shop.deal ?? null;
 const ratingOf = (shop: Shop): string | null =>
   shop.rating ? `${shop.rating.value.toFixed(1)} ★` : null;
 
-type CardProps = { shop: Shop; onPress: (shop: Shop) => void; sponsored?: boolean };
+type CardProps = { shop: Shop; onPress: (shop: Shop) => void };
+
+/** Reports the ad tap (fire-and-forget) for a sponsored shop, then opens it.
+ *  Only call from a surface that shows <SponsoredTag />. */
+export function openShop(shop: Shop, onPress: (shop: Shop) => void) {
+  if (shop.sponsored?.token) void adTap(shop.sponsored.token);
+  onPress(shop);
+}
+
+/** Screen-reader name for a card: says it's an ad when it is. */
+export const shopA11yLabel = (shop: Shop, name = shop.name) => (shop.sponsored ? `${name}, Sponsored` : name);
+
+/** Small grey "Sponsored", set beside the shop name (Uber Eats style). */
+export function SponsoredTag({ shop }: { shop: Shop }) {
+  if (!shop.sponsored) return null;
+  return (
+    <T v="small" style={styles.sponsored} accessibilityLabel="Sponsored" numberOfLines={1}>
+      Sponsored
+    </T>
+  );
+}
+
+/** Shop name with the Sponsored label beside it; the name truncates first. */
+function NameRow({ shop, children, style }: { shop: Shop; children: string; style?: object }) {
+  return (
+    <View style={styles.nameRow}>
+      <T v="item" style={[{ flexShrink: 1 }, style]} numberOfLines={1}>{children}</T>
+      <SponsoredTag shop={shop} />
+    </View>
+  );
+}
 
 export const FeaturedCard = memo(function FeaturedCard({ shop, onPress }: CardProps) {
   const deal = dealOf(shop);
   return (
-    <PressScale onPress={() => onPress(shop)} accessibilityLabel={shop.name} style={styles.featured}>
+    <PressScale onPress={() => openShop(shop, onPress)} accessibilityLabel={shopA11yLabel(shop)} style={styles.featured}>
       <View>
         <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} style={{ height: 112 }} />
         {deal ? <DealBadge text={deal} style={styles.badgeAt} /> : null}
         {!shop.isOpen ? <ClosedVeil /> : null}
       </View>
       <View style={styles.featuredBody}>
-        <T v="item" style={{ fontSize: 15 }} numberOfLines={1}>{shop.name}</T>
+        <NameRow shop={shop} style={{ fontSize: 15 }}>{shop.name}</NameRow>
         <T v="small" style={styles.meta}>{feeText(shop)}</T>
         <T v="small" style={styles.meta}>
           {ratingOf(shop) ? <T style={styles.rating}>{ratingOf(shop)} · </T> : null}
@@ -84,13 +122,13 @@ export const AgainCard = memo(function AgainCard({ shop, onPress }: CardProps) {
 export const DealCard = memo(function DealCard({ shop, onPress }: CardProps) {
   const deal = dealOf(shop);
   return (
-    <PressScale onPress={() => onPress(shop)} accessibilityLabel={shop.name} style={{ width: 270, gap: 8 }}>
+    <PressScale onPress={() => openShop(shop, onPress)} accessibilityLabel={shopA11yLabel(shop)} style={{ width: 270, gap: 8 }}>
       <View>
         <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} radius={16} style={{ height: 150 }} />
         {deal ? <DealBadge text={deal} style={[styles.badgeAt, { top: 10, left: 10 }]} /> : null}
       </View>
       <View style={{ gap: 2 }}>
-        <T v="item" style={{ fontSize: 15 }}>{shop.name}</T>
+        <NameRow shop={shop} style={{ fontSize: 15 }}>{shop.name}</NameRow>
         <T v="small" style={styles.meta}>
           {joinDot(feeText(shop, true), etaText(shop))}
           {ratingOf(shop) ? <T style={styles.rating}> · {ratingOf(shop)}</T> : null}
@@ -100,23 +138,18 @@ export const DealCard = memo(function DealCard({ shop, onPress }: CardProps) {
   );
 });
 
-export const ListCard = memo(function ListCard({ shop, onPress, sponsored }: CardProps) {
+export const ListCard = memo(function ListCard({ shop, onPress }: CardProps) {
   const deal = dealOf(shop);
   return (
-    <PressScale onPress={() => onPress(shop)} accessibilityLabel={shop.name} style={{ gap: 10 }} scaleTo={0.98}>
+    <PressScale onPress={() => openShop(shop, onPress)} accessibilityLabel={shopA11yLabel(shop)} style={{ gap: 10 }} scaleTo={0.98}>
       <View>
         <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} radius={18} style={{ height: 176 }} />
         {deal ? <DealBadge text={deal} style={[styles.badgeAt, { top: 12, left: 12 }]} /> : null}
-        {sponsored ? (
-          <View style={styles.sponsored}>
-            <T style={styles.sponsoredText}>Sponsored</T>
-          </View>
-        ) : null}
         {!shop.isOpen ? <ClosedVeil radius={18} /> : null}
       </View>
       <View style={styles.listRow}>
         <View style={{ flex: 1, gap: 3 }}>
-          <T v="item">{shop.name}{shop.area ? ` · ${shop.area}` : ""}</T>
+          <NameRow shop={shop}>{`${shop.name}${shop.area ? ` · ${shop.area}` : ""}`}</NameRow>
           <T v="sub">{joinDot(feeText(shop), etaText(shop))}</T>
           <T v="sub">
             {ratingOf(shop) ? <T style={[styles.rating, { fontSize: 13 }]}>{ratingOf(shop)} ({shop.rating!.count}+) · </T> : null}
@@ -154,16 +187,8 @@ const styles = StyleSheet.create({
   meta: { fontFamily: F.regular, fontSize: 12, color: C.grey600 },
   rating: { fontFamily: F.bold, fontSize: 12, color: C.ink },
   badgeAt: { position: "absolute", top: 8, left: 8 },
-  sponsored: {
-    position: "absolute",
-    right: 10,
-    bottom: 10,
-    backgroundColor: "rgba(11,11,11,0.72)",
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  sponsoredText: { fontFamily: F.bold, fontSize: 11, color: C.white },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  sponsored: { fontFamily: F.medium, fontSize: 11, color: C.grey500, flexShrink: 0 },
   listRow: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   veil: { backgroundColor: "rgba(11,11,11,0.45)", alignItems: "center", justifyContent: "center" },
   veilText: { fontFamily: F.bold, fontSize: 14, color: C.white },

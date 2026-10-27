@@ -44,6 +44,20 @@ export function eflCommissionPence(order: {
   return Math.max(0, Math.round(food * pct));
 }
 
+/**
+ * Our whole Stripe application fee on an Eat For Less order: the commission,
+ * plus any sponsored-listing spend recovered on it.
+ */
+export function eflApplicationFeePence(order: {
+  subtotal: unknown;
+  discount?: unknown;
+  eflCommissionPercent?: unknown;
+  eflAdRecovered?: unknown;
+}): number {
+  const ads = Math.max(0, Math.round(Number(order.eflAdRecovered ?? 0) * 100));
+  return eflCommissionPence(order) + (Number.isFinite(ads) ? ads : 0);
+}
+
 /** The commission rate a shop trades at: its own, else the platform default. */
 export function commissionPercentFor(
   listing: { commissionPercent?: unknown } | null | undefined,

@@ -2217,6 +2217,9 @@ model Order {
   /// Eat For Less: the commission rate this order was placed at, kept so a
   /// later rate change can't rewrite an old statement.
   eflCommissionPercent  Decimal?  @db.Decimal(5, 2)
+  /// Eat For Less: sponsored-listing spend recovered on this order, added to
+  /// our Stripe application fee. Null/0 = none.
+  eflAdRecovered        Decimal?  @db.Decimal(10, 2)
 
   items            OrderItem[]
   statusHistory    OrderStatusHistory[]
@@ -4563,12 +4566,105 @@ model EflListing {
   /// When the current offline spell started. Null while online.
   offlineSince     DateTime?
 
+  /// Where the Monday statement goes. Null = the account's own email.
+  statementEmail String?
+
   approvedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  adCampaign EflAdCampaign?
+
   @@index([status, listed])
   @@map("efl_listings")
+}
+
+/// A shop's sponsored-listing settings: one per listing.
+model EflAdCampaign {
+  id           String     @id @default(cuid())
+  listingId    String     @unique
+  listing      EflListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  active       Boolean    @default(false)
+  /// Most spent in one week (Mon–Sun, UK time), in pounds.
+  weeklyBudget Decimal    @db.Decimal(10, 2)
+  /// Most paid for one tap, in pounds. The auction usually charges less.
+  maxBid       Decimal    @db.Decimal(10, 2)
+  /// Set by the Console; a paused campaign can't be switched back on by the shop.
+  pausedByAdmin Boolean   @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("efl_ad_campaigns")
+}
+
+/// One charged tap on a sponsored shop.
+model EflAdTap {
+  id        String   @id @default(cuid())
+  listingId String
+  /// The customer account, or a hash of the device when signed out.
+  viewerKey String
+  /// What the auction charged for this tap, in pounds.
+  cost      Decimal  @db.Decimal(10, 2)
+  /// Set when an order from the same viewer followed within a day.
+  orderId   String?
+  createdAt DateTime @default(now())
+
+  @@index([listingId, createdAt])
+  @@index([viewerKey, listingId, createdAt])
+  @@map("efl_ad_taps")
+}
+
+/// Sponsored shows per shop, per viewer, per UK day — for the daily cap and
+/// the shop's "shown" count.
+model EflAdShow {
+  id        String @id @default(cuid())
+  listingId String
+  viewerKey String
+  /// "2026-10-27" (UK calendar day).
+  day       String
+  count     Int    @default(0)
+
+  @@unique([listingId, viewerKey, day])
+  @@index([listingId, day])
+  @@map("efl_ad_shows")
+}
+
+/// A marketing message from the Eat For Less Console: a push to app installs
+/// that said yes to offers, or an email to customers who did.
+model EflCampaign {
+  id        String    @id @default(cuid())
+  /// "PUSH" | "EMAIL"
+  channel   String
+  /// Push title, or email subject.
+  title     String
+  body      String
+  /// Optional button: where it goes (web link, or a shop in the app).
+  ctaLabel  String?
+  ctaUrl    String?
+  /// "DRAFT" | "SENDING" | "SENT" | "FAILED"
+  status    String    @default("DRAFT")
+  targeted  Int       @default(0)
+  delivered Int       @default(0)
+  createdBy String?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([createdAt])
+  @@map("efl_campaigns")
+}
+
+/// A weekly statement that has been emailed, so Monday's run sends it once.
+model EflStatementSend {
+  id        String   @id @default(cuid())
+  listingId String
+  /// Monday 00:00 UK time.
+  weekStart DateTime
+  sentTo    String
+  sentAt    DateTime @default(now())
+
+  @@unique([listingId, weekStart])
+  @@map("efl_statement_sends")
 }
 
 /// Where a "Partner with Eat For Less" application stands.

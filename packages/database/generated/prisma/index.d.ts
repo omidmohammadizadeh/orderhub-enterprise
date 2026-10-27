@@ -623,6 +623,33 @@ export type OutboxEvent = $Result.DefaultSelection<Prisma.$OutboxEventPayload>
  */
 export type EflListing = $Result.DefaultSelection<Prisma.$EflListingPayload>
 /**
+ * Model EflAdCampaign
+ * A shop's sponsored-listing settings: one per listing.
+ */
+export type EflAdCampaign = $Result.DefaultSelection<Prisma.$EflAdCampaignPayload>
+/**
+ * Model EflAdTap
+ * One charged tap on a sponsored shop.
+ */
+export type EflAdTap = $Result.DefaultSelection<Prisma.$EflAdTapPayload>
+/**
+ * Model EflAdShow
+ * Sponsored shows per shop, per viewer, per UK day — for the daily cap and
+ * the shop's "shown" count.
+ */
+export type EflAdShow = $Result.DefaultSelection<Prisma.$EflAdShowPayload>
+/**
+ * Model EflCampaign
+ * A marketing message from the Eat For Less Console: a push to app installs
+ * that said yes to offers, or an email to customers who did.
+ */
+export type EflCampaign = $Result.DefaultSelection<Prisma.$EflCampaignPayload>
+/**
+ * Model EflStatementSend
+ * A weekly statement that has been emailed, so Monday's run sends it once.
+ */
+export type EflStatementSend = $Result.DefaultSelection<Prisma.$EflStatementSendPayload>
+/**
  * Model EflApplication
  * A shop asking to join Eat For Less, from the public partner form.
  * 
@@ -3120,6 +3147,56 @@ export class PrismaClient<
   get eflListing(): Prisma.EflListingDelegate<ExtArgs>;
 
   /**
+   * `prisma.eflAdCampaign`: Exposes CRUD operations for the **EflAdCampaign** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflAdCampaigns
+    * const eflAdCampaigns = await prisma.eflAdCampaign.findMany()
+    * ```
+    */
+  get eflAdCampaign(): Prisma.EflAdCampaignDelegate<ExtArgs>;
+
+  /**
+   * `prisma.eflAdTap`: Exposes CRUD operations for the **EflAdTap** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflAdTaps
+    * const eflAdTaps = await prisma.eflAdTap.findMany()
+    * ```
+    */
+  get eflAdTap(): Prisma.EflAdTapDelegate<ExtArgs>;
+
+  /**
+   * `prisma.eflAdShow`: Exposes CRUD operations for the **EflAdShow** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflAdShows
+    * const eflAdShows = await prisma.eflAdShow.findMany()
+    * ```
+    */
+  get eflAdShow(): Prisma.EflAdShowDelegate<ExtArgs>;
+
+  /**
+   * `prisma.eflCampaign`: Exposes CRUD operations for the **EflCampaign** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflCampaigns
+    * const eflCampaigns = await prisma.eflCampaign.findMany()
+    * ```
+    */
+  get eflCampaign(): Prisma.EflCampaignDelegate<ExtArgs>;
+
+  /**
+   * `prisma.eflStatementSend`: Exposes CRUD operations for the **EflStatementSend** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflStatementSends
+    * const eflStatementSends = await prisma.eflStatementSend.findMany()
+    * ```
+    */
+  get eflStatementSend(): Prisma.EflStatementSendDelegate<ExtArgs>;
+
+  /**
    * `prisma.eflApplication`: Exposes CRUD operations for the **EflApplication** model.
     * Example usage:
     * ```ts
@@ -4218,6 +4295,11 @@ export namespace Prisma {
     SystemSecret: 'SystemSecret',
     OutboxEvent: 'OutboxEvent',
     EflListing: 'EflListing',
+    EflAdCampaign: 'EflAdCampaign',
+    EflAdTap: 'EflAdTap',
+    EflAdShow: 'EflAdShow',
+    EflCampaign: 'EflCampaign',
+    EflStatementSend: 'EflStatementSend',
     EflApplication: 'EflApplication',
     EflPushDevice: 'EflPushDevice',
     EflSavedAddress: 'EflSavedAddress',
@@ -4287,7 +4369,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflApplication" | "eflPushDevice" | "eflSavedAddress" | "eflCallLine" | "eflFavourite" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflAdCampaign" | "eflAdTap" | "eflAdShow" | "eflCampaign" | "eflStatementSend" | "eflApplication" | "eflPushDevice" | "eflSavedAddress" | "eflCallLine" | "eflFavourite" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -12618,6 +12700,356 @@ export namespace Prisma {
           count: {
             args: Prisma.EflListingCountArgs<ExtArgs>
             result: $Utils.Optional<EflListingCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflAdCampaign: {
+        payload: Prisma.$EflAdCampaignPayload<ExtArgs>
+        fields: Prisma.EflAdCampaignFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflAdCampaignFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflAdCampaignFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload>
+          }
+          findFirst: {
+            args: Prisma.EflAdCampaignFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflAdCampaignFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload>
+          }
+          findMany: {
+            args: Prisma.EflAdCampaignFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload>[]
+          }
+          create: {
+            args: Prisma.EflAdCampaignCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload>
+          }
+          createMany: {
+            args: Prisma.EflAdCampaignCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflAdCampaignCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload>[]
+          }
+          delete: {
+            args: Prisma.EflAdCampaignDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload>
+          }
+          update: {
+            args: Prisma.EflAdCampaignUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflAdCampaignDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflAdCampaignUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflAdCampaignUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdCampaignPayload>
+          }
+          aggregate: {
+            args: Prisma.EflAdCampaignAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflAdCampaign>
+          }
+          groupBy: {
+            args: Prisma.EflAdCampaignGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflAdCampaignGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflAdCampaignCountArgs<ExtArgs>
+            result: $Utils.Optional<EflAdCampaignCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflAdTap: {
+        payload: Prisma.$EflAdTapPayload<ExtArgs>
+        fields: Prisma.EflAdTapFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflAdTapFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflAdTapFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload>
+          }
+          findFirst: {
+            args: Prisma.EflAdTapFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflAdTapFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload>
+          }
+          findMany: {
+            args: Prisma.EflAdTapFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload>[]
+          }
+          create: {
+            args: Prisma.EflAdTapCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload>
+          }
+          createMany: {
+            args: Prisma.EflAdTapCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflAdTapCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload>[]
+          }
+          delete: {
+            args: Prisma.EflAdTapDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload>
+          }
+          update: {
+            args: Prisma.EflAdTapUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflAdTapDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflAdTapUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflAdTapUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdTapPayload>
+          }
+          aggregate: {
+            args: Prisma.EflAdTapAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflAdTap>
+          }
+          groupBy: {
+            args: Prisma.EflAdTapGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflAdTapGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflAdTapCountArgs<ExtArgs>
+            result: $Utils.Optional<EflAdTapCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflAdShow: {
+        payload: Prisma.$EflAdShowPayload<ExtArgs>
+        fields: Prisma.EflAdShowFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflAdShowFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflAdShowFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload>
+          }
+          findFirst: {
+            args: Prisma.EflAdShowFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflAdShowFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload>
+          }
+          findMany: {
+            args: Prisma.EflAdShowFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload>[]
+          }
+          create: {
+            args: Prisma.EflAdShowCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload>
+          }
+          createMany: {
+            args: Prisma.EflAdShowCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflAdShowCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload>[]
+          }
+          delete: {
+            args: Prisma.EflAdShowDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload>
+          }
+          update: {
+            args: Prisma.EflAdShowUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflAdShowDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflAdShowUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflAdShowUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflAdShowPayload>
+          }
+          aggregate: {
+            args: Prisma.EflAdShowAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflAdShow>
+          }
+          groupBy: {
+            args: Prisma.EflAdShowGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflAdShowGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflAdShowCountArgs<ExtArgs>
+            result: $Utils.Optional<EflAdShowCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflCampaign: {
+        payload: Prisma.$EflCampaignPayload<ExtArgs>
+        fields: Prisma.EflCampaignFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflCampaignFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflCampaignFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload>
+          }
+          findFirst: {
+            args: Prisma.EflCampaignFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflCampaignFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload>
+          }
+          findMany: {
+            args: Prisma.EflCampaignFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload>[]
+          }
+          create: {
+            args: Prisma.EflCampaignCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload>
+          }
+          createMany: {
+            args: Prisma.EflCampaignCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflCampaignCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload>[]
+          }
+          delete: {
+            args: Prisma.EflCampaignDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload>
+          }
+          update: {
+            args: Prisma.EflCampaignUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflCampaignDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflCampaignUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflCampaignUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCampaignPayload>
+          }
+          aggregate: {
+            args: Prisma.EflCampaignAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflCampaign>
+          }
+          groupBy: {
+            args: Prisma.EflCampaignGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflCampaignGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflCampaignCountArgs<ExtArgs>
+            result: $Utils.Optional<EflCampaignCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflStatementSend: {
+        payload: Prisma.$EflStatementSendPayload<ExtArgs>
+        fields: Prisma.EflStatementSendFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflStatementSendFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflStatementSendFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload>
+          }
+          findFirst: {
+            args: Prisma.EflStatementSendFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflStatementSendFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload>
+          }
+          findMany: {
+            args: Prisma.EflStatementSendFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload>[]
+          }
+          create: {
+            args: Prisma.EflStatementSendCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload>
+          }
+          createMany: {
+            args: Prisma.EflStatementSendCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflStatementSendCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload>[]
+          }
+          delete: {
+            args: Prisma.EflStatementSendDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload>
+          }
+          update: {
+            args: Prisma.EflStatementSendUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflStatementSendDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflStatementSendUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflStatementSendUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflStatementSendPayload>
+          }
+          aggregate: {
+            args: Prisma.EflStatementSendAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflStatementSend>
+          }
+          groupBy: {
+            args: Prisma.EflStatementSendGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflStatementSendGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflStatementSendCountArgs<ExtArgs>
+            result: $Utils.Optional<EflStatementSendCountAggregateOutputType> | number
           }
         }
       }
@@ -67445,6 +67877,7 @@ export namespace Prisma {
     preparationMinutes: number | null
     deliveryPinAttempts: number | null
     eflCommissionPercent: Decimal | null
+    eflAdRecovered: Decimal | null
   }
 
   export type OrderSumAggregateOutputType = {
@@ -67465,6 +67898,7 @@ export namespace Prisma {
     preparationMinutes: number | null
     deliveryPinAttempts: number | null
     eflCommissionPercent: Decimal | null
+    eflAdRecovered: Decimal | null
   }
 
   export type OrderMinAggregateOutputType = {
@@ -67547,6 +67981,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt: Date | null
     deliveryPinAttempts: number | null
     eflCommissionPercent: Decimal | null
+    eflAdRecovered: Decimal | null
     createdAt: Date | null
     updatedAt: Date | null
     loyaltyMemberId: string | null
@@ -67632,6 +68067,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt: Date | null
     deliveryPinAttempts: number | null
     eflCommissionPercent: Decimal | null
+    eflAdRecovered: Decimal | null
     createdAt: Date | null
     updatedAt: Date | null
     loyaltyMemberId: string | null
@@ -67721,6 +68157,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt: number
     deliveryPinAttempts: number
     eflCommissionPercent: number
+    eflAdRecovered: number
     createdAt: number
     updatedAt: number
     loyaltyMemberId: number
@@ -67746,6 +68183,7 @@ export namespace Prisma {
     preparationMinutes?: true
     deliveryPinAttempts?: true
     eflCommissionPercent?: true
+    eflAdRecovered?: true
   }
 
   export type OrderSumAggregateInputType = {
@@ -67766,6 +68204,7 @@ export namespace Prisma {
     preparationMinutes?: true
     deliveryPinAttempts?: true
     eflCommissionPercent?: true
+    eflAdRecovered?: true
   }
 
   export type OrderMinAggregateInputType = {
@@ -67848,6 +68287,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: true
     deliveryPinAttempts?: true
     eflCommissionPercent?: true
+    eflAdRecovered?: true
     createdAt?: true
     updatedAt?: true
     loyaltyMemberId?: true
@@ -67933,6 +68373,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: true
     deliveryPinAttempts?: true
     eflCommissionPercent?: true
+    eflAdRecovered?: true
     createdAt?: true
     updatedAt?: true
     loyaltyMemberId?: true
@@ -68022,6 +68463,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: true
     deliveryPinAttempts?: true
     eflCommissionPercent?: true
+    eflAdRecovered?: true
     createdAt?: true
     updatedAt?: true
     loyaltyMemberId?: true
@@ -68198,6 +68640,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt: Date | null
     deliveryPinAttempts: number
     eflCommissionPercent: Decimal | null
+    eflAdRecovered: Decimal | null
     createdAt: Date
     updatedAt: Date
     loyaltyMemberId: string | null
@@ -68306,6 +68749,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: boolean
     deliveryPinAttempts?: boolean
     eflCommissionPercent?: boolean
+    eflAdRecovered?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     loyaltyMemberId?: boolean
@@ -68409,6 +68853,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: boolean
     deliveryPinAttempts?: boolean
     eflCommissionPercent?: boolean
+    eflAdRecovered?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     loyaltyMemberId?: boolean
@@ -68503,6 +68948,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: boolean
     deliveryPinAttempts?: boolean
     eflCommissionPercent?: boolean
+    eflAdRecovered?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     loyaltyMemberId?: boolean
@@ -68644,6 +69090,11 @@ export namespace Prisma {
        * later rate change can't rewrite an old statement.
        */
       eflCommissionPercent: Prisma.Decimal | null
+      /**
+       * Eat For Less: sponsored-listing spend recovered on this order, added to
+       * our Stripe application fee. Null/0 = none.
+       */
+      eflAdRecovered: Prisma.Decimal | null
       createdAt: Date
       updatedAt: Date
       /**
@@ -69141,6 +69592,7 @@ export namespace Prisma {
     readonly deliveryPinVerifiedAt: FieldRef<"Order", 'DateTime'>
     readonly deliveryPinAttempts: FieldRef<"Order", 'Int'>
     readonly eflCommissionPercent: FieldRef<"Order", 'Decimal'>
+    readonly eflAdRecovered: FieldRef<"Order", 'Decimal'>
     readonly createdAt: FieldRef<"Order", 'DateTime'>
     readonly updatedAt: FieldRef<"Order", 'DateTime'>
     readonly loyaltyMemberId: FieldRef<"Order", 'String'>
@@ -148280,6 +148732,7 @@ export namespace Prisma {
     hygieneCheckedAt: Date | null
     lastDeviceSeenAt: Date | null
     offlineSince: Date | null
+    statementEmail: string | null
     approvedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -148304,6 +148757,7 @@ export namespace Prisma {
     hygieneCheckedAt: Date | null
     lastDeviceSeenAt: Date | null
     offlineSince: Date | null
+    statementEmail: string | null
     approvedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -148329,6 +148783,7 @@ export namespace Prisma {
     hygieneCheckedAt: number
     lastDeviceSeenAt: number
     offlineSince: number
+    statementEmail: number
     approvedAt: number
     createdAt: number
     updatedAt: number
@@ -148363,6 +148818,7 @@ export namespace Prisma {
     hygieneCheckedAt?: true
     lastDeviceSeenAt?: true
     offlineSince?: true
+    statementEmail?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148387,6 +148843,7 @@ export namespace Prisma {
     hygieneCheckedAt?: true
     lastDeviceSeenAt?: true
     offlineSince?: true
+    statementEmail?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148412,6 +148869,7 @@ export namespace Prisma {
     hygieneCheckedAt?: true
     lastDeviceSeenAt?: true
     offlineSince?: true
+    statementEmail?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148524,6 +148982,7 @@ export namespace Prisma {
     hygieneCheckedAt: Date | null
     lastDeviceSeenAt: Date | null
     offlineSince: Date | null
+    statementEmail: string | null
     approvedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -148568,10 +149027,12 @@ export namespace Prisma {
     hygieneCheckedAt?: boolean
     lastDeviceSeenAt?: boolean
     offlineSince?: boolean
+    statementEmail?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    adCampaign?: boolean | EflListing$adCampaignArgs<ExtArgs>
   }, ExtArgs["result"]["eflListing"]>
 
   export type EflListingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -148594,6 +149055,7 @@ export namespace Prisma {
     hygieneCheckedAt?: boolean
     lastDeviceSeenAt?: boolean
     offlineSince?: boolean
+    statementEmail?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -148620,6 +149082,7 @@ export namespace Prisma {
     hygieneCheckedAt?: boolean
     lastDeviceSeenAt?: boolean
     offlineSince?: boolean
+    statementEmail?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -148627,6 +149090,7 @@ export namespace Prisma {
 
   export type EflListingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     location?: boolean | LocationDefaultArgs<ExtArgs>
+    adCampaign?: boolean | EflListing$adCampaignArgs<ExtArgs>
   }
   export type EflListingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     location?: boolean | LocationDefaultArgs<ExtArgs>
@@ -148636,6 +149100,7 @@ export namespace Prisma {
     name: "EflListing"
     objects: {
       location: Prisma.$LocationPayload<ExtArgs>
+      adCampaign: Prisma.$EflAdCampaignPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -148689,6 +149154,10 @@ export namespace Prisma {
        * When the current offline spell started. Null while online.
        */
       offlineSince: Date | null
+      /**
+       * Where the Monday statement goes. Null = the account's own email.
+       */
+      statementEmail: string | null
       approvedAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -149057,6 +149526,7 @@ export namespace Prisma {
   export interface Prisma__EflListingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    adCampaign<T extends EflListing$adCampaignArgs<ExtArgs> = {}>(args?: Subset<T, EflListing$adCampaignArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -149105,6 +149575,7 @@ export namespace Prisma {
     readonly hygieneCheckedAt: FieldRef<"EflListing", 'DateTime'>
     readonly lastDeviceSeenAt: FieldRef<"EflListing", 'DateTime'>
     readonly offlineSince: FieldRef<"EflListing", 'DateTime'>
+    readonly statementEmail: FieldRef<"EflListing", 'String'>
     readonly approvedAt: FieldRef<"EflListing", 'DateTime'>
     readonly createdAt: FieldRef<"EflListing", 'DateTime'>
     readonly updatedAt: FieldRef<"EflListing", 'DateTime'>
@@ -149426,6 +149897,21 @@ export namespace Prisma {
   }
 
   /**
+   * EflListing.adCampaign
+   */
+  export type EflListing$adCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    where?: EflAdCampaignWhereInput
+  }
+
+  /**
    * EflListing without action
    */
   export type EflListingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -149437,6 +149923,4775 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: EflListingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflAdCampaign
+   */
+
+  export type AggregateEflAdCampaign = {
+    _count: EflAdCampaignCountAggregateOutputType | null
+    _avg: EflAdCampaignAvgAggregateOutputType | null
+    _sum: EflAdCampaignSumAggregateOutputType | null
+    _min: EflAdCampaignMinAggregateOutputType | null
+    _max: EflAdCampaignMaxAggregateOutputType | null
+  }
+
+  export type EflAdCampaignAvgAggregateOutputType = {
+    weeklyBudget: Decimal | null
+    maxBid: Decimal | null
+  }
+
+  export type EflAdCampaignSumAggregateOutputType = {
+    weeklyBudget: Decimal | null
+    maxBid: Decimal | null
+  }
+
+  export type EflAdCampaignMinAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    active: boolean | null
+    weeklyBudget: Decimal | null
+    maxBid: Decimal | null
+    pausedByAdmin: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflAdCampaignMaxAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    active: boolean | null
+    weeklyBudget: Decimal | null
+    maxBid: Decimal | null
+    pausedByAdmin: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflAdCampaignCountAggregateOutputType = {
+    id: number
+    listingId: number
+    active: number
+    weeklyBudget: number
+    maxBid: number
+    pausedByAdmin: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EflAdCampaignAvgAggregateInputType = {
+    weeklyBudget?: true
+    maxBid?: true
+  }
+
+  export type EflAdCampaignSumAggregateInputType = {
+    weeklyBudget?: true
+    maxBid?: true
+  }
+
+  export type EflAdCampaignMinAggregateInputType = {
+    id?: true
+    listingId?: true
+    active?: true
+    weeklyBudget?: true
+    maxBid?: true
+    pausedByAdmin?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflAdCampaignMaxAggregateInputType = {
+    id?: true
+    listingId?: true
+    active?: true
+    weeklyBudget?: true
+    maxBid?: true
+    pausedByAdmin?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflAdCampaignCountAggregateInputType = {
+    id?: true
+    listingId?: true
+    active?: true
+    weeklyBudget?: true
+    maxBid?: true
+    pausedByAdmin?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EflAdCampaignAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflAdCampaign to aggregate.
+     */
+    where?: EflAdCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdCampaigns to fetch.
+     */
+    orderBy?: EflAdCampaignOrderByWithRelationInput | EflAdCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflAdCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflAdCampaigns
+    **/
+    _count?: true | EflAdCampaignCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflAdCampaignAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflAdCampaignSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflAdCampaignMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflAdCampaignMaxAggregateInputType
+  }
+
+  export type GetEflAdCampaignAggregateType<T extends EflAdCampaignAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflAdCampaign]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflAdCampaign[P]>
+      : GetScalarType<T[P], AggregateEflAdCampaign[P]>
+  }
+
+
+
+
+  export type EflAdCampaignGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflAdCampaignWhereInput
+    orderBy?: EflAdCampaignOrderByWithAggregationInput | EflAdCampaignOrderByWithAggregationInput[]
+    by: EflAdCampaignScalarFieldEnum[] | EflAdCampaignScalarFieldEnum
+    having?: EflAdCampaignScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflAdCampaignCountAggregateInputType | true
+    _avg?: EflAdCampaignAvgAggregateInputType
+    _sum?: EflAdCampaignSumAggregateInputType
+    _min?: EflAdCampaignMinAggregateInputType
+    _max?: EflAdCampaignMaxAggregateInputType
+  }
+
+  export type EflAdCampaignGroupByOutputType = {
+    id: string
+    listingId: string
+    active: boolean
+    weeklyBudget: Decimal
+    maxBid: Decimal
+    pausedByAdmin: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: EflAdCampaignCountAggregateOutputType | null
+    _avg: EflAdCampaignAvgAggregateOutputType | null
+    _sum: EflAdCampaignSumAggregateOutputType | null
+    _min: EflAdCampaignMinAggregateOutputType | null
+    _max: EflAdCampaignMaxAggregateOutputType | null
+  }
+
+  type GetEflAdCampaignGroupByPayload<T extends EflAdCampaignGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflAdCampaignGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflAdCampaignGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflAdCampaignGroupByOutputType[P]>
+            : GetScalarType<T[P], EflAdCampaignGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflAdCampaignSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    active?: boolean
+    weeklyBudget?: boolean
+    maxBid?: boolean
+    pausedByAdmin?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    listing?: boolean | EflListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eflAdCampaign"]>
+
+  export type EflAdCampaignSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    active?: boolean
+    weeklyBudget?: boolean
+    maxBid?: boolean
+    pausedByAdmin?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    listing?: boolean | EflListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eflAdCampaign"]>
+
+  export type EflAdCampaignSelectScalar = {
+    id?: boolean
+    listingId?: boolean
+    active?: boolean
+    weeklyBudget?: boolean
+    maxBid?: boolean
+    pausedByAdmin?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EflAdCampaignInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | EflListingDefaultArgs<ExtArgs>
+  }
+  export type EflAdCampaignIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | EflListingDefaultArgs<ExtArgs>
+  }
+
+  export type $EflAdCampaignPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflAdCampaign"
+    objects: {
+      listing: Prisma.$EflListingPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      listingId: string
+      active: boolean
+      /**
+       * Most spent in one week (Mon–Sun, UK time), in pounds.
+       */
+      weeklyBudget: Prisma.Decimal
+      /**
+       * Most paid for one tap, in pounds. The auction usually charges less.
+       */
+      maxBid: Prisma.Decimal
+      /**
+       * Set by the Console; a paused campaign can't be switched back on by the shop.
+       */
+      pausedByAdmin: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["eflAdCampaign"]>
+    composites: {}
+  }
+
+  type EflAdCampaignGetPayload<S extends boolean | null | undefined | EflAdCampaignDefaultArgs> = $Result.GetResult<Prisma.$EflAdCampaignPayload, S>
+
+  type EflAdCampaignCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflAdCampaignFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflAdCampaignCountAggregateInputType | true
+    }
+
+  export interface EflAdCampaignDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflAdCampaign'], meta: { name: 'EflAdCampaign' } }
+    /**
+     * Find zero or one EflAdCampaign that matches the filter.
+     * @param {EflAdCampaignFindUniqueArgs} args - Arguments to find a EflAdCampaign
+     * @example
+     * // Get one EflAdCampaign
+     * const eflAdCampaign = await prisma.eflAdCampaign.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflAdCampaignFindUniqueArgs>(args: SelectSubset<T, EflAdCampaignFindUniqueArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflAdCampaign that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflAdCampaignFindUniqueOrThrowArgs} args - Arguments to find a EflAdCampaign
+     * @example
+     * // Get one EflAdCampaign
+     * const eflAdCampaign = await prisma.eflAdCampaign.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflAdCampaignFindUniqueOrThrowArgs>(args: SelectSubset<T, EflAdCampaignFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflAdCampaign that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdCampaignFindFirstArgs} args - Arguments to find a EflAdCampaign
+     * @example
+     * // Get one EflAdCampaign
+     * const eflAdCampaign = await prisma.eflAdCampaign.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflAdCampaignFindFirstArgs>(args?: SelectSubset<T, EflAdCampaignFindFirstArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflAdCampaign that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdCampaignFindFirstOrThrowArgs} args - Arguments to find a EflAdCampaign
+     * @example
+     * // Get one EflAdCampaign
+     * const eflAdCampaign = await prisma.eflAdCampaign.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflAdCampaignFindFirstOrThrowArgs>(args?: SelectSubset<T, EflAdCampaignFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflAdCampaigns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdCampaignFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflAdCampaigns
+     * const eflAdCampaigns = await prisma.eflAdCampaign.findMany()
+     * 
+     * // Get first 10 EflAdCampaigns
+     * const eflAdCampaigns = await prisma.eflAdCampaign.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflAdCampaignWithIdOnly = await prisma.eflAdCampaign.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflAdCampaignFindManyArgs>(args?: SelectSubset<T, EflAdCampaignFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflAdCampaign.
+     * @param {EflAdCampaignCreateArgs} args - Arguments to create a EflAdCampaign.
+     * @example
+     * // Create one EflAdCampaign
+     * const EflAdCampaign = await prisma.eflAdCampaign.create({
+     *   data: {
+     *     // ... data to create a EflAdCampaign
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflAdCampaignCreateArgs>(args: SelectSubset<T, EflAdCampaignCreateArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflAdCampaigns.
+     * @param {EflAdCampaignCreateManyArgs} args - Arguments to create many EflAdCampaigns.
+     * @example
+     * // Create many EflAdCampaigns
+     * const eflAdCampaign = await prisma.eflAdCampaign.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflAdCampaignCreateManyArgs>(args?: SelectSubset<T, EflAdCampaignCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflAdCampaigns and returns the data saved in the database.
+     * @param {EflAdCampaignCreateManyAndReturnArgs} args - Arguments to create many EflAdCampaigns.
+     * @example
+     * // Create many EflAdCampaigns
+     * const eflAdCampaign = await prisma.eflAdCampaign.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflAdCampaigns and only return the `id`
+     * const eflAdCampaignWithIdOnly = await prisma.eflAdCampaign.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflAdCampaignCreateManyAndReturnArgs>(args?: SelectSubset<T, EflAdCampaignCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflAdCampaign.
+     * @param {EflAdCampaignDeleteArgs} args - Arguments to delete one EflAdCampaign.
+     * @example
+     * // Delete one EflAdCampaign
+     * const EflAdCampaign = await prisma.eflAdCampaign.delete({
+     *   where: {
+     *     // ... filter to delete one EflAdCampaign
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflAdCampaignDeleteArgs>(args: SelectSubset<T, EflAdCampaignDeleteArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflAdCampaign.
+     * @param {EflAdCampaignUpdateArgs} args - Arguments to update one EflAdCampaign.
+     * @example
+     * // Update one EflAdCampaign
+     * const eflAdCampaign = await prisma.eflAdCampaign.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflAdCampaignUpdateArgs>(args: SelectSubset<T, EflAdCampaignUpdateArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflAdCampaigns.
+     * @param {EflAdCampaignDeleteManyArgs} args - Arguments to filter EflAdCampaigns to delete.
+     * @example
+     * // Delete a few EflAdCampaigns
+     * const { count } = await prisma.eflAdCampaign.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflAdCampaignDeleteManyArgs>(args?: SelectSubset<T, EflAdCampaignDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflAdCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdCampaignUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflAdCampaigns
+     * const eflAdCampaign = await prisma.eflAdCampaign.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflAdCampaignUpdateManyArgs>(args: SelectSubset<T, EflAdCampaignUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflAdCampaign.
+     * @param {EflAdCampaignUpsertArgs} args - Arguments to update or create a EflAdCampaign.
+     * @example
+     * // Update or create a EflAdCampaign
+     * const eflAdCampaign = await prisma.eflAdCampaign.upsert({
+     *   create: {
+     *     // ... data to create a EflAdCampaign
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflAdCampaign we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflAdCampaignUpsertArgs>(args: SelectSubset<T, EflAdCampaignUpsertArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflAdCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdCampaignCountArgs} args - Arguments to filter EflAdCampaigns to count.
+     * @example
+     * // Count the number of EflAdCampaigns
+     * const count = await prisma.eflAdCampaign.count({
+     *   where: {
+     *     // ... the filter for the EflAdCampaigns we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflAdCampaignCountArgs>(
+      args?: Subset<T, EflAdCampaignCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflAdCampaignCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflAdCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdCampaignAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflAdCampaignAggregateArgs>(args: Subset<T, EflAdCampaignAggregateArgs>): Prisma.PrismaPromise<GetEflAdCampaignAggregateType<T>>
+
+    /**
+     * Group by EflAdCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdCampaignGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflAdCampaignGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflAdCampaignGroupByArgs['orderBy'] }
+        : { orderBy?: EflAdCampaignGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflAdCampaignGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflAdCampaignGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflAdCampaign model
+   */
+  readonly fields: EflAdCampaignFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflAdCampaign.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflAdCampaignClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    listing<T extends EflListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EflListingDefaultArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflAdCampaign model
+   */ 
+  interface EflAdCampaignFieldRefs {
+    readonly id: FieldRef<"EflAdCampaign", 'String'>
+    readonly listingId: FieldRef<"EflAdCampaign", 'String'>
+    readonly active: FieldRef<"EflAdCampaign", 'Boolean'>
+    readonly weeklyBudget: FieldRef<"EflAdCampaign", 'Decimal'>
+    readonly maxBid: FieldRef<"EflAdCampaign", 'Decimal'>
+    readonly pausedByAdmin: FieldRef<"EflAdCampaign", 'Boolean'>
+    readonly createdAt: FieldRef<"EflAdCampaign", 'DateTime'>
+    readonly updatedAt: FieldRef<"EflAdCampaign", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflAdCampaign findUnique
+   */
+  export type EflAdCampaignFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which EflAdCampaign to fetch.
+     */
+    where: EflAdCampaignWhereUniqueInput
+  }
+
+  /**
+   * EflAdCampaign findUniqueOrThrow
+   */
+  export type EflAdCampaignFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which EflAdCampaign to fetch.
+     */
+    where: EflAdCampaignWhereUniqueInput
+  }
+
+  /**
+   * EflAdCampaign findFirst
+   */
+  export type EflAdCampaignFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which EflAdCampaign to fetch.
+     */
+    where?: EflAdCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdCampaigns to fetch.
+     */
+    orderBy?: EflAdCampaignOrderByWithRelationInput | EflAdCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflAdCampaigns.
+     */
+    cursor?: EflAdCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflAdCampaigns.
+     */
+    distinct?: EflAdCampaignScalarFieldEnum | EflAdCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdCampaign findFirstOrThrow
+   */
+  export type EflAdCampaignFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which EflAdCampaign to fetch.
+     */
+    where?: EflAdCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdCampaigns to fetch.
+     */
+    orderBy?: EflAdCampaignOrderByWithRelationInput | EflAdCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflAdCampaigns.
+     */
+    cursor?: EflAdCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflAdCampaigns.
+     */
+    distinct?: EflAdCampaignScalarFieldEnum | EflAdCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdCampaign findMany
+   */
+  export type EflAdCampaignFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * Filter, which EflAdCampaigns to fetch.
+     */
+    where?: EflAdCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdCampaigns to fetch.
+     */
+    orderBy?: EflAdCampaignOrderByWithRelationInput | EflAdCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflAdCampaigns.
+     */
+    cursor?: EflAdCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdCampaigns.
+     */
+    skip?: number
+    distinct?: EflAdCampaignScalarFieldEnum | EflAdCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdCampaign create
+   */
+  export type EflAdCampaignCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EflAdCampaign.
+     */
+    data: XOR<EflAdCampaignCreateInput, EflAdCampaignUncheckedCreateInput>
+  }
+
+  /**
+   * EflAdCampaign createMany
+   */
+  export type EflAdCampaignCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflAdCampaigns.
+     */
+    data: EflAdCampaignCreateManyInput | EflAdCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflAdCampaign createManyAndReturn
+   */
+  export type EflAdCampaignCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflAdCampaigns.
+     */
+    data: EflAdCampaignCreateManyInput | EflAdCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EflAdCampaign update
+   */
+  export type EflAdCampaignUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EflAdCampaign.
+     */
+    data: XOR<EflAdCampaignUpdateInput, EflAdCampaignUncheckedUpdateInput>
+    /**
+     * Choose, which EflAdCampaign to update.
+     */
+    where: EflAdCampaignWhereUniqueInput
+  }
+
+  /**
+   * EflAdCampaign updateMany
+   */
+  export type EflAdCampaignUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflAdCampaigns.
+     */
+    data: XOR<EflAdCampaignUpdateManyMutationInput, EflAdCampaignUncheckedUpdateManyInput>
+    /**
+     * Filter which EflAdCampaigns to update
+     */
+    where?: EflAdCampaignWhereInput
+  }
+
+  /**
+   * EflAdCampaign upsert
+   */
+  export type EflAdCampaignUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EflAdCampaign to update in case it exists.
+     */
+    where: EflAdCampaignWhereUniqueInput
+    /**
+     * In case the EflAdCampaign found by the `where` argument doesn't exist, create a new EflAdCampaign with this data.
+     */
+    create: XOR<EflAdCampaignCreateInput, EflAdCampaignUncheckedCreateInput>
+    /**
+     * In case the EflAdCampaign was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflAdCampaignUpdateInput, EflAdCampaignUncheckedUpdateInput>
+  }
+
+  /**
+   * EflAdCampaign delete
+   */
+  export type EflAdCampaignDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+    /**
+     * Filter which EflAdCampaign to delete.
+     */
+    where: EflAdCampaignWhereUniqueInput
+  }
+
+  /**
+   * EflAdCampaign deleteMany
+   */
+  export type EflAdCampaignDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflAdCampaigns to delete
+     */
+    where?: EflAdCampaignWhereInput
+  }
+
+  /**
+   * EflAdCampaign without action
+   */
+  export type EflAdCampaignDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdCampaign
+     */
+    select?: EflAdCampaignSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflAdCampaignInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflAdTap
+   */
+
+  export type AggregateEflAdTap = {
+    _count: EflAdTapCountAggregateOutputType | null
+    _avg: EflAdTapAvgAggregateOutputType | null
+    _sum: EflAdTapSumAggregateOutputType | null
+    _min: EflAdTapMinAggregateOutputType | null
+    _max: EflAdTapMaxAggregateOutputType | null
+  }
+
+  export type EflAdTapAvgAggregateOutputType = {
+    cost: Decimal | null
+  }
+
+  export type EflAdTapSumAggregateOutputType = {
+    cost: Decimal | null
+  }
+
+  export type EflAdTapMinAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    viewerKey: string | null
+    cost: Decimal | null
+    orderId: string | null
+    createdAt: Date | null
+  }
+
+  export type EflAdTapMaxAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    viewerKey: string | null
+    cost: Decimal | null
+    orderId: string | null
+    createdAt: Date | null
+  }
+
+  export type EflAdTapCountAggregateOutputType = {
+    id: number
+    listingId: number
+    viewerKey: number
+    cost: number
+    orderId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type EflAdTapAvgAggregateInputType = {
+    cost?: true
+  }
+
+  export type EflAdTapSumAggregateInputType = {
+    cost?: true
+  }
+
+  export type EflAdTapMinAggregateInputType = {
+    id?: true
+    listingId?: true
+    viewerKey?: true
+    cost?: true
+    orderId?: true
+    createdAt?: true
+  }
+
+  export type EflAdTapMaxAggregateInputType = {
+    id?: true
+    listingId?: true
+    viewerKey?: true
+    cost?: true
+    orderId?: true
+    createdAt?: true
+  }
+
+  export type EflAdTapCountAggregateInputType = {
+    id?: true
+    listingId?: true
+    viewerKey?: true
+    cost?: true
+    orderId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type EflAdTapAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflAdTap to aggregate.
+     */
+    where?: EflAdTapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdTaps to fetch.
+     */
+    orderBy?: EflAdTapOrderByWithRelationInput | EflAdTapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflAdTapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdTaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdTaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflAdTaps
+    **/
+    _count?: true | EflAdTapCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflAdTapAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflAdTapSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflAdTapMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflAdTapMaxAggregateInputType
+  }
+
+  export type GetEflAdTapAggregateType<T extends EflAdTapAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflAdTap]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflAdTap[P]>
+      : GetScalarType<T[P], AggregateEflAdTap[P]>
+  }
+
+
+
+
+  export type EflAdTapGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflAdTapWhereInput
+    orderBy?: EflAdTapOrderByWithAggregationInput | EflAdTapOrderByWithAggregationInput[]
+    by: EflAdTapScalarFieldEnum[] | EflAdTapScalarFieldEnum
+    having?: EflAdTapScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflAdTapCountAggregateInputType | true
+    _avg?: EflAdTapAvgAggregateInputType
+    _sum?: EflAdTapSumAggregateInputType
+    _min?: EflAdTapMinAggregateInputType
+    _max?: EflAdTapMaxAggregateInputType
+  }
+
+  export type EflAdTapGroupByOutputType = {
+    id: string
+    listingId: string
+    viewerKey: string
+    cost: Decimal
+    orderId: string | null
+    createdAt: Date
+    _count: EflAdTapCountAggregateOutputType | null
+    _avg: EflAdTapAvgAggregateOutputType | null
+    _sum: EflAdTapSumAggregateOutputType | null
+    _min: EflAdTapMinAggregateOutputType | null
+    _max: EflAdTapMaxAggregateOutputType | null
+  }
+
+  type GetEflAdTapGroupByPayload<T extends EflAdTapGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflAdTapGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflAdTapGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflAdTapGroupByOutputType[P]>
+            : GetScalarType<T[P], EflAdTapGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflAdTapSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    viewerKey?: boolean
+    cost?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["eflAdTap"]>
+
+  export type EflAdTapSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    viewerKey?: boolean
+    cost?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["eflAdTap"]>
+
+  export type EflAdTapSelectScalar = {
+    id?: boolean
+    listingId?: boolean
+    viewerKey?: boolean
+    cost?: boolean
+    orderId?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $EflAdTapPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflAdTap"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      listingId: string
+      /**
+       * The customer account, or a hash of the device when signed out.
+       */
+      viewerKey: string
+      /**
+       * What the auction charged for this tap, in pounds.
+       */
+      cost: Prisma.Decimal
+      /**
+       * Set when an order from the same viewer followed within a day.
+       */
+      orderId: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["eflAdTap"]>
+    composites: {}
+  }
+
+  type EflAdTapGetPayload<S extends boolean | null | undefined | EflAdTapDefaultArgs> = $Result.GetResult<Prisma.$EflAdTapPayload, S>
+
+  type EflAdTapCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflAdTapFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflAdTapCountAggregateInputType | true
+    }
+
+  export interface EflAdTapDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflAdTap'], meta: { name: 'EflAdTap' } }
+    /**
+     * Find zero or one EflAdTap that matches the filter.
+     * @param {EflAdTapFindUniqueArgs} args - Arguments to find a EflAdTap
+     * @example
+     * // Get one EflAdTap
+     * const eflAdTap = await prisma.eflAdTap.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflAdTapFindUniqueArgs>(args: SelectSubset<T, EflAdTapFindUniqueArgs<ExtArgs>>): Prisma__EflAdTapClient<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflAdTap that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflAdTapFindUniqueOrThrowArgs} args - Arguments to find a EflAdTap
+     * @example
+     * // Get one EflAdTap
+     * const eflAdTap = await prisma.eflAdTap.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflAdTapFindUniqueOrThrowArgs>(args: SelectSubset<T, EflAdTapFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflAdTapClient<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflAdTap that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdTapFindFirstArgs} args - Arguments to find a EflAdTap
+     * @example
+     * // Get one EflAdTap
+     * const eflAdTap = await prisma.eflAdTap.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflAdTapFindFirstArgs>(args?: SelectSubset<T, EflAdTapFindFirstArgs<ExtArgs>>): Prisma__EflAdTapClient<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflAdTap that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdTapFindFirstOrThrowArgs} args - Arguments to find a EflAdTap
+     * @example
+     * // Get one EflAdTap
+     * const eflAdTap = await prisma.eflAdTap.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflAdTapFindFirstOrThrowArgs>(args?: SelectSubset<T, EflAdTapFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflAdTapClient<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflAdTaps that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdTapFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflAdTaps
+     * const eflAdTaps = await prisma.eflAdTap.findMany()
+     * 
+     * // Get first 10 EflAdTaps
+     * const eflAdTaps = await prisma.eflAdTap.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflAdTapWithIdOnly = await prisma.eflAdTap.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflAdTapFindManyArgs>(args?: SelectSubset<T, EflAdTapFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflAdTap.
+     * @param {EflAdTapCreateArgs} args - Arguments to create a EflAdTap.
+     * @example
+     * // Create one EflAdTap
+     * const EflAdTap = await prisma.eflAdTap.create({
+     *   data: {
+     *     // ... data to create a EflAdTap
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflAdTapCreateArgs>(args: SelectSubset<T, EflAdTapCreateArgs<ExtArgs>>): Prisma__EflAdTapClient<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflAdTaps.
+     * @param {EflAdTapCreateManyArgs} args - Arguments to create many EflAdTaps.
+     * @example
+     * // Create many EflAdTaps
+     * const eflAdTap = await prisma.eflAdTap.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflAdTapCreateManyArgs>(args?: SelectSubset<T, EflAdTapCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflAdTaps and returns the data saved in the database.
+     * @param {EflAdTapCreateManyAndReturnArgs} args - Arguments to create many EflAdTaps.
+     * @example
+     * // Create many EflAdTaps
+     * const eflAdTap = await prisma.eflAdTap.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflAdTaps and only return the `id`
+     * const eflAdTapWithIdOnly = await prisma.eflAdTap.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflAdTapCreateManyAndReturnArgs>(args?: SelectSubset<T, EflAdTapCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflAdTap.
+     * @param {EflAdTapDeleteArgs} args - Arguments to delete one EflAdTap.
+     * @example
+     * // Delete one EflAdTap
+     * const EflAdTap = await prisma.eflAdTap.delete({
+     *   where: {
+     *     // ... filter to delete one EflAdTap
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflAdTapDeleteArgs>(args: SelectSubset<T, EflAdTapDeleteArgs<ExtArgs>>): Prisma__EflAdTapClient<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflAdTap.
+     * @param {EflAdTapUpdateArgs} args - Arguments to update one EflAdTap.
+     * @example
+     * // Update one EflAdTap
+     * const eflAdTap = await prisma.eflAdTap.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflAdTapUpdateArgs>(args: SelectSubset<T, EflAdTapUpdateArgs<ExtArgs>>): Prisma__EflAdTapClient<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflAdTaps.
+     * @param {EflAdTapDeleteManyArgs} args - Arguments to filter EflAdTaps to delete.
+     * @example
+     * // Delete a few EflAdTaps
+     * const { count } = await prisma.eflAdTap.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflAdTapDeleteManyArgs>(args?: SelectSubset<T, EflAdTapDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflAdTaps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdTapUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflAdTaps
+     * const eflAdTap = await prisma.eflAdTap.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflAdTapUpdateManyArgs>(args: SelectSubset<T, EflAdTapUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflAdTap.
+     * @param {EflAdTapUpsertArgs} args - Arguments to update or create a EflAdTap.
+     * @example
+     * // Update or create a EflAdTap
+     * const eflAdTap = await prisma.eflAdTap.upsert({
+     *   create: {
+     *     // ... data to create a EflAdTap
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflAdTap we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflAdTapUpsertArgs>(args: SelectSubset<T, EflAdTapUpsertArgs<ExtArgs>>): Prisma__EflAdTapClient<$Result.GetResult<Prisma.$EflAdTapPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflAdTaps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdTapCountArgs} args - Arguments to filter EflAdTaps to count.
+     * @example
+     * // Count the number of EflAdTaps
+     * const count = await prisma.eflAdTap.count({
+     *   where: {
+     *     // ... the filter for the EflAdTaps we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflAdTapCountArgs>(
+      args?: Subset<T, EflAdTapCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflAdTapCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflAdTap.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdTapAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflAdTapAggregateArgs>(args: Subset<T, EflAdTapAggregateArgs>): Prisma.PrismaPromise<GetEflAdTapAggregateType<T>>
+
+    /**
+     * Group by EflAdTap.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdTapGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflAdTapGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflAdTapGroupByArgs['orderBy'] }
+        : { orderBy?: EflAdTapGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflAdTapGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflAdTapGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflAdTap model
+   */
+  readonly fields: EflAdTapFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflAdTap.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflAdTapClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflAdTap model
+   */ 
+  interface EflAdTapFieldRefs {
+    readonly id: FieldRef<"EflAdTap", 'String'>
+    readonly listingId: FieldRef<"EflAdTap", 'String'>
+    readonly viewerKey: FieldRef<"EflAdTap", 'String'>
+    readonly cost: FieldRef<"EflAdTap", 'Decimal'>
+    readonly orderId: FieldRef<"EflAdTap", 'String'>
+    readonly createdAt: FieldRef<"EflAdTap", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflAdTap findUnique
+   */
+  export type EflAdTapFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdTap to fetch.
+     */
+    where: EflAdTapWhereUniqueInput
+  }
+
+  /**
+   * EflAdTap findUniqueOrThrow
+   */
+  export type EflAdTapFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdTap to fetch.
+     */
+    where: EflAdTapWhereUniqueInput
+  }
+
+  /**
+   * EflAdTap findFirst
+   */
+  export type EflAdTapFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdTap to fetch.
+     */
+    where?: EflAdTapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdTaps to fetch.
+     */
+    orderBy?: EflAdTapOrderByWithRelationInput | EflAdTapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflAdTaps.
+     */
+    cursor?: EflAdTapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdTaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdTaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflAdTaps.
+     */
+    distinct?: EflAdTapScalarFieldEnum | EflAdTapScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdTap findFirstOrThrow
+   */
+  export type EflAdTapFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdTap to fetch.
+     */
+    where?: EflAdTapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdTaps to fetch.
+     */
+    orderBy?: EflAdTapOrderByWithRelationInput | EflAdTapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflAdTaps.
+     */
+    cursor?: EflAdTapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdTaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdTaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflAdTaps.
+     */
+    distinct?: EflAdTapScalarFieldEnum | EflAdTapScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdTap findMany
+   */
+  export type EflAdTapFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdTaps to fetch.
+     */
+    where?: EflAdTapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdTaps to fetch.
+     */
+    orderBy?: EflAdTapOrderByWithRelationInput | EflAdTapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflAdTaps.
+     */
+    cursor?: EflAdTapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdTaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdTaps.
+     */
+    skip?: number
+    distinct?: EflAdTapScalarFieldEnum | EflAdTapScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdTap create
+   */
+  export type EflAdTapCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EflAdTap.
+     */
+    data: XOR<EflAdTapCreateInput, EflAdTapUncheckedCreateInput>
+  }
+
+  /**
+   * EflAdTap createMany
+   */
+  export type EflAdTapCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflAdTaps.
+     */
+    data: EflAdTapCreateManyInput | EflAdTapCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflAdTap createManyAndReturn
+   */
+  export type EflAdTapCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflAdTaps.
+     */
+    data: EflAdTapCreateManyInput | EflAdTapCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflAdTap update
+   */
+  export type EflAdTapUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EflAdTap.
+     */
+    data: XOR<EflAdTapUpdateInput, EflAdTapUncheckedUpdateInput>
+    /**
+     * Choose, which EflAdTap to update.
+     */
+    where: EflAdTapWhereUniqueInput
+  }
+
+  /**
+   * EflAdTap updateMany
+   */
+  export type EflAdTapUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflAdTaps.
+     */
+    data: XOR<EflAdTapUpdateManyMutationInput, EflAdTapUncheckedUpdateManyInput>
+    /**
+     * Filter which EflAdTaps to update
+     */
+    where?: EflAdTapWhereInput
+  }
+
+  /**
+   * EflAdTap upsert
+   */
+  export type EflAdTapUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EflAdTap to update in case it exists.
+     */
+    where: EflAdTapWhereUniqueInput
+    /**
+     * In case the EflAdTap found by the `where` argument doesn't exist, create a new EflAdTap with this data.
+     */
+    create: XOR<EflAdTapCreateInput, EflAdTapUncheckedCreateInput>
+    /**
+     * In case the EflAdTap was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflAdTapUpdateInput, EflAdTapUncheckedUpdateInput>
+  }
+
+  /**
+   * EflAdTap delete
+   */
+  export type EflAdTapDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+    /**
+     * Filter which EflAdTap to delete.
+     */
+    where: EflAdTapWhereUniqueInput
+  }
+
+  /**
+   * EflAdTap deleteMany
+   */
+  export type EflAdTapDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflAdTaps to delete
+     */
+    where?: EflAdTapWhereInput
+  }
+
+  /**
+   * EflAdTap without action
+   */
+  export type EflAdTapDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdTap
+     */
+    select?: EflAdTapSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflAdShow
+   */
+
+  export type AggregateEflAdShow = {
+    _count: EflAdShowCountAggregateOutputType | null
+    _avg: EflAdShowAvgAggregateOutputType | null
+    _sum: EflAdShowSumAggregateOutputType | null
+    _min: EflAdShowMinAggregateOutputType | null
+    _max: EflAdShowMaxAggregateOutputType | null
+  }
+
+  export type EflAdShowAvgAggregateOutputType = {
+    count: number | null
+  }
+
+  export type EflAdShowSumAggregateOutputType = {
+    count: number | null
+  }
+
+  export type EflAdShowMinAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    viewerKey: string | null
+    day: string | null
+    count: number | null
+  }
+
+  export type EflAdShowMaxAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    viewerKey: string | null
+    day: string | null
+    count: number | null
+  }
+
+  export type EflAdShowCountAggregateOutputType = {
+    id: number
+    listingId: number
+    viewerKey: number
+    day: number
+    count: number
+    _all: number
+  }
+
+
+  export type EflAdShowAvgAggregateInputType = {
+    count?: true
+  }
+
+  export type EflAdShowSumAggregateInputType = {
+    count?: true
+  }
+
+  export type EflAdShowMinAggregateInputType = {
+    id?: true
+    listingId?: true
+    viewerKey?: true
+    day?: true
+    count?: true
+  }
+
+  export type EflAdShowMaxAggregateInputType = {
+    id?: true
+    listingId?: true
+    viewerKey?: true
+    day?: true
+    count?: true
+  }
+
+  export type EflAdShowCountAggregateInputType = {
+    id?: true
+    listingId?: true
+    viewerKey?: true
+    day?: true
+    count?: true
+    _all?: true
+  }
+
+  export type EflAdShowAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflAdShow to aggregate.
+     */
+    where?: EflAdShowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdShows to fetch.
+     */
+    orderBy?: EflAdShowOrderByWithRelationInput | EflAdShowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflAdShowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdShows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdShows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflAdShows
+    **/
+    _count?: true | EflAdShowCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflAdShowAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflAdShowSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflAdShowMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflAdShowMaxAggregateInputType
+  }
+
+  export type GetEflAdShowAggregateType<T extends EflAdShowAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflAdShow]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflAdShow[P]>
+      : GetScalarType<T[P], AggregateEflAdShow[P]>
+  }
+
+
+
+
+  export type EflAdShowGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflAdShowWhereInput
+    orderBy?: EflAdShowOrderByWithAggregationInput | EflAdShowOrderByWithAggregationInput[]
+    by: EflAdShowScalarFieldEnum[] | EflAdShowScalarFieldEnum
+    having?: EflAdShowScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflAdShowCountAggregateInputType | true
+    _avg?: EflAdShowAvgAggregateInputType
+    _sum?: EflAdShowSumAggregateInputType
+    _min?: EflAdShowMinAggregateInputType
+    _max?: EflAdShowMaxAggregateInputType
+  }
+
+  export type EflAdShowGroupByOutputType = {
+    id: string
+    listingId: string
+    viewerKey: string
+    day: string
+    count: number
+    _count: EflAdShowCountAggregateOutputType | null
+    _avg: EflAdShowAvgAggregateOutputType | null
+    _sum: EflAdShowSumAggregateOutputType | null
+    _min: EflAdShowMinAggregateOutputType | null
+    _max: EflAdShowMaxAggregateOutputType | null
+  }
+
+  type GetEflAdShowGroupByPayload<T extends EflAdShowGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflAdShowGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflAdShowGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflAdShowGroupByOutputType[P]>
+            : GetScalarType<T[P], EflAdShowGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflAdShowSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    viewerKey?: boolean
+    day?: boolean
+    count?: boolean
+  }, ExtArgs["result"]["eflAdShow"]>
+
+  export type EflAdShowSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    viewerKey?: boolean
+    day?: boolean
+    count?: boolean
+  }, ExtArgs["result"]["eflAdShow"]>
+
+  export type EflAdShowSelectScalar = {
+    id?: boolean
+    listingId?: boolean
+    viewerKey?: boolean
+    day?: boolean
+    count?: boolean
+  }
+
+
+  export type $EflAdShowPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflAdShow"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      listingId: string
+      viewerKey: string
+      /**
+       * "2026-10-27" (UK calendar day).
+       */
+      day: string
+      count: number
+    }, ExtArgs["result"]["eflAdShow"]>
+    composites: {}
+  }
+
+  type EflAdShowGetPayload<S extends boolean | null | undefined | EflAdShowDefaultArgs> = $Result.GetResult<Prisma.$EflAdShowPayload, S>
+
+  type EflAdShowCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflAdShowFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflAdShowCountAggregateInputType | true
+    }
+
+  export interface EflAdShowDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflAdShow'], meta: { name: 'EflAdShow' } }
+    /**
+     * Find zero or one EflAdShow that matches the filter.
+     * @param {EflAdShowFindUniqueArgs} args - Arguments to find a EflAdShow
+     * @example
+     * // Get one EflAdShow
+     * const eflAdShow = await prisma.eflAdShow.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflAdShowFindUniqueArgs>(args: SelectSubset<T, EflAdShowFindUniqueArgs<ExtArgs>>): Prisma__EflAdShowClient<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflAdShow that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflAdShowFindUniqueOrThrowArgs} args - Arguments to find a EflAdShow
+     * @example
+     * // Get one EflAdShow
+     * const eflAdShow = await prisma.eflAdShow.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflAdShowFindUniqueOrThrowArgs>(args: SelectSubset<T, EflAdShowFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflAdShowClient<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflAdShow that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdShowFindFirstArgs} args - Arguments to find a EflAdShow
+     * @example
+     * // Get one EflAdShow
+     * const eflAdShow = await prisma.eflAdShow.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflAdShowFindFirstArgs>(args?: SelectSubset<T, EflAdShowFindFirstArgs<ExtArgs>>): Prisma__EflAdShowClient<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflAdShow that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdShowFindFirstOrThrowArgs} args - Arguments to find a EflAdShow
+     * @example
+     * // Get one EflAdShow
+     * const eflAdShow = await prisma.eflAdShow.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflAdShowFindFirstOrThrowArgs>(args?: SelectSubset<T, EflAdShowFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflAdShowClient<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflAdShows that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdShowFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflAdShows
+     * const eflAdShows = await prisma.eflAdShow.findMany()
+     * 
+     * // Get first 10 EflAdShows
+     * const eflAdShows = await prisma.eflAdShow.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflAdShowWithIdOnly = await prisma.eflAdShow.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflAdShowFindManyArgs>(args?: SelectSubset<T, EflAdShowFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflAdShow.
+     * @param {EflAdShowCreateArgs} args - Arguments to create a EflAdShow.
+     * @example
+     * // Create one EflAdShow
+     * const EflAdShow = await prisma.eflAdShow.create({
+     *   data: {
+     *     // ... data to create a EflAdShow
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflAdShowCreateArgs>(args: SelectSubset<T, EflAdShowCreateArgs<ExtArgs>>): Prisma__EflAdShowClient<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflAdShows.
+     * @param {EflAdShowCreateManyArgs} args - Arguments to create many EflAdShows.
+     * @example
+     * // Create many EflAdShows
+     * const eflAdShow = await prisma.eflAdShow.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflAdShowCreateManyArgs>(args?: SelectSubset<T, EflAdShowCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflAdShows and returns the data saved in the database.
+     * @param {EflAdShowCreateManyAndReturnArgs} args - Arguments to create many EflAdShows.
+     * @example
+     * // Create many EflAdShows
+     * const eflAdShow = await prisma.eflAdShow.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflAdShows and only return the `id`
+     * const eflAdShowWithIdOnly = await prisma.eflAdShow.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflAdShowCreateManyAndReturnArgs>(args?: SelectSubset<T, EflAdShowCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflAdShow.
+     * @param {EflAdShowDeleteArgs} args - Arguments to delete one EflAdShow.
+     * @example
+     * // Delete one EflAdShow
+     * const EflAdShow = await prisma.eflAdShow.delete({
+     *   where: {
+     *     // ... filter to delete one EflAdShow
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflAdShowDeleteArgs>(args: SelectSubset<T, EflAdShowDeleteArgs<ExtArgs>>): Prisma__EflAdShowClient<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflAdShow.
+     * @param {EflAdShowUpdateArgs} args - Arguments to update one EflAdShow.
+     * @example
+     * // Update one EflAdShow
+     * const eflAdShow = await prisma.eflAdShow.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflAdShowUpdateArgs>(args: SelectSubset<T, EflAdShowUpdateArgs<ExtArgs>>): Prisma__EflAdShowClient<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflAdShows.
+     * @param {EflAdShowDeleteManyArgs} args - Arguments to filter EflAdShows to delete.
+     * @example
+     * // Delete a few EflAdShows
+     * const { count } = await prisma.eflAdShow.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflAdShowDeleteManyArgs>(args?: SelectSubset<T, EflAdShowDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflAdShows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdShowUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflAdShows
+     * const eflAdShow = await prisma.eflAdShow.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflAdShowUpdateManyArgs>(args: SelectSubset<T, EflAdShowUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflAdShow.
+     * @param {EflAdShowUpsertArgs} args - Arguments to update or create a EflAdShow.
+     * @example
+     * // Update or create a EflAdShow
+     * const eflAdShow = await prisma.eflAdShow.upsert({
+     *   create: {
+     *     // ... data to create a EflAdShow
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflAdShow we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflAdShowUpsertArgs>(args: SelectSubset<T, EflAdShowUpsertArgs<ExtArgs>>): Prisma__EflAdShowClient<$Result.GetResult<Prisma.$EflAdShowPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflAdShows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdShowCountArgs} args - Arguments to filter EflAdShows to count.
+     * @example
+     * // Count the number of EflAdShows
+     * const count = await prisma.eflAdShow.count({
+     *   where: {
+     *     // ... the filter for the EflAdShows we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflAdShowCountArgs>(
+      args?: Subset<T, EflAdShowCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflAdShowCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflAdShow.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdShowAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflAdShowAggregateArgs>(args: Subset<T, EflAdShowAggregateArgs>): Prisma.PrismaPromise<GetEflAdShowAggregateType<T>>
+
+    /**
+     * Group by EflAdShow.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflAdShowGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflAdShowGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflAdShowGroupByArgs['orderBy'] }
+        : { orderBy?: EflAdShowGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflAdShowGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflAdShowGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflAdShow model
+   */
+  readonly fields: EflAdShowFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflAdShow.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflAdShowClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflAdShow model
+   */ 
+  interface EflAdShowFieldRefs {
+    readonly id: FieldRef<"EflAdShow", 'String'>
+    readonly listingId: FieldRef<"EflAdShow", 'String'>
+    readonly viewerKey: FieldRef<"EflAdShow", 'String'>
+    readonly day: FieldRef<"EflAdShow", 'String'>
+    readonly count: FieldRef<"EflAdShow", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflAdShow findUnique
+   */
+  export type EflAdShowFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdShow to fetch.
+     */
+    where: EflAdShowWhereUniqueInput
+  }
+
+  /**
+   * EflAdShow findUniqueOrThrow
+   */
+  export type EflAdShowFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdShow to fetch.
+     */
+    where: EflAdShowWhereUniqueInput
+  }
+
+  /**
+   * EflAdShow findFirst
+   */
+  export type EflAdShowFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdShow to fetch.
+     */
+    where?: EflAdShowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdShows to fetch.
+     */
+    orderBy?: EflAdShowOrderByWithRelationInput | EflAdShowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflAdShows.
+     */
+    cursor?: EflAdShowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdShows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdShows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflAdShows.
+     */
+    distinct?: EflAdShowScalarFieldEnum | EflAdShowScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdShow findFirstOrThrow
+   */
+  export type EflAdShowFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdShow to fetch.
+     */
+    where?: EflAdShowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdShows to fetch.
+     */
+    orderBy?: EflAdShowOrderByWithRelationInput | EflAdShowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflAdShows.
+     */
+    cursor?: EflAdShowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdShows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdShows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflAdShows.
+     */
+    distinct?: EflAdShowScalarFieldEnum | EflAdShowScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdShow findMany
+   */
+  export type EflAdShowFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * Filter, which EflAdShows to fetch.
+     */
+    where?: EflAdShowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflAdShows to fetch.
+     */
+    orderBy?: EflAdShowOrderByWithRelationInput | EflAdShowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflAdShows.
+     */
+    cursor?: EflAdShowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflAdShows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflAdShows.
+     */
+    skip?: number
+    distinct?: EflAdShowScalarFieldEnum | EflAdShowScalarFieldEnum[]
+  }
+
+  /**
+   * EflAdShow create
+   */
+  export type EflAdShowCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EflAdShow.
+     */
+    data: XOR<EflAdShowCreateInput, EflAdShowUncheckedCreateInput>
+  }
+
+  /**
+   * EflAdShow createMany
+   */
+  export type EflAdShowCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflAdShows.
+     */
+    data: EflAdShowCreateManyInput | EflAdShowCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflAdShow createManyAndReturn
+   */
+  export type EflAdShowCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflAdShows.
+     */
+    data: EflAdShowCreateManyInput | EflAdShowCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflAdShow update
+   */
+  export type EflAdShowUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EflAdShow.
+     */
+    data: XOR<EflAdShowUpdateInput, EflAdShowUncheckedUpdateInput>
+    /**
+     * Choose, which EflAdShow to update.
+     */
+    where: EflAdShowWhereUniqueInput
+  }
+
+  /**
+   * EflAdShow updateMany
+   */
+  export type EflAdShowUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflAdShows.
+     */
+    data: XOR<EflAdShowUpdateManyMutationInput, EflAdShowUncheckedUpdateManyInput>
+    /**
+     * Filter which EflAdShows to update
+     */
+    where?: EflAdShowWhereInput
+  }
+
+  /**
+   * EflAdShow upsert
+   */
+  export type EflAdShowUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EflAdShow to update in case it exists.
+     */
+    where: EflAdShowWhereUniqueInput
+    /**
+     * In case the EflAdShow found by the `where` argument doesn't exist, create a new EflAdShow with this data.
+     */
+    create: XOR<EflAdShowCreateInput, EflAdShowUncheckedCreateInput>
+    /**
+     * In case the EflAdShow was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflAdShowUpdateInput, EflAdShowUncheckedUpdateInput>
+  }
+
+  /**
+   * EflAdShow delete
+   */
+  export type EflAdShowDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+    /**
+     * Filter which EflAdShow to delete.
+     */
+    where: EflAdShowWhereUniqueInput
+  }
+
+  /**
+   * EflAdShow deleteMany
+   */
+  export type EflAdShowDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflAdShows to delete
+     */
+    where?: EflAdShowWhereInput
+  }
+
+  /**
+   * EflAdShow without action
+   */
+  export type EflAdShowDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflAdShow
+     */
+    select?: EflAdShowSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflCampaign
+   */
+
+  export type AggregateEflCampaign = {
+    _count: EflCampaignCountAggregateOutputType | null
+    _avg: EflCampaignAvgAggregateOutputType | null
+    _sum: EflCampaignSumAggregateOutputType | null
+    _min: EflCampaignMinAggregateOutputType | null
+    _max: EflCampaignMaxAggregateOutputType | null
+  }
+
+  export type EflCampaignAvgAggregateOutputType = {
+    targeted: number | null
+    delivered: number | null
+  }
+
+  export type EflCampaignSumAggregateOutputType = {
+    targeted: number | null
+    delivered: number | null
+  }
+
+  export type EflCampaignMinAggregateOutputType = {
+    id: string | null
+    channel: string | null
+    title: string | null
+    body: string | null
+    ctaLabel: string | null
+    ctaUrl: string | null
+    status: string | null
+    targeted: number | null
+    delivered: number | null
+    createdBy: string | null
+    sentAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflCampaignMaxAggregateOutputType = {
+    id: string | null
+    channel: string | null
+    title: string | null
+    body: string | null
+    ctaLabel: string | null
+    ctaUrl: string | null
+    status: string | null
+    targeted: number | null
+    delivered: number | null
+    createdBy: string | null
+    sentAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflCampaignCountAggregateOutputType = {
+    id: number
+    channel: number
+    title: number
+    body: number
+    ctaLabel: number
+    ctaUrl: number
+    status: number
+    targeted: number
+    delivered: number
+    createdBy: number
+    sentAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EflCampaignAvgAggregateInputType = {
+    targeted?: true
+    delivered?: true
+  }
+
+  export type EflCampaignSumAggregateInputType = {
+    targeted?: true
+    delivered?: true
+  }
+
+  export type EflCampaignMinAggregateInputType = {
+    id?: true
+    channel?: true
+    title?: true
+    body?: true
+    ctaLabel?: true
+    ctaUrl?: true
+    status?: true
+    targeted?: true
+    delivered?: true
+    createdBy?: true
+    sentAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflCampaignMaxAggregateInputType = {
+    id?: true
+    channel?: true
+    title?: true
+    body?: true
+    ctaLabel?: true
+    ctaUrl?: true
+    status?: true
+    targeted?: true
+    delivered?: true
+    createdBy?: true
+    sentAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflCampaignCountAggregateInputType = {
+    id?: true
+    channel?: true
+    title?: true
+    body?: true
+    ctaLabel?: true
+    ctaUrl?: true
+    status?: true
+    targeted?: true
+    delivered?: true
+    createdBy?: true
+    sentAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EflCampaignAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflCampaign to aggregate.
+     */
+    where?: EflCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflCampaigns to fetch.
+     */
+    orderBy?: EflCampaignOrderByWithRelationInput | EflCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflCampaigns
+    **/
+    _count?: true | EflCampaignCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflCampaignAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflCampaignSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflCampaignMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflCampaignMaxAggregateInputType
+  }
+
+  export type GetEflCampaignAggregateType<T extends EflCampaignAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflCampaign]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflCampaign[P]>
+      : GetScalarType<T[P], AggregateEflCampaign[P]>
+  }
+
+
+
+
+  export type EflCampaignGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflCampaignWhereInput
+    orderBy?: EflCampaignOrderByWithAggregationInput | EflCampaignOrderByWithAggregationInput[]
+    by: EflCampaignScalarFieldEnum[] | EflCampaignScalarFieldEnum
+    having?: EflCampaignScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflCampaignCountAggregateInputType | true
+    _avg?: EflCampaignAvgAggregateInputType
+    _sum?: EflCampaignSumAggregateInputType
+    _min?: EflCampaignMinAggregateInputType
+    _max?: EflCampaignMaxAggregateInputType
+  }
+
+  export type EflCampaignGroupByOutputType = {
+    id: string
+    channel: string
+    title: string
+    body: string
+    ctaLabel: string | null
+    ctaUrl: string | null
+    status: string
+    targeted: number
+    delivered: number
+    createdBy: string | null
+    sentAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: EflCampaignCountAggregateOutputType | null
+    _avg: EflCampaignAvgAggregateOutputType | null
+    _sum: EflCampaignSumAggregateOutputType | null
+    _min: EflCampaignMinAggregateOutputType | null
+    _max: EflCampaignMaxAggregateOutputType | null
+  }
+
+  type GetEflCampaignGroupByPayload<T extends EflCampaignGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflCampaignGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflCampaignGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflCampaignGroupByOutputType[P]>
+            : GetScalarType<T[P], EflCampaignGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflCampaignSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    channel?: boolean
+    title?: boolean
+    body?: boolean
+    ctaLabel?: boolean
+    ctaUrl?: boolean
+    status?: boolean
+    targeted?: boolean
+    delivered?: boolean
+    createdBy?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["eflCampaign"]>
+
+  export type EflCampaignSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    channel?: boolean
+    title?: boolean
+    body?: boolean
+    ctaLabel?: boolean
+    ctaUrl?: boolean
+    status?: boolean
+    targeted?: boolean
+    delivered?: boolean
+    createdBy?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["eflCampaign"]>
+
+  export type EflCampaignSelectScalar = {
+    id?: boolean
+    channel?: boolean
+    title?: boolean
+    body?: boolean
+    ctaLabel?: boolean
+    ctaUrl?: boolean
+    status?: boolean
+    targeted?: boolean
+    delivered?: boolean
+    createdBy?: boolean
+    sentAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $EflCampaignPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflCampaign"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      /**
+       * "PUSH" | "EMAIL"
+       */
+      channel: string
+      /**
+       * Push title, or email subject.
+       */
+      title: string
+      body: string
+      /**
+       * Optional button: where it goes (web link, or a shop in the app).
+       */
+      ctaLabel: string | null
+      ctaUrl: string | null
+      /**
+       * "DRAFT" | "SENDING" | "SENT" | "FAILED"
+       */
+      status: string
+      targeted: number
+      delivered: number
+      createdBy: string | null
+      sentAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["eflCampaign"]>
+    composites: {}
+  }
+
+  type EflCampaignGetPayload<S extends boolean | null | undefined | EflCampaignDefaultArgs> = $Result.GetResult<Prisma.$EflCampaignPayload, S>
+
+  type EflCampaignCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflCampaignFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflCampaignCountAggregateInputType | true
+    }
+
+  export interface EflCampaignDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflCampaign'], meta: { name: 'EflCampaign' } }
+    /**
+     * Find zero or one EflCampaign that matches the filter.
+     * @param {EflCampaignFindUniqueArgs} args - Arguments to find a EflCampaign
+     * @example
+     * // Get one EflCampaign
+     * const eflCampaign = await prisma.eflCampaign.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflCampaignFindUniqueArgs>(args: SelectSubset<T, EflCampaignFindUniqueArgs<ExtArgs>>): Prisma__EflCampaignClient<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflCampaign that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflCampaignFindUniqueOrThrowArgs} args - Arguments to find a EflCampaign
+     * @example
+     * // Get one EflCampaign
+     * const eflCampaign = await prisma.eflCampaign.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflCampaignFindUniqueOrThrowArgs>(args: SelectSubset<T, EflCampaignFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflCampaignClient<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflCampaign that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCampaignFindFirstArgs} args - Arguments to find a EflCampaign
+     * @example
+     * // Get one EflCampaign
+     * const eflCampaign = await prisma.eflCampaign.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflCampaignFindFirstArgs>(args?: SelectSubset<T, EflCampaignFindFirstArgs<ExtArgs>>): Prisma__EflCampaignClient<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflCampaign that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCampaignFindFirstOrThrowArgs} args - Arguments to find a EflCampaign
+     * @example
+     * // Get one EflCampaign
+     * const eflCampaign = await prisma.eflCampaign.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflCampaignFindFirstOrThrowArgs>(args?: SelectSubset<T, EflCampaignFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflCampaignClient<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflCampaigns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCampaignFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflCampaigns
+     * const eflCampaigns = await prisma.eflCampaign.findMany()
+     * 
+     * // Get first 10 EflCampaigns
+     * const eflCampaigns = await prisma.eflCampaign.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflCampaignWithIdOnly = await prisma.eflCampaign.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflCampaignFindManyArgs>(args?: SelectSubset<T, EflCampaignFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflCampaign.
+     * @param {EflCampaignCreateArgs} args - Arguments to create a EflCampaign.
+     * @example
+     * // Create one EflCampaign
+     * const EflCampaign = await prisma.eflCampaign.create({
+     *   data: {
+     *     // ... data to create a EflCampaign
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflCampaignCreateArgs>(args: SelectSubset<T, EflCampaignCreateArgs<ExtArgs>>): Prisma__EflCampaignClient<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflCampaigns.
+     * @param {EflCampaignCreateManyArgs} args - Arguments to create many EflCampaigns.
+     * @example
+     * // Create many EflCampaigns
+     * const eflCampaign = await prisma.eflCampaign.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflCampaignCreateManyArgs>(args?: SelectSubset<T, EflCampaignCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflCampaigns and returns the data saved in the database.
+     * @param {EflCampaignCreateManyAndReturnArgs} args - Arguments to create many EflCampaigns.
+     * @example
+     * // Create many EflCampaigns
+     * const eflCampaign = await prisma.eflCampaign.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflCampaigns and only return the `id`
+     * const eflCampaignWithIdOnly = await prisma.eflCampaign.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflCampaignCreateManyAndReturnArgs>(args?: SelectSubset<T, EflCampaignCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflCampaign.
+     * @param {EflCampaignDeleteArgs} args - Arguments to delete one EflCampaign.
+     * @example
+     * // Delete one EflCampaign
+     * const EflCampaign = await prisma.eflCampaign.delete({
+     *   where: {
+     *     // ... filter to delete one EflCampaign
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflCampaignDeleteArgs>(args: SelectSubset<T, EflCampaignDeleteArgs<ExtArgs>>): Prisma__EflCampaignClient<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflCampaign.
+     * @param {EflCampaignUpdateArgs} args - Arguments to update one EflCampaign.
+     * @example
+     * // Update one EflCampaign
+     * const eflCampaign = await prisma.eflCampaign.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflCampaignUpdateArgs>(args: SelectSubset<T, EflCampaignUpdateArgs<ExtArgs>>): Prisma__EflCampaignClient<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflCampaigns.
+     * @param {EflCampaignDeleteManyArgs} args - Arguments to filter EflCampaigns to delete.
+     * @example
+     * // Delete a few EflCampaigns
+     * const { count } = await prisma.eflCampaign.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflCampaignDeleteManyArgs>(args?: SelectSubset<T, EflCampaignDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCampaignUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflCampaigns
+     * const eflCampaign = await prisma.eflCampaign.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflCampaignUpdateManyArgs>(args: SelectSubset<T, EflCampaignUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflCampaign.
+     * @param {EflCampaignUpsertArgs} args - Arguments to update or create a EflCampaign.
+     * @example
+     * // Update or create a EflCampaign
+     * const eflCampaign = await prisma.eflCampaign.upsert({
+     *   create: {
+     *     // ... data to create a EflCampaign
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflCampaign we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflCampaignUpsertArgs>(args: SelectSubset<T, EflCampaignUpsertArgs<ExtArgs>>): Prisma__EflCampaignClient<$Result.GetResult<Prisma.$EflCampaignPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflCampaigns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCampaignCountArgs} args - Arguments to filter EflCampaigns to count.
+     * @example
+     * // Count the number of EflCampaigns
+     * const count = await prisma.eflCampaign.count({
+     *   where: {
+     *     // ... the filter for the EflCampaigns we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflCampaignCountArgs>(
+      args?: Subset<T, EflCampaignCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflCampaignCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCampaignAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflCampaignAggregateArgs>(args: Subset<T, EflCampaignAggregateArgs>): Prisma.PrismaPromise<GetEflCampaignAggregateType<T>>
+
+    /**
+     * Group by EflCampaign.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCampaignGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflCampaignGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflCampaignGroupByArgs['orderBy'] }
+        : { orderBy?: EflCampaignGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflCampaignGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflCampaignGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflCampaign model
+   */
+  readonly fields: EflCampaignFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflCampaign.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflCampaignClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflCampaign model
+   */ 
+  interface EflCampaignFieldRefs {
+    readonly id: FieldRef<"EflCampaign", 'String'>
+    readonly channel: FieldRef<"EflCampaign", 'String'>
+    readonly title: FieldRef<"EflCampaign", 'String'>
+    readonly body: FieldRef<"EflCampaign", 'String'>
+    readonly ctaLabel: FieldRef<"EflCampaign", 'String'>
+    readonly ctaUrl: FieldRef<"EflCampaign", 'String'>
+    readonly status: FieldRef<"EflCampaign", 'String'>
+    readonly targeted: FieldRef<"EflCampaign", 'Int'>
+    readonly delivered: FieldRef<"EflCampaign", 'Int'>
+    readonly createdBy: FieldRef<"EflCampaign", 'String'>
+    readonly sentAt: FieldRef<"EflCampaign", 'DateTime'>
+    readonly createdAt: FieldRef<"EflCampaign", 'DateTime'>
+    readonly updatedAt: FieldRef<"EflCampaign", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflCampaign findUnique
+   */
+  export type EflCampaignFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCampaign to fetch.
+     */
+    where: EflCampaignWhereUniqueInput
+  }
+
+  /**
+   * EflCampaign findUniqueOrThrow
+   */
+  export type EflCampaignFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCampaign to fetch.
+     */
+    where: EflCampaignWhereUniqueInput
+  }
+
+  /**
+   * EflCampaign findFirst
+   */
+  export type EflCampaignFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCampaign to fetch.
+     */
+    where?: EflCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflCampaigns to fetch.
+     */
+    orderBy?: EflCampaignOrderByWithRelationInput | EflCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflCampaigns.
+     */
+    cursor?: EflCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflCampaigns.
+     */
+    distinct?: EflCampaignScalarFieldEnum | EflCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * EflCampaign findFirstOrThrow
+   */
+  export type EflCampaignFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCampaign to fetch.
+     */
+    where?: EflCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflCampaigns to fetch.
+     */
+    orderBy?: EflCampaignOrderByWithRelationInput | EflCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflCampaigns.
+     */
+    cursor?: EflCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflCampaigns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflCampaigns.
+     */
+    distinct?: EflCampaignScalarFieldEnum | EflCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * EflCampaign findMany
+   */
+  export type EflCampaignFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCampaigns to fetch.
+     */
+    where?: EflCampaignWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflCampaigns to fetch.
+     */
+    orderBy?: EflCampaignOrderByWithRelationInput | EflCampaignOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflCampaigns.
+     */
+    cursor?: EflCampaignWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflCampaigns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflCampaigns.
+     */
+    skip?: number
+    distinct?: EflCampaignScalarFieldEnum | EflCampaignScalarFieldEnum[]
+  }
+
+  /**
+   * EflCampaign create
+   */
+  export type EflCampaignCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EflCampaign.
+     */
+    data: XOR<EflCampaignCreateInput, EflCampaignUncheckedCreateInput>
+  }
+
+  /**
+   * EflCampaign createMany
+   */
+  export type EflCampaignCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflCampaigns.
+     */
+    data: EflCampaignCreateManyInput | EflCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflCampaign createManyAndReturn
+   */
+  export type EflCampaignCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflCampaigns.
+     */
+    data: EflCampaignCreateManyInput | EflCampaignCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflCampaign update
+   */
+  export type EflCampaignUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EflCampaign.
+     */
+    data: XOR<EflCampaignUpdateInput, EflCampaignUncheckedUpdateInput>
+    /**
+     * Choose, which EflCampaign to update.
+     */
+    where: EflCampaignWhereUniqueInput
+  }
+
+  /**
+   * EflCampaign updateMany
+   */
+  export type EflCampaignUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflCampaigns.
+     */
+    data: XOR<EflCampaignUpdateManyMutationInput, EflCampaignUncheckedUpdateManyInput>
+    /**
+     * Filter which EflCampaigns to update
+     */
+    where?: EflCampaignWhereInput
+  }
+
+  /**
+   * EflCampaign upsert
+   */
+  export type EflCampaignUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EflCampaign to update in case it exists.
+     */
+    where: EflCampaignWhereUniqueInput
+    /**
+     * In case the EflCampaign found by the `where` argument doesn't exist, create a new EflCampaign with this data.
+     */
+    create: XOR<EflCampaignCreateInput, EflCampaignUncheckedCreateInput>
+    /**
+     * In case the EflCampaign was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflCampaignUpdateInput, EflCampaignUncheckedUpdateInput>
+  }
+
+  /**
+   * EflCampaign delete
+   */
+  export type EflCampaignDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+    /**
+     * Filter which EflCampaign to delete.
+     */
+    where: EflCampaignWhereUniqueInput
+  }
+
+  /**
+   * EflCampaign deleteMany
+   */
+  export type EflCampaignDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflCampaigns to delete
+     */
+    where?: EflCampaignWhereInput
+  }
+
+  /**
+   * EflCampaign without action
+   */
+  export type EflCampaignDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCampaign
+     */
+    select?: EflCampaignSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflStatementSend
+   */
+
+  export type AggregateEflStatementSend = {
+    _count: EflStatementSendCountAggregateOutputType | null
+    _min: EflStatementSendMinAggregateOutputType | null
+    _max: EflStatementSendMaxAggregateOutputType | null
+  }
+
+  export type EflStatementSendMinAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    weekStart: Date | null
+    sentTo: string | null
+    sentAt: Date | null
+  }
+
+  export type EflStatementSendMaxAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    weekStart: Date | null
+    sentTo: string | null
+    sentAt: Date | null
+  }
+
+  export type EflStatementSendCountAggregateOutputType = {
+    id: number
+    listingId: number
+    weekStart: number
+    sentTo: number
+    sentAt: number
+    _all: number
+  }
+
+
+  export type EflStatementSendMinAggregateInputType = {
+    id?: true
+    listingId?: true
+    weekStart?: true
+    sentTo?: true
+    sentAt?: true
+  }
+
+  export type EflStatementSendMaxAggregateInputType = {
+    id?: true
+    listingId?: true
+    weekStart?: true
+    sentTo?: true
+    sentAt?: true
+  }
+
+  export type EflStatementSendCountAggregateInputType = {
+    id?: true
+    listingId?: true
+    weekStart?: true
+    sentTo?: true
+    sentAt?: true
+    _all?: true
+  }
+
+  export type EflStatementSendAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflStatementSend to aggregate.
+     */
+    where?: EflStatementSendWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflStatementSends to fetch.
+     */
+    orderBy?: EflStatementSendOrderByWithRelationInput | EflStatementSendOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflStatementSendWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflStatementSends from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflStatementSends.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflStatementSends
+    **/
+    _count?: true | EflStatementSendCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflStatementSendMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflStatementSendMaxAggregateInputType
+  }
+
+  export type GetEflStatementSendAggregateType<T extends EflStatementSendAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflStatementSend]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflStatementSend[P]>
+      : GetScalarType<T[P], AggregateEflStatementSend[P]>
+  }
+
+
+
+
+  export type EflStatementSendGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflStatementSendWhereInput
+    orderBy?: EflStatementSendOrderByWithAggregationInput | EflStatementSendOrderByWithAggregationInput[]
+    by: EflStatementSendScalarFieldEnum[] | EflStatementSendScalarFieldEnum
+    having?: EflStatementSendScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflStatementSendCountAggregateInputType | true
+    _min?: EflStatementSendMinAggregateInputType
+    _max?: EflStatementSendMaxAggregateInputType
+  }
+
+  export type EflStatementSendGroupByOutputType = {
+    id: string
+    listingId: string
+    weekStart: Date
+    sentTo: string
+    sentAt: Date
+    _count: EflStatementSendCountAggregateOutputType | null
+    _min: EflStatementSendMinAggregateOutputType | null
+    _max: EflStatementSendMaxAggregateOutputType | null
+  }
+
+  type GetEflStatementSendGroupByPayload<T extends EflStatementSendGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflStatementSendGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflStatementSendGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflStatementSendGroupByOutputType[P]>
+            : GetScalarType<T[P], EflStatementSendGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflStatementSendSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    weekStart?: boolean
+    sentTo?: boolean
+    sentAt?: boolean
+  }, ExtArgs["result"]["eflStatementSend"]>
+
+  export type EflStatementSendSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    weekStart?: boolean
+    sentTo?: boolean
+    sentAt?: boolean
+  }, ExtArgs["result"]["eflStatementSend"]>
+
+  export type EflStatementSendSelectScalar = {
+    id?: boolean
+    listingId?: boolean
+    weekStart?: boolean
+    sentTo?: boolean
+    sentAt?: boolean
+  }
+
+
+  export type $EflStatementSendPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflStatementSend"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      listingId: string
+      /**
+       * Monday 00:00 UK time.
+       */
+      weekStart: Date
+      sentTo: string
+      sentAt: Date
+    }, ExtArgs["result"]["eflStatementSend"]>
+    composites: {}
+  }
+
+  type EflStatementSendGetPayload<S extends boolean | null | undefined | EflStatementSendDefaultArgs> = $Result.GetResult<Prisma.$EflStatementSendPayload, S>
+
+  type EflStatementSendCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflStatementSendFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflStatementSendCountAggregateInputType | true
+    }
+
+  export interface EflStatementSendDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflStatementSend'], meta: { name: 'EflStatementSend' } }
+    /**
+     * Find zero or one EflStatementSend that matches the filter.
+     * @param {EflStatementSendFindUniqueArgs} args - Arguments to find a EflStatementSend
+     * @example
+     * // Get one EflStatementSend
+     * const eflStatementSend = await prisma.eflStatementSend.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflStatementSendFindUniqueArgs>(args: SelectSubset<T, EflStatementSendFindUniqueArgs<ExtArgs>>): Prisma__EflStatementSendClient<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflStatementSend that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflStatementSendFindUniqueOrThrowArgs} args - Arguments to find a EflStatementSend
+     * @example
+     * // Get one EflStatementSend
+     * const eflStatementSend = await prisma.eflStatementSend.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflStatementSendFindUniqueOrThrowArgs>(args: SelectSubset<T, EflStatementSendFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflStatementSendClient<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflStatementSend that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflStatementSendFindFirstArgs} args - Arguments to find a EflStatementSend
+     * @example
+     * // Get one EflStatementSend
+     * const eflStatementSend = await prisma.eflStatementSend.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflStatementSendFindFirstArgs>(args?: SelectSubset<T, EflStatementSendFindFirstArgs<ExtArgs>>): Prisma__EflStatementSendClient<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflStatementSend that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflStatementSendFindFirstOrThrowArgs} args - Arguments to find a EflStatementSend
+     * @example
+     * // Get one EflStatementSend
+     * const eflStatementSend = await prisma.eflStatementSend.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflStatementSendFindFirstOrThrowArgs>(args?: SelectSubset<T, EflStatementSendFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflStatementSendClient<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflStatementSends that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflStatementSendFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflStatementSends
+     * const eflStatementSends = await prisma.eflStatementSend.findMany()
+     * 
+     * // Get first 10 EflStatementSends
+     * const eflStatementSends = await prisma.eflStatementSend.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflStatementSendWithIdOnly = await prisma.eflStatementSend.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflStatementSendFindManyArgs>(args?: SelectSubset<T, EflStatementSendFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflStatementSend.
+     * @param {EflStatementSendCreateArgs} args - Arguments to create a EflStatementSend.
+     * @example
+     * // Create one EflStatementSend
+     * const EflStatementSend = await prisma.eflStatementSend.create({
+     *   data: {
+     *     // ... data to create a EflStatementSend
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflStatementSendCreateArgs>(args: SelectSubset<T, EflStatementSendCreateArgs<ExtArgs>>): Prisma__EflStatementSendClient<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflStatementSends.
+     * @param {EflStatementSendCreateManyArgs} args - Arguments to create many EflStatementSends.
+     * @example
+     * // Create many EflStatementSends
+     * const eflStatementSend = await prisma.eflStatementSend.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflStatementSendCreateManyArgs>(args?: SelectSubset<T, EflStatementSendCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflStatementSends and returns the data saved in the database.
+     * @param {EflStatementSendCreateManyAndReturnArgs} args - Arguments to create many EflStatementSends.
+     * @example
+     * // Create many EflStatementSends
+     * const eflStatementSend = await prisma.eflStatementSend.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflStatementSends and only return the `id`
+     * const eflStatementSendWithIdOnly = await prisma.eflStatementSend.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflStatementSendCreateManyAndReturnArgs>(args?: SelectSubset<T, EflStatementSendCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflStatementSend.
+     * @param {EflStatementSendDeleteArgs} args - Arguments to delete one EflStatementSend.
+     * @example
+     * // Delete one EflStatementSend
+     * const EflStatementSend = await prisma.eflStatementSend.delete({
+     *   where: {
+     *     // ... filter to delete one EflStatementSend
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflStatementSendDeleteArgs>(args: SelectSubset<T, EflStatementSendDeleteArgs<ExtArgs>>): Prisma__EflStatementSendClient<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflStatementSend.
+     * @param {EflStatementSendUpdateArgs} args - Arguments to update one EflStatementSend.
+     * @example
+     * // Update one EflStatementSend
+     * const eflStatementSend = await prisma.eflStatementSend.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflStatementSendUpdateArgs>(args: SelectSubset<T, EflStatementSendUpdateArgs<ExtArgs>>): Prisma__EflStatementSendClient<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflStatementSends.
+     * @param {EflStatementSendDeleteManyArgs} args - Arguments to filter EflStatementSends to delete.
+     * @example
+     * // Delete a few EflStatementSends
+     * const { count } = await prisma.eflStatementSend.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflStatementSendDeleteManyArgs>(args?: SelectSubset<T, EflStatementSendDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflStatementSends.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflStatementSendUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflStatementSends
+     * const eflStatementSend = await prisma.eflStatementSend.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflStatementSendUpdateManyArgs>(args: SelectSubset<T, EflStatementSendUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflStatementSend.
+     * @param {EflStatementSendUpsertArgs} args - Arguments to update or create a EflStatementSend.
+     * @example
+     * // Update or create a EflStatementSend
+     * const eflStatementSend = await prisma.eflStatementSend.upsert({
+     *   create: {
+     *     // ... data to create a EflStatementSend
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflStatementSend we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflStatementSendUpsertArgs>(args: SelectSubset<T, EflStatementSendUpsertArgs<ExtArgs>>): Prisma__EflStatementSendClient<$Result.GetResult<Prisma.$EflStatementSendPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflStatementSends.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflStatementSendCountArgs} args - Arguments to filter EflStatementSends to count.
+     * @example
+     * // Count the number of EflStatementSends
+     * const count = await prisma.eflStatementSend.count({
+     *   where: {
+     *     // ... the filter for the EflStatementSends we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflStatementSendCountArgs>(
+      args?: Subset<T, EflStatementSendCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflStatementSendCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflStatementSend.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflStatementSendAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflStatementSendAggregateArgs>(args: Subset<T, EflStatementSendAggregateArgs>): Prisma.PrismaPromise<GetEflStatementSendAggregateType<T>>
+
+    /**
+     * Group by EflStatementSend.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflStatementSendGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflStatementSendGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflStatementSendGroupByArgs['orderBy'] }
+        : { orderBy?: EflStatementSendGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflStatementSendGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflStatementSendGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflStatementSend model
+   */
+  readonly fields: EflStatementSendFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflStatementSend.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflStatementSendClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflStatementSend model
+   */ 
+  interface EflStatementSendFieldRefs {
+    readonly id: FieldRef<"EflStatementSend", 'String'>
+    readonly listingId: FieldRef<"EflStatementSend", 'String'>
+    readonly weekStart: FieldRef<"EflStatementSend", 'DateTime'>
+    readonly sentTo: FieldRef<"EflStatementSend", 'String'>
+    readonly sentAt: FieldRef<"EflStatementSend", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflStatementSend findUnique
+   */
+  export type EflStatementSendFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * Filter, which EflStatementSend to fetch.
+     */
+    where: EflStatementSendWhereUniqueInput
+  }
+
+  /**
+   * EflStatementSend findUniqueOrThrow
+   */
+  export type EflStatementSendFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * Filter, which EflStatementSend to fetch.
+     */
+    where: EflStatementSendWhereUniqueInput
+  }
+
+  /**
+   * EflStatementSend findFirst
+   */
+  export type EflStatementSendFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * Filter, which EflStatementSend to fetch.
+     */
+    where?: EflStatementSendWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflStatementSends to fetch.
+     */
+    orderBy?: EflStatementSendOrderByWithRelationInput | EflStatementSendOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflStatementSends.
+     */
+    cursor?: EflStatementSendWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflStatementSends from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflStatementSends.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflStatementSends.
+     */
+    distinct?: EflStatementSendScalarFieldEnum | EflStatementSendScalarFieldEnum[]
+  }
+
+  /**
+   * EflStatementSend findFirstOrThrow
+   */
+  export type EflStatementSendFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * Filter, which EflStatementSend to fetch.
+     */
+    where?: EflStatementSendWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflStatementSends to fetch.
+     */
+    orderBy?: EflStatementSendOrderByWithRelationInput | EflStatementSendOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflStatementSends.
+     */
+    cursor?: EflStatementSendWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflStatementSends from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflStatementSends.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflStatementSends.
+     */
+    distinct?: EflStatementSendScalarFieldEnum | EflStatementSendScalarFieldEnum[]
+  }
+
+  /**
+   * EflStatementSend findMany
+   */
+  export type EflStatementSendFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * Filter, which EflStatementSends to fetch.
+     */
+    where?: EflStatementSendWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflStatementSends to fetch.
+     */
+    orderBy?: EflStatementSendOrderByWithRelationInput | EflStatementSendOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflStatementSends.
+     */
+    cursor?: EflStatementSendWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflStatementSends from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflStatementSends.
+     */
+    skip?: number
+    distinct?: EflStatementSendScalarFieldEnum | EflStatementSendScalarFieldEnum[]
+  }
+
+  /**
+   * EflStatementSend create
+   */
+  export type EflStatementSendCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EflStatementSend.
+     */
+    data: XOR<EflStatementSendCreateInput, EflStatementSendUncheckedCreateInput>
+  }
+
+  /**
+   * EflStatementSend createMany
+   */
+  export type EflStatementSendCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflStatementSends.
+     */
+    data: EflStatementSendCreateManyInput | EflStatementSendCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflStatementSend createManyAndReturn
+   */
+  export type EflStatementSendCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflStatementSends.
+     */
+    data: EflStatementSendCreateManyInput | EflStatementSendCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflStatementSend update
+   */
+  export type EflStatementSendUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EflStatementSend.
+     */
+    data: XOR<EflStatementSendUpdateInput, EflStatementSendUncheckedUpdateInput>
+    /**
+     * Choose, which EflStatementSend to update.
+     */
+    where: EflStatementSendWhereUniqueInput
+  }
+
+  /**
+   * EflStatementSend updateMany
+   */
+  export type EflStatementSendUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflStatementSends.
+     */
+    data: XOR<EflStatementSendUpdateManyMutationInput, EflStatementSendUncheckedUpdateManyInput>
+    /**
+     * Filter which EflStatementSends to update
+     */
+    where?: EflStatementSendWhereInput
+  }
+
+  /**
+   * EflStatementSend upsert
+   */
+  export type EflStatementSendUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EflStatementSend to update in case it exists.
+     */
+    where: EflStatementSendWhereUniqueInput
+    /**
+     * In case the EflStatementSend found by the `where` argument doesn't exist, create a new EflStatementSend with this data.
+     */
+    create: XOR<EflStatementSendCreateInput, EflStatementSendUncheckedCreateInput>
+    /**
+     * In case the EflStatementSend was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflStatementSendUpdateInput, EflStatementSendUncheckedUpdateInput>
+  }
+
+  /**
+   * EflStatementSend delete
+   */
+  export type EflStatementSendDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
+    /**
+     * Filter which EflStatementSend to delete.
+     */
+    where: EflStatementSendWhereUniqueInput
+  }
+
+  /**
+   * EflStatementSend deleteMany
+   */
+  export type EflStatementSendDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflStatementSends to delete
+     */
+    where?: EflStatementSendWhereInput
+  }
+
+  /**
+   * EflStatementSend without action
+   */
+  export type EflStatementSendDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflStatementSend
+     */
+    select?: EflStatementSendSelect<ExtArgs> | null
   }
 
 
@@ -207227,6 +212482,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt: 'deliveryPinVerifiedAt',
     deliveryPinAttempts: 'deliveryPinAttempts',
     eflCommissionPercent: 'eflCommissionPercent',
+    eflAdRecovered: 'eflAdRecovered',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     loyaltyMemberId: 'loyaltyMemberId'
@@ -208636,12 +213892,80 @@ export namespace Prisma {
     hygieneCheckedAt: 'hygieneCheckedAt',
     lastDeviceSeenAt: 'lastDeviceSeenAt',
     offlineSince: 'offlineSince',
+    statementEmail: 'statementEmail',
     approvedAt: 'approvedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type EflListingScalarFieldEnum = (typeof EflListingScalarFieldEnum)[keyof typeof EflListingScalarFieldEnum]
+
+
+  export const EflAdCampaignScalarFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    active: 'active',
+    weeklyBudget: 'weeklyBudget',
+    maxBid: 'maxBid',
+    pausedByAdmin: 'pausedByAdmin',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EflAdCampaignScalarFieldEnum = (typeof EflAdCampaignScalarFieldEnum)[keyof typeof EflAdCampaignScalarFieldEnum]
+
+
+  export const EflAdTapScalarFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    viewerKey: 'viewerKey',
+    cost: 'cost',
+    orderId: 'orderId',
+    createdAt: 'createdAt'
+  };
+
+  export type EflAdTapScalarFieldEnum = (typeof EflAdTapScalarFieldEnum)[keyof typeof EflAdTapScalarFieldEnum]
+
+
+  export const EflAdShowScalarFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    viewerKey: 'viewerKey',
+    day: 'day',
+    count: 'count'
+  };
+
+  export type EflAdShowScalarFieldEnum = (typeof EflAdShowScalarFieldEnum)[keyof typeof EflAdShowScalarFieldEnum]
+
+
+  export const EflCampaignScalarFieldEnum: {
+    id: 'id',
+    channel: 'channel',
+    title: 'title',
+    body: 'body',
+    ctaLabel: 'ctaLabel',
+    ctaUrl: 'ctaUrl',
+    status: 'status',
+    targeted: 'targeted',
+    delivered: 'delivered',
+    createdBy: 'createdBy',
+    sentAt: 'sentAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EflCampaignScalarFieldEnum = (typeof EflCampaignScalarFieldEnum)[keyof typeof EflCampaignScalarFieldEnum]
+
+
+  export const EflStatementSendScalarFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    weekStart: 'weekStart',
+    sentTo: 'sentTo',
+    sentAt: 'sentAt'
+  };
+
+  export type EflStatementSendScalarFieldEnum = (typeof EflStatementSendScalarFieldEnum)[keyof typeof EflStatementSendScalarFieldEnum]
 
 
   export const EflApplicationScalarFieldEnum: {
@@ -211383,10 +216707,62 @@ export namespace Prisma {
     logoUrl: 'logoUrl',
     cuisines: 'cuisines',
     fsaEstablishmentId: 'fsaEstablishmentId',
-    hygieneRating: 'hygieneRating'
+    hygieneRating: 'hygieneRating',
+    statementEmail: 'statementEmail'
   };
 
   export type EflListingOrderByRelevanceFieldEnum = (typeof EflListingOrderByRelevanceFieldEnum)[keyof typeof EflListingOrderByRelevanceFieldEnum]
+
+
+  export const EflAdCampaignOrderByRelevanceFieldEnum: {
+    id: 'id',
+    listingId: 'listingId'
+  };
+
+  export type EflAdCampaignOrderByRelevanceFieldEnum = (typeof EflAdCampaignOrderByRelevanceFieldEnum)[keyof typeof EflAdCampaignOrderByRelevanceFieldEnum]
+
+
+  export const EflAdTapOrderByRelevanceFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    viewerKey: 'viewerKey',
+    orderId: 'orderId'
+  };
+
+  export type EflAdTapOrderByRelevanceFieldEnum = (typeof EflAdTapOrderByRelevanceFieldEnum)[keyof typeof EflAdTapOrderByRelevanceFieldEnum]
+
+
+  export const EflAdShowOrderByRelevanceFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    viewerKey: 'viewerKey',
+    day: 'day'
+  };
+
+  export type EflAdShowOrderByRelevanceFieldEnum = (typeof EflAdShowOrderByRelevanceFieldEnum)[keyof typeof EflAdShowOrderByRelevanceFieldEnum]
+
+
+  export const EflCampaignOrderByRelevanceFieldEnum: {
+    id: 'id',
+    channel: 'channel',
+    title: 'title',
+    body: 'body',
+    ctaLabel: 'ctaLabel',
+    ctaUrl: 'ctaUrl',
+    status: 'status',
+    createdBy: 'createdBy'
+  };
+
+  export type EflCampaignOrderByRelevanceFieldEnum = (typeof EflCampaignOrderByRelevanceFieldEnum)[keyof typeof EflCampaignOrderByRelevanceFieldEnum]
+
+
+  export const EflStatementSendOrderByRelevanceFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    sentTo: 'sentTo'
+  };
+
+  export type EflStatementSendOrderByRelevanceFieldEnum = (typeof EflStatementSendOrderByRelevanceFieldEnum)[keyof typeof EflStatementSendOrderByRelevanceFieldEnum]
 
 
   export const EflApplicationOrderByRelevanceFieldEnum: {
@@ -218240,6 +223616,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     deliveryPinAttempts?: IntFilter<"Order"> | number
     eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     loyaltyMemberId?: StringNullableFilter<"Order"> | string | null
@@ -218342,6 +223719,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: SortOrderInput | SortOrder
     deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrderInput | SortOrder
+    eflAdRecovered?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrderInput | SortOrder
@@ -218449,6 +223827,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     deliveryPinAttempts?: IntFilter<"Order"> | number
     eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     loyaltyMemberId?: StringNullableFilter<"Order"> | string | null
@@ -218551,6 +223930,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: SortOrderInput | SortOrder
     deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrderInput | SortOrder
+    eflAdRecovered?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrderInput | SortOrder
@@ -218648,6 +224028,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
     deliveryPinAttempts?: IntWithAggregatesFilter<"Order"> | number
     eflCommissionPercent?: DecimalNullableWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: DecimalNullableWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     loyaltyMemberId?: StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -225898,10 +231279,12 @@ export namespace Prisma {
     hygieneCheckedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     lastDeviceSeenAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     offlineSince?: DateTimeNullableFilter<"EflListing"> | Date | string | null
+    statementEmail?: StringNullableFilter<"EflListing"> | string | null
     approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
+    adCampaign?: XOR<EflAdCampaignNullableRelationFilter, EflAdCampaignWhereInput> | null
   }
 
   export type EflListingOrderByWithRelationInput = {
@@ -225924,10 +231307,12 @@ export namespace Prisma {
     hygieneCheckedAt?: SortOrderInput | SortOrder
     lastDeviceSeenAt?: SortOrderInput | SortOrder
     offlineSince?: SortOrderInput | SortOrder
+    statementEmail?: SortOrderInput | SortOrder
     approvedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     location?: LocationOrderByWithRelationInput
+    adCampaign?: EflAdCampaignOrderByWithRelationInput
     _relevance?: EflListingOrderByRelevanceInput
   }
 
@@ -225954,10 +231339,12 @@ export namespace Prisma {
     hygieneCheckedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     lastDeviceSeenAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     offlineSince?: DateTimeNullableFilter<"EflListing"> | Date | string | null
+    statementEmail?: StringNullableFilter<"EflListing"> | string | null
     approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
+    adCampaign?: XOR<EflAdCampaignNullableRelationFilter, EflAdCampaignWhereInput> | null
   }, "id" | "locationId">
 
   export type EflListingOrderByWithAggregationInput = {
@@ -225980,6 +231367,7 @@ export namespace Prisma {
     hygieneCheckedAt?: SortOrderInput | SortOrder
     lastDeviceSeenAt?: SortOrderInput | SortOrder
     offlineSince?: SortOrderInput | SortOrder
+    statementEmail?: SortOrderInput | SortOrder
     approvedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -226013,9 +231401,348 @@ export namespace Prisma {
     hygieneCheckedAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     lastDeviceSeenAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     offlineSince?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
+    statementEmail?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
     approvedAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
+  }
+
+  export type EflAdCampaignWhereInput = {
+    AND?: EflAdCampaignWhereInput | EflAdCampaignWhereInput[]
+    OR?: EflAdCampaignWhereInput[]
+    NOT?: EflAdCampaignWhereInput | EflAdCampaignWhereInput[]
+    id?: StringFilter<"EflAdCampaign"> | string
+    listingId?: StringFilter<"EflAdCampaign"> | string
+    active?: BoolFilter<"EflAdCampaign"> | boolean
+    weeklyBudget?: DecimalFilter<"EflAdCampaign"> | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalFilter<"EflAdCampaign"> | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolFilter<"EflAdCampaign"> | boolean
+    createdAt?: DateTimeFilter<"EflAdCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"EflAdCampaign"> | Date | string
+    listing?: XOR<EflListingRelationFilter, EflListingWhereInput>
+  }
+
+  export type EflAdCampaignOrderByWithRelationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    active?: SortOrder
+    weeklyBudget?: SortOrder
+    maxBid?: SortOrder
+    pausedByAdmin?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    listing?: EflListingOrderByWithRelationInput
+    _relevance?: EflAdCampaignOrderByRelevanceInput
+  }
+
+  export type EflAdCampaignWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    listingId?: string
+    AND?: EflAdCampaignWhereInput | EflAdCampaignWhereInput[]
+    OR?: EflAdCampaignWhereInput[]
+    NOT?: EflAdCampaignWhereInput | EflAdCampaignWhereInput[]
+    active?: BoolFilter<"EflAdCampaign"> | boolean
+    weeklyBudget?: DecimalFilter<"EflAdCampaign"> | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalFilter<"EflAdCampaign"> | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolFilter<"EflAdCampaign"> | boolean
+    createdAt?: DateTimeFilter<"EflAdCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"EflAdCampaign"> | Date | string
+    listing?: XOR<EflListingRelationFilter, EflListingWhereInput>
+  }, "id" | "listingId">
+
+  export type EflAdCampaignOrderByWithAggregationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    active?: SortOrder
+    weeklyBudget?: SortOrder
+    maxBid?: SortOrder
+    pausedByAdmin?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EflAdCampaignCountOrderByAggregateInput
+    _avg?: EflAdCampaignAvgOrderByAggregateInput
+    _max?: EflAdCampaignMaxOrderByAggregateInput
+    _min?: EflAdCampaignMinOrderByAggregateInput
+    _sum?: EflAdCampaignSumOrderByAggregateInput
+  }
+
+  export type EflAdCampaignScalarWhereWithAggregatesInput = {
+    AND?: EflAdCampaignScalarWhereWithAggregatesInput | EflAdCampaignScalarWhereWithAggregatesInput[]
+    OR?: EflAdCampaignScalarWhereWithAggregatesInput[]
+    NOT?: EflAdCampaignScalarWhereWithAggregatesInput | EflAdCampaignScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflAdCampaign"> | string
+    listingId?: StringWithAggregatesFilter<"EflAdCampaign"> | string
+    active?: BoolWithAggregatesFilter<"EflAdCampaign"> | boolean
+    weeklyBudget?: DecimalWithAggregatesFilter<"EflAdCampaign"> | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalWithAggregatesFilter<"EflAdCampaign"> | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolWithAggregatesFilter<"EflAdCampaign"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"EflAdCampaign"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EflAdCampaign"> | Date | string
+  }
+
+  export type EflAdTapWhereInput = {
+    AND?: EflAdTapWhereInput | EflAdTapWhereInput[]
+    OR?: EflAdTapWhereInput[]
+    NOT?: EflAdTapWhereInput | EflAdTapWhereInput[]
+    id?: StringFilter<"EflAdTap"> | string
+    listingId?: StringFilter<"EflAdTap"> | string
+    viewerKey?: StringFilter<"EflAdTap"> | string
+    cost?: DecimalFilter<"EflAdTap"> | Decimal | DecimalJsLike | number | string
+    orderId?: StringNullableFilter<"EflAdTap"> | string | null
+    createdAt?: DateTimeFilter<"EflAdTap"> | Date | string
+  }
+
+  export type EflAdTapOrderByWithRelationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    cost?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _relevance?: EflAdTapOrderByRelevanceInput
+  }
+
+  export type EflAdTapWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EflAdTapWhereInput | EflAdTapWhereInput[]
+    OR?: EflAdTapWhereInput[]
+    NOT?: EflAdTapWhereInput | EflAdTapWhereInput[]
+    listingId?: StringFilter<"EflAdTap"> | string
+    viewerKey?: StringFilter<"EflAdTap"> | string
+    cost?: DecimalFilter<"EflAdTap"> | Decimal | DecimalJsLike | number | string
+    orderId?: StringNullableFilter<"EflAdTap"> | string | null
+    createdAt?: DateTimeFilter<"EflAdTap"> | Date | string
+  }, "id">
+
+  export type EflAdTapOrderByWithAggregationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    cost?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: EflAdTapCountOrderByAggregateInput
+    _avg?: EflAdTapAvgOrderByAggregateInput
+    _max?: EflAdTapMaxOrderByAggregateInput
+    _min?: EflAdTapMinOrderByAggregateInput
+    _sum?: EflAdTapSumOrderByAggregateInput
+  }
+
+  export type EflAdTapScalarWhereWithAggregatesInput = {
+    AND?: EflAdTapScalarWhereWithAggregatesInput | EflAdTapScalarWhereWithAggregatesInput[]
+    OR?: EflAdTapScalarWhereWithAggregatesInput[]
+    NOT?: EflAdTapScalarWhereWithAggregatesInput | EflAdTapScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflAdTap"> | string
+    listingId?: StringWithAggregatesFilter<"EflAdTap"> | string
+    viewerKey?: StringWithAggregatesFilter<"EflAdTap"> | string
+    cost?: DecimalWithAggregatesFilter<"EflAdTap"> | Decimal | DecimalJsLike | number | string
+    orderId?: StringNullableWithAggregatesFilter<"EflAdTap"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"EflAdTap"> | Date | string
+  }
+
+  export type EflAdShowWhereInput = {
+    AND?: EflAdShowWhereInput | EflAdShowWhereInput[]
+    OR?: EflAdShowWhereInput[]
+    NOT?: EflAdShowWhereInput | EflAdShowWhereInput[]
+    id?: StringFilter<"EflAdShow"> | string
+    listingId?: StringFilter<"EflAdShow"> | string
+    viewerKey?: StringFilter<"EflAdShow"> | string
+    day?: StringFilter<"EflAdShow"> | string
+    count?: IntFilter<"EflAdShow"> | number
+  }
+
+  export type EflAdShowOrderByWithRelationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    day?: SortOrder
+    count?: SortOrder
+    _relevance?: EflAdShowOrderByRelevanceInput
+  }
+
+  export type EflAdShowWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    listingId_viewerKey_day?: EflAdShowListingIdViewerKeyDayCompoundUniqueInput
+    AND?: EflAdShowWhereInput | EflAdShowWhereInput[]
+    OR?: EflAdShowWhereInput[]
+    NOT?: EflAdShowWhereInput | EflAdShowWhereInput[]
+    listingId?: StringFilter<"EflAdShow"> | string
+    viewerKey?: StringFilter<"EflAdShow"> | string
+    day?: StringFilter<"EflAdShow"> | string
+    count?: IntFilter<"EflAdShow"> | number
+  }, "id" | "listingId_viewerKey_day">
+
+  export type EflAdShowOrderByWithAggregationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    day?: SortOrder
+    count?: SortOrder
+    _count?: EflAdShowCountOrderByAggregateInput
+    _avg?: EflAdShowAvgOrderByAggregateInput
+    _max?: EflAdShowMaxOrderByAggregateInput
+    _min?: EflAdShowMinOrderByAggregateInput
+    _sum?: EflAdShowSumOrderByAggregateInput
+  }
+
+  export type EflAdShowScalarWhereWithAggregatesInput = {
+    AND?: EflAdShowScalarWhereWithAggregatesInput | EflAdShowScalarWhereWithAggregatesInput[]
+    OR?: EflAdShowScalarWhereWithAggregatesInput[]
+    NOT?: EflAdShowScalarWhereWithAggregatesInput | EflAdShowScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflAdShow"> | string
+    listingId?: StringWithAggregatesFilter<"EflAdShow"> | string
+    viewerKey?: StringWithAggregatesFilter<"EflAdShow"> | string
+    day?: StringWithAggregatesFilter<"EflAdShow"> | string
+    count?: IntWithAggregatesFilter<"EflAdShow"> | number
+  }
+
+  export type EflCampaignWhereInput = {
+    AND?: EflCampaignWhereInput | EflCampaignWhereInput[]
+    OR?: EflCampaignWhereInput[]
+    NOT?: EflCampaignWhereInput | EflCampaignWhereInput[]
+    id?: StringFilter<"EflCampaign"> | string
+    channel?: StringFilter<"EflCampaign"> | string
+    title?: StringFilter<"EflCampaign"> | string
+    body?: StringFilter<"EflCampaign"> | string
+    ctaLabel?: StringNullableFilter<"EflCampaign"> | string | null
+    ctaUrl?: StringNullableFilter<"EflCampaign"> | string | null
+    status?: StringFilter<"EflCampaign"> | string
+    targeted?: IntFilter<"EflCampaign"> | number
+    delivered?: IntFilter<"EflCampaign"> | number
+    createdBy?: StringNullableFilter<"EflCampaign"> | string | null
+    sentAt?: DateTimeNullableFilter<"EflCampaign"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"EflCampaign"> | Date | string
+  }
+
+  export type EflCampaignOrderByWithRelationInput = {
+    id?: SortOrder
+    channel?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    ctaLabel?: SortOrderInput | SortOrder
+    ctaUrl?: SortOrderInput | SortOrder
+    status?: SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    sentAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: EflCampaignOrderByRelevanceInput
+  }
+
+  export type EflCampaignWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: EflCampaignWhereInput | EflCampaignWhereInput[]
+    OR?: EflCampaignWhereInput[]
+    NOT?: EflCampaignWhereInput | EflCampaignWhereInput[]
+    channel?: StringFilter<"EflCampaign"> | string
+    title?: StringFilter<"EflCampaign"> | string
+    body?: StringFilter<"EflCampaign"> | string
+    ctaLabel?: StringNullableFilter<"EflCampaign"> | string | null
+    ctaUrl?: StringNullableFilter<"EflCampaign"> | string | null
+    status?: StringFilter<"EflCampaign"> | string
+    targeted?: IntFilter<"EflCampaign"> | number
+    delivered?: IntFilter<"EflCampaign"> | number
+    createdBy?: StringNullableFilter<"EflCampaign"> | string | null
+    sentAt?: DateTimeNullableFilter<"EflCampaign"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflCampaign"> | Date | string
+    updatedAt?: DateTimeFilter<"EflCampaign"> | Date | string
+  }, "id">
+
+  export type EflCampaignOrderByWithAggregationInput = {
+    id?: SortOrder
+    channel?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    ctaLabel?: SortOrderInput | SortOrder
+    ctaUrl?: SortOrderInput | SortOrder
+    status?: SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    createdBy?: SortOrderInput | SortOrder
+    sentAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EflCampaignCountOrderByAggregateInput
+    _avg?: EflCampaignAvgOrderByAggregateInput
+    _max?: EflCampaignMaxOrderByAggregateInput
+    _min?: EflCampaignMinOrderByAggregateInput
+    _sum?: EflCampaignSumOrderByAggregateInput
+  }
+
+  export type EflCampaignScalarWhereWithAggregatesInput = {
+    AND?: EflCampaignScalarWhereWithAggregatesInput | EflCampaignScalarWhereWithAggregatesInput[]
+    OR?: EflCampaignScalarWhereWithAggregatesInput[]
+    NOT?: EflCampaignScalarWhereWithAggregatesInput | EflCampaignScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflCampaign"> | string
+    channel?: StringWithAggregatesFilter<"EflCampaign"> | string
+    title?: StringWithAggregatesFilter<"EflCampaign"> | string
+    body?: StringWithAggregatesFilter<"EflCampaign"> | string
+    ctaLabel?: StringNullableWithAggregatesFilter<"EflCampaign"> | string | null
+    ctaUrl?: StringNullableWithAggregatesFilter<"EflCampaign"> | string | null
+    status?: StringWithAggregatesFilter<"EflCampaign"> | string
+    targeted?: IntWithAggregatesFilter<"EflCampaign"> | number
+    delivered?: IntWithAggregatesFilter<"EflCampaign"> | number
+    createdBy?: StringNullableWithAggregatesFilter<"EflCampaign"> | string | null
+    sentAt?: DateTimeNullableWithAggregatesFilter<"EflCampaign"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"EflCampaign"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EflCampaign"> | Date | string
+  }
+
+  export type EflStatementSendWhereInput = {
+    AND?: EflStatementSendWhereInput | EflStatementSendWhereInput[]
+    OR?: EflStatementSendWhereInput[]
+    NOT?: EflStatementSendWhereInput | EflStatementSendWhereInput[]
+    id?: StringFilter<"EflStatementSend"> | string
+    listingId?: StringFilter<"EflStatementSend"> | string
+    weekStart?: DateTimeFilter<"EflStatementSend"> | Date | string
+    sentTo?: StringFilter<"EflStatementSend"> | string
+    sentAt?: DateTimeFilter<"EflStatementSend"> | Date | string
+  }
+
+  export type EflStatementSendOrderByWithRelationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    sentTo?: SortOrder
+    sentAt?: SortOrder
+    _relevance?: EflStatementSendOrderByRelevanceInput
+  }
+
+  export type EflStatementSendWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    listingId_weekStart?: EflStatementSendListingIdWeekStartCompoundUniqueInput
+    AND?: EflStatementSendWhereInput | EflStatementSendWhereInput[]
+    OR?: EflStatementSendWhereInput[]
+    NOT?: EflStatementSendWhereInput | EflStatementSendWhereInput[]
+    listingId?: StringFilter<"EflStatementSend"> | string
+    weekStart?: DateTimeFilter<"EflStatementSend"> | Date | string
+    sentTo?: StringFilter<"EflStatementSend"> | string
+    sentAt?: DateTimeFilter<"EflStatementSend"> | Date | string
+  }, "id" | "listingId_weekStart">
+
+  export type EflStatementSendOrderByWithAggregationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    sentTo?: SortOrder
+    sentAt?: SortOrder
+    _count?: EflStatementSendCountOrderByAggregateInput
+    _max?: EflStatementSendMaxOrderByAggregateInput
+    _min?: EflStatementSendMinOrderByAggregateInput
+  }
+
+  export type EflStatementSendScalarWhereWithAggregatesInput = {
+    AND?: EflStatementSendScalarWhereWithAggregatesInput | EflStatementSendScalarWhereWithAggregatesInput[]
+    OR?: EflStatementSendScalarWhereWithAggregatesInput[]
+    NOT?: EflStatementSendScalarWhereWithAggregatesInput | EflStatementSendScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflStatementSend"> | string
+    listingId?: StringWithAggregatesFilter<"EflStatementSend"> | string
+    weekStart?: DateTimeWithAggregatesFilter<"EflStatementSend"> | Date | string
+    sentTo?: StringWithAggregatesFilter<"EflStatementSend"> | string
+    sentAt?: DateTimeWithAggregatesFilter<"EflStatementSend"> | Date | string
   }
 
   export type EflApplicationWhereInput = {
@@ -237640,6 +243367,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -237742,6 +243470,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -237834,6 +243563,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -237936,6 +243666,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238033,6 +243764,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -238117,6 +243849,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -238206,6 +243939,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -246411,10 +252145,12 @@ export namespace Prisma {
     hygieneCheckedAt?: Date | string | null
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
+    statementEmail?: string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutEflListingInput
+    adCampaign?: EflAdCampaignCreateNestedOneWithoutListingInput
   }
 
   export type EflListingUncheckedCreateInput = {
@@ -246437,9 +252173,11 @@ export namespace Prisma {
     hygieneCheckedAt?: Date | string | null
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
+    statementEmail?: string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    adCampaign?: EflAdCampaignUncheckedCreateNestedOneWithoutListingInput
   }
 
   export type EflListingUpdateInput = {
@@ -246461,10 +252199,12 @@ export namespace Prisma {
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutEflListingNestedInput
+    adCampaign?: EflAdCampaignUpdateOneWithoutListingNestedInput
   }
 
   export type EflListingUncheckedUpdateInput = {
@@ -246487,9 +252227,11 @@ export namespace Prisma {
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adCampaign?: EflAdCampaignUncheckedUpdateOneWithoutListingNestedInput
   }
 
   export type EflListingCreateManyInput = {
@@ -246512,6 +252254,7 @@ export namespace Prisma {
     hygieneCheckedAt?: Date | string | null
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
+    statementEmail?: string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -246536,6 +252279,7 @@ export namespace Prisma {
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -246561,9 +252305,373 @@ export namespace Prisma {
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdCampaignCreateInput = {
+    id?: string
+    active?: boolean
+    weeklyBudget: Decimal | DecimalJsLike | number | string
+    maxBid: Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listing: EflListingCreateNestedOneWithoutAdCampaignInput
+  }
+
+  export type EflAdCampaignUncheckedCreateInput = {
+    id?: string
+    listingId: string
+    active?: boolean
+    weeklyBudget: Decimal | DecimalJsLike | number | string
+    maxBid: Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflAdCampaignUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    weeklyBudget?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listing?: EflListingUpdateOneRequiredWithoutAdCampaignNestedInput
+  }
+
+  export type EflAdCampaignUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    weeklyBudget?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdCampaignCreateManyInput = {
+    id?: string
+    listingId: string
+    active?: boolean
+    weeklyBudget: Decimal | DecimalJsLike | number | string
+    maxBid: Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflAdCampaignUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    weeklyBudget?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdCampaignUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    weeklyBudget?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdTapCreateInput = {
+    id?: string
+    listingId: string
+    viewerKey: string
+    cost: Decimal | DecimalJsLike | number | string
+    orderId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type EflAdTapUncheckedCreateInput = {
+    id?: string
+    listingId: string
+    viewerKey: string
+    cost: Decimal | DecimalJsLike | number | string
+    orderId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type EflAdTapUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    viewerKey?: StringFieldUpdateOperationsInput | string
+    cost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdTapUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    viewerKey?: StringFieldUpdateOperationsInput | string
+    cost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdTapCreateManyInput = {
+    id?: string
+    listingId: string
+    viewerKey: string
+    cost: Decimal | DecimalJsLike | number | string
+    orderId?: string | null
+    createdAt?: Date | string
+  }
+
+  export type EflAdTapUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    viewerKey?: StringFieldUpdateOperationsInput | string
+    cost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdTapUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    viewerKey?: StringFieldUpdateOperationsInput | string
+    cost?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdShowCreateInput = {
+    id?: string
+    listingId: string
+    viewerKey: string
+    day: string
+    count?: number
+  }
+
+  export type EflAdShowUncheckedCreateInput = {
+    id?: string
+    listingId: string
+    viewerKey: string
+    day: string
+    count?: number
+  }
+
+  export type EflAdShowUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    viewerKey?: StringFieldUpdateOperationsInput | string
+    day?: StringFieldUpdateOperationsInput | string
+    count?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type EflAdShowUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    viewerKey?: StringFieldUpdateOperationsInput | string
+    day?: StringFieldUpdateOperationsInput | string
+    count?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type EflAdShowCreateManyInput = {
+    id?: string
+    listingId: string
+    viewerKey: string
+    day: string
+    count?: number
+  }
+
+  export type EflAdShowUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    viewerKey?: StringFieldUpdateOperationsInput | string
+    day?: StringFieldUpdateOperationsInput | string
+    count?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type EflAdShowUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    viewerKey?: StringFieldUpdateOperationsInput | string
+    day?: StringFieldUpdateOperationsInput | string
+    count?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type EflCampaignCreateInput = {
+    id?: string
+    channel: string
+    title: string
+    body: string
+    ctaLabel?: string | null
+    ctaUrl?: string | null
+    status?: string
+    targeted?: number
+    delivered?: number
+    createdBy?: string | null
+    sentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflCampaignUncheckedCreateInput = {
+    id?: string
+    channel: string
+    title: string
+    body: string
+    ctaLabel?: string | null
+    ctaUrl?: string | null
+    status?: string
+    targeted?: number
+    delivered?: number
+    createdBy?: string | null
+    sentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflCampaignUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    ctaLabel?: NullableStringFieldUpdateOperationsInput | string | null
+    ctaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    targeted?: IntFieldUpdateOperationsInput | number
+    delivered?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflCampaignUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    ctaLabel?: NullableStringFieldUpdateOperationsInput | string | null
+    ctaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    targeted?: IntFieldUpdateOperationsInput | number
+    delivered?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflCampaignCreateManyInput = {
+    id?: string
+    channel: string
+    title: string
+    body: string
+    ctaLabel?: string | null
+    ctaUrl?: string | null
+    status?: string
+    targeted?: number
+    delivered?: number
+    createdBy?: string | null
+    sentAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflCampaignUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    ctaLabel?: NullableStringFieldUpdateOperationsInput | string | null
+    ctaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    targeted?: IntFieldUpdateOperationsInput | number
+    delivered?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflCampaignUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    channel?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    body?: StringFieldUpdateOperationsInput | string
+    ctaLabel?: NullableStringFieldUpdateOperationsInput | string | null
+    ctaUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    targeted?: IntFieldUpdateOperationsInput | number
+    delivered?: IntFieldUpdateOperationsInput | number
+    createdBy?: NullableStringFieldUpdateOperationsInput | string | null
+    sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflStatementSendCreateInput = {
+    id?: string
+    listingId: string
+    weekStart: Date | string
+    sentTo: string
+    sentAt?: Date | string
+  }
+
+  export type EflStatementSendUncheckedCreateInput = {
+    id?: string
+    listingId: string
+    weekStart: Date | string
+    sentTo: string
+    sentAt?: Date | string
+  }
+
+  export type EflStatementSendUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    sentTo?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflStatementSendUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    sentTo?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflStatementSendCreateManyInput = {
+    id?: string
+    listingId: string
+    weekStart: Date | string
+    sentTo: string
+    sentAt?: Date | string
+  }
+
+  export type EflStatementSendUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    sentTo?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflStatementSendUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    sentTo?: StringFieldUpdateOperationsInput | string
+    sentAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EflApplicationCreateInput = {
@@ -257724,6 +263832,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: SortOrder
     deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
+    eflAdRecovered?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrder
@@ -257747,6 +263856,7 @@ export namespace Prisma {
     preparationMinutes?: SortOrder
     deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
+    eflAdRecovered?: SortOrder
   }
 
   export type OrderMaxOrderByAggregateInput = {
@@ -257829,6 +263939,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: SortOrder
     deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
+    eflAdRecovered?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrder
@@ -257914,6 +264025,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: SortOrder
     deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
+    eflAdRecovered?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     loyaltyMemberId?: SortOrder
@@ -257937,6 +264049,7 @@ export namespace Prisma {
     preparationMinutes?: SortOrder
     deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
+    eflAdRecovered?: SortOrder
   }
 
   export type EnumOrderPlatformWithAggregatesFilter<$PrismaModel = never> = {
@@ -263212,6 +269325,11 @@ export namespace Prisma {
     not?: NestedEnumEflDeliveryModeFilter<$PrismaModel> | $Enums.EflDeliveryMode
   }
 
+  export type EflAdCampaignNullableRelationFilter = {
+    is?: EflAdCampaignWhereInput | null
+    isNot?: EflAdCampaignWhereInput | null
+  }
+
   export type EflListingOrderByRelevanceInput = {
     fields: EflListingOrderByRelevanceFieldEnum | EflListingOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -263238,6 +269356,7 @@ export namespace Prisma {
     hygieneCheckedAt?: SortOrder
     lastDeviceSeenAt?: SortOrder
     offlineSince?: SortOrder
+    statementEmail?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -263266,6 +269385,7 @@ export namespace Prisma {
     hygieneCheckedAt?: SortOrder
     lastDeviceSeenAt?: SortOrder
     offlineSince?: SortOrder
+    statementEmail?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -263290,6 +269410,7 @@ export namespace Prisma {
     hygieneCheckedAt?: SortOrder
     lastDeviceSeenAt?: SortOrder
     offlineSince?: SortOrder
+    statementEmail?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -263317,6 +269438,244 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
     _max?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
+  }
+
+  export type EflListingRelationFilter = {
+    is?: EflListingWhereInput
+    isNot?: EflListingWhereInput
+  }
+
+  export type EflAdCampaignOrderByRelevanceInput = {
+    fields: EflAdCampaignOrderByRelevanceFieldEnum | EflAdCampaignOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflAdCampaignCountOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    active?: SortOrder
+    weeklyBudget?: SortOrder
+    maxBid?: SortOrder
+    pausedByAdmin?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflAdCampaignAvgOrderByAggregateInput = {
+    weeklyBudget?: SortOrder
+    maxBid?: SortOrder
+  }
+
+  export type EflAdCampaignMaxOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    active?: SortOrder
+    weeklyBudget?: SortOrder
+    maxBid?: SortOrder
+    pausedByAdmin?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflAdCampaignMinOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    active?: SortOrder
+    weeklyBudget?: SortOrder
+    maxBid?: SortOrder
+    pausedByAdmin?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflAdCampaignSumOrderByAggregateInput = {
+    weeklyBudget?: SortOrder
+    maxBid?: SortOrder
+  }
+
+  export type EflAdTapOrderByRelevanceInput = {
+    fields: EflAdTapOrderByRelevanceFieldEnum | EflAdTapOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflAdTapCountOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    cost?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EflAdTapAvgOrderByAggregateInput = {
+    cost?: SortOrder
+  }
+
+  export type EflAdTapMaxOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    cost?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EflAdTapMinOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    cost?: SortOrder
+    orderId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EflAdTapSumOrderByAggregateInput = {
+    cost?: SortOrder
+  }
+
+  export type EflAdShowOrderByRelevanceInput = {
+    fields: EflAdShowOrderByRelevanceFieldEnum | EflAdShowOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflAdShowListingIdViewerKeyDayCompoundUniqueInput = {
+    listingId: string
+    viewerKey: string
+    day: string
+  }
+
+  export type EflAdShowCountOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    day?: SortOrder
+    count?: SortOrder
+  }
+
+  export type EflAdShowAvgOrderByAggregateInput = {
+    count?: SortOrder
+  }
+
+  export type EflAdShowMaxOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    day?: SortOrder
+    count?: SortOrder
+  }
+
+  export type EflAdShowMinOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    viewerKey?: SortOrder
+    day?: SortOrder
+    count?: SortOrder
+  }
+
+  export type EflAdShowSumOrderByAggregateInput = {
+    count?: SortOrder
+  }
+
+  export type EflCampaignOrderByRelevanceInput = {
+    fields: EflCampaignOrderByRelevanceFieldEnum | EflCampaignOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflCampaignCountOrderByAggregateInput = {
+    id?: SortOrder
+    channel?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    ctaLabel?: SortOrder
+    ctaUrl?: SortOrder
+    status?: SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    createdBy?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflCampaignAvgOrderByAggregateInput = {
+    targeted?: SortOrder
+    delivered?: SortOrder
+  }
+
+  export type EflCampaignMaxOrderByAggregateInput = {
+    id?: SortOrder
+    channel?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    ctaLabel?: SortOrder
+    ctaUrl?: SortOrder
+    status?: SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    createdBy?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflCampaignMinOrderByAggregateInput = {
+    id?: SortOrder
+    channel?: SortOrder
+    title?: SortOrder
+    body?: SortOrder
+    ctaLabel?: SortOrder
+    ctaUrl?: SortOrder
+    status?: SortOrder
+    targeted?: SortOrder
+    delivered?: SortOrder
+    createdBy?: SortOrder
+    sentAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflCampaignSumOrderByAggregateInput = {
+    targeted?: SortOrder
+    delivered?: SortOrder
+  }
+
+  export type EflStatementSendOrderByRelevanceInput = {
+    fields: EflStatementSendOrderByRelevanceFieldEnum | EflStatementSendOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflStatementSendListingIdWeekStartCompoundUniqueInput = {
+    listingId: string
+    weekStart: Date | string
+  }
+
+  export type EflStatementSendCountOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    sentTo?: SortOrder
+    sentAt?: SortOrder
+  }
+
+  export type EflStatementSendMaxOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    sentTo?: SortOrder
+    sentAt?: SortOrder
+  }
+
+  export type EflStatementSendMinOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    sentTo?: SortOrder
+    sentAt?: SortOrder
   }
 
   export type EnumEflApplicationStatusFilter<$PrismaModel = never> = {
@@ -276273,6 +282632,18 @@ export namespace Prisma {
     connect?: LocationWhereUniqueInput
   }
 
+  export type EflAdCampaignCreateNestedOneWithoutListingInput = {
+    create?: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
+    connectOrCreate?: EflAdCampaignCreateOrConnectWithoutListingInput
+    connect?: EflAdCampaignWhereUniqueInput
+  }
+
+  export type EflAdCampaignUncheckedCreateNestedOneWithoutListingInput = {
+    create?: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
+    connectOrCreate?: EflAdCampaignCreateOrConnectWithoutListingInput
+    connect?: EflAdCampaignWhereUniqueInput
+  }
+
   export type EnumEflListingStatusFieldUpdateOperationsInput = {
     set?: $Enums.EflListingStatus
   }
@@ -276292,6 +282663,40 @@ export namespace Prisma {
     upsert?: LocationUpsertWithoutEflListingInput
     connect?: LocationWhereUniqueInput
     update?: XOR<XOR<LocationUpdateToOneWithWhereWithoutEflListingInput, LocationUpdateWithoutEflListingInput>, LocationUncheckedUpdateWithoutEflListingInput>
+  }
+
+  export type EflAdCampaignUpdateOneWithoutListingNestedInput = {
+    create?: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
+    connectOrCreate?: EflAdCampaignCreateOrConnectWithoutListingInput
+    upsert?: EflAdCampaignUpsertWithoutListingInput
+    disconnect?: EflAdCampaignWhereInput | boolean
+    delete?: EflAdCampaignWhereInput | boolean
+    connect?: EflAdCampaignWhereUniqueInput
+    update?: XOR<XOR<EflAdCampaignUpdateToOneWithWhereWithoutListingInput, EflAdCampaignUpdateWithoutListingInput>, EflAdCampaignUncheckedUpdateWithoutListingInput>
+  }
+
+  export type EflAdCampaignUncheckedUpdateOneWithoutListingNestedInput = {
+    create?: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
+    connectOrCreate?: EflAdCampaignCreateOrConnectWithoutListingInput
+    upsert?: EflAdCampaignUpsertWithoutListingInput
+    disconnect?: EflAdCampaignWhereInput | boolean
+    delete?: EflAdCampaignWhereInput | boolean
+    connect?: EflAdCampaignWhereUniqueInput
+    update?: XOR<XOR<EflAdCampaignUpdateToOneWithWhereWithoutListingInput, EflAdCampaignUpdateWithoutListingInput>, EflAdCampaignUncheckedUpdateWithoutListingInput>
+  }
+
+  export type EflListingCreateNestedOneWithoutAdCampaignInput = {
+    create?: XOR<EflListingCreateWithoutAdCampaignInput, EflListingUncheckedCreateWithoutAdCampaignInput>
+    connectOrCreate?: EflListingCreateOrConnectWithoutAdCampaignInput
+    connect?: EflListingWhereUniqueInput
+  }
+
+  export type EflListingUpdateOneRequiredWithoutAdCampaignNestedInput = {
+    create?: XOR<EflListingCreateWithoutAdCampaignInput, EflListingUncheckedCreateWithoutAdCampaignInput>
+    connectOrCreate?: EflListingCreateOrConnectWithoutAdCampaignInput
+    upsert?: EflListingUpsertWithoutAdCampaignInput
+    connect?: EflListingWhereUniqueInput
+    update?: XOR<XOR<EflListingUpdateToOneWithWhereWithoutAdCampaignInput, EflListingUpdateWithoutAdCampaignInput>, EflListingUncheckedUpdateWithoutAdCampaignInput>
   }
 
   export type EnumEflApplicationStatusFieldUpdateOperationsInput = {
@@ -279193,6 +285598,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -279293,6 +285699,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -280428,6 +286835,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
     deliveryPinAttempts?: IntFilter<"Order"> | number
     eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     loyaltyMemberId?: StringNullableFilter<"Order"> | string | null
@@ -283370,6 +289778,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -283470,6 +289879,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -285174,6 +291584,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -285274,6 +291685,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -286617,6 +293029,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -286717,6 +293130,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -288279,9 +294693,11 @@ export namespace Prisma {
     hygieneCheckedAt?: Date | string | null
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
+    statementEmail?: string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    adCampaign?: EflAdCampaignCreateNestedOneWithoutListingInput
   }
 
   export type EflListingUncheckedCreateWithoutLocationInput = {
@@ -288303,9 +294719,11 @@ export namespace Prisma {
     hygieneCheckedAt?: Date | string | null
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
+    statementEmail?: string | null
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    adCampaign?: EflAdCampaignUncheckedCreateNestedOneWithoutListingInput
   }
 
   export type EflListingCreateOrConnectWithoutLocationInput = {
@@ -289848,9 +296266,11 @@ export namespace Prisma {
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adCampaign?: EflAdCampaignUpdateOneWithoutListingNestedInput
   }
 
   export type EflListingUncheckedUpdateWithoutLocationInput = {
@@ -289872,9 +296292,11 @@ export namespace Prisma {
     hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adCampaign?: EflAdCampaignUncheckedUpdateOneWithoutListingNestedInput
   }
 
   export type LoyaltyCardUpsertWithoutLocationInput = {
@@ -297681,6 +304103,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -297781,6 +304204,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -299839,6 +306263,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -299940,6 +306365,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -300114,6 +306540,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -300215,6 +306642,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -303012,6 +309440,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -303113,6 +309542,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -303248,6 +309678,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -303349,6 +309780,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -303469,6 +309901,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -303570,6 +310003,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -303677,6 +310111,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -303778,6 +310213,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -308521,6 +314957,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -308622,6 +315059,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -308764,6 +315202,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -308865,6 +315304,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -310228,6 +316668,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -310329,6 +316770,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -310694,6 +317136,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -310795,6 +317238,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -314805,6 +321249,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -314906,6 +321351,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -315090,6 +321536,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -315191,6 +321638,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -315715,6 +322163,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -315816,6 +322265,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -316044,6 +322494,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -316145,6 +322596,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -321835,6 +328287,31 @@ export namespace Prisma {
     create: XOR<LocationCreateWithoutEflListingInput, LocationUncheckedCreateWithoutEflListingInput>
   }
 
+  export type EflAdCampaignCreateWithoutListingInput = {
+    id?: string
+    active?: boolean
+    weeklyBudget: Decimal | DecimalJsLike | number | string
+    maxBid: Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflAdCampaignUncheckedCreateWithoutListingInput = {
+    id?: string
+    active?: boolean
+    weeklyBudget: Decimal | DecimalJsLike | number | string
+    maxBid: Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflAdCampaignCreateOrConnectWithoutListingInput = {
+    where: EflAdCampaignWhereUniqueInput
+    create: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
+  }
+
   export type LocationUpsertWithoutEflListingInput = {
     update: XOR<LocationUpdateWithoutEflListingInput, LocationUncheckedUpdateWithoutEflListingInput>
     create: XOR<LocationCreateWithoutEflListingInput, LocationUncheckedCreateWithoutEflListingInput>
@@ -322044,6 +328521,157 @@ export namespace Prisma {
     loyaltyCard?: LoyaltyCardUncheckedUpdateOneWithoutLocationNestedInput
     referralProgram?: ReferralProgramUncheckedUpdateOneWithoutLocationNestedInput
     loyaltyRewards?: LoyaltyRewardUncheckedUpdateManyWithoutLocationNestedInput
+  }
+
+  export type EflAdCampaignUpsertWithoutListingInput = {
+    update: XOR<EflAdCampaignUpdateWithoutListingInput, EflAdCampaignUncheckedUpdateWithoutListingInput>
+    create: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
+    where?: EflAdCampaignWhereInput
+  }
+
+  export type EflAdCampaignUpdateToOneWithWhereWithoutListingInput = {
+    where?: EflAdCampaignWhereInput
+    data: XOR<EflAdCampaignUpdateWithoutListingInput, EflAdCampaignUncheckedUpdateWithoutListingInput>
+  }
+
+  export type EflAdCampaignUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    weeklyBudget?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflAdCampaignUncheckedUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    active?: BoolFieldUpdateOperationsInput | boolean
+    weeklyBudget?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    maxBid?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    pausedByAdmin?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflListingCreateWithoutAdCampaignInput = {
+    id?: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
+    statementEmail?: string | null
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutEflListingInput
+  }
+
+  export type EflListingUncheckedCreateWithoutAdCampaignInput = {
+    id?: string
+    locationId: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
+    statementEmail?: string | null
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflListingCreateOrConnectWithoutAdCampaignInput = {
+    where: EflListingWhereUniqueInput
+    create: XOR<EflListingCreateWithoutAdCampaignInput, EflListingUncheckedCreateWithoutAdCampaignInput>
+  }
+
+  export type EflListingUpsertWithoutAdCampaignInput = {
+    update: XOR<EflListingUpdateWithoutAdCampaignInput, EflListingUncheckedUpdateWithoutAdCampaignInput>
+    create: XOR<EflListingCreateWithoutAdCampaignInput, EflListingUncheckedCreateWithoutAdCampaignInput>
+    where?: EflListingWhereInput
+  }
+
+  export type EflListingUpdateToOneWithWhereWithoutAdCampaignInput = {
+    where?: EflListingWhereInput
+    data: XOR<EflListingUpdateWithoutAdCampaignInput, EflListingUncheckedUpdateWithoutAdCampaignInput>
+  }
+
+  export type EflListingUpdateWithoutAdCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutEflListingNestedInput
+  }
+
+  export type EflListingUncheckedUpdateWithoutAdCampaignInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MarketingSmsRecipientCreateWithoutCampaignInput = {
@@ -326638,6 +333266,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -326739,6 +333368,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -327041,6 +333671,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -327142,6 +333773,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -330789,6 +337421,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -331439,6 +338072,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -331539,6 +338173,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -331635,6 +338270,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -333126,6 +339762,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -333268,6 +339905,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -333368,6 +340006,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -333464,6 +340103,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -333885,6 +340525,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -334658,6 +341299,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -334758,6 +341400,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -334854,6 +341497,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -335345,6 +341989,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -335899,6 +342544,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -335999,6 +342645,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -336095,6 +342742,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -338471,6 +345119,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: Date | string | null
     deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     loyaltyMemberId?: string | null
@@ -338606,6 +345255,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -338706,6 +345356,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -338802,6 +345453,7 @@ export namespace Prisma {
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    eflAdRecovered?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     loyaltyMemberId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -344384,6 +351036,26 @@ export namespace Prisma {
      * @deprecated Use EflListingDefaultArgs instead
      */
     export type EflListingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflListingDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflAdCampaignDefaultArgs instead
+     */
+    export type EflAdCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflAdCampaignDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflAdTapDefaultArgs instead
+     */
+    export type EflAdTapArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflAdTapDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflAdShowDefaultArgs instead
+     */
+    export type EflAdShowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflAdShowDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflCampaignDefaultArgs instead
+     */
+    export type EflCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflCampaignDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflStatementSendDefaultArgs instead
+     */
+    export type EflStatementSendArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflStatementSendDefaultArgs<ExtArgs>
     /**
      * @deprecated Use EflApplicationDefaultArgs instead
      */

@@ -526,6 +526,17 @@ export class CustomerPushService {
    * Send one push to many subscriptions, browsers and app installs alike.
    * Never throws; returns how many the push services accepted.
    */
+  /** Eat For Less marketing: send to app installs from the EFL table, so
+   *  sent-at and revoked tokens are written back there. */
+  async sendToEflDevices(devices: Array<{ id: string; token: string }>, content: PushContent): Promise<number> {
+    let delivered = 0;
+    for (let i = 0; i < devices.length; i += EXPO_BATCH) {
+      const chunk = devices.slice(i, i + EXPO_BATCH).map((d) => ({ id: d.id, kind: "EXPO", endpoint: d.token }));
+      delivered += await this.deliverExpo(chunk, content, "efl");
+    }
+    return delivered;
+  }
+
   async sendTo(subs: any[], content: PushContent): Promise<{ delivered: number; failed: number }> {
     const web = subs.filter((s) => (s.kind ?? "WEB") === "WEB");
     const apps = subs.filter((s) => s.kind === "EXPO");
