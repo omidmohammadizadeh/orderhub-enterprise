@@ -8,7 +8,7 @@
 // "Manage payouts" opens ConnectAccountManagement + Payouts so they
 // can change bank details or check the payout schedule afterwards.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, XCircle, Loader2, RefreshCw, CreditCard } from "lucide-react";
 import {
@@ -170,6 +170,38 @@ function BrandRow({
     onSuccess: onRefreshed,
   });
 
+  // Coming back from Stripe's hosted signup for this brand → pull the new
+  // status straight away instead of waiting for the webhook.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("brandId") === row.brandId && q.get("connect")) {
+      refreshMutation.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [row.brandId]);
+
+  // The session call decides the kind of account: an embedded form (Express)
+  // gets a client secret, a merchant-only Stripe account gets a URL instead —
+  // its signup and its bank details live on Stripe's own pages.
+  const [firstSecret, setFirstSecret] = useState<string | null>(null);
+  const sessionMutation = useMutation({
+    mutationFn: (mode: PanelMode) =>
+      apiClient
+        .post(`/v1/payments/connect/brands/${row.brandId}/${sessionEndpoint(mode)}`)
+        .then((r) => ({ mode, data: r.data as SessionResponse })),
+    onSuccess: ({ mode, data }) => {
+      if (data.url) {
+        if (mode === "onboarding") window.location.assign(data.url);
+        else window.open(data.url, "_blank", "noopener");
+        return;
+      }
+      setFirstSecret(data.clientSecret ?? null);
+      onOpen(mode);
+    },
+  });
+  const toggle = (mode: PanelMode) =>
+    isOpen && openMode === mode ? onClose() : sessionMutation.mutate(mode);
+
   return (
     <>
       <div className="flex items-center gap-3">
@@ -208,12 +240,9 @@ function BrandRow({
         </button>
         {row.onboardingComplete ? (
           <button
-            onClick={() =>
-              isOpen && openMode === "management"
-                ? onClose()
-                : onOpen("management")
-            }
-            className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+            onClick={() => toggle("management")}
+            disabled={sessionMutation.isPending}
+            className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
           >
             {isOpen && openMode === "management"
               ? "Close"
@@ -221,12 +250,9 @@ function BrandRow({
           </button>
         ) : (
           <button
-            onClick={() =>
-              isOpen && openMode === "onboarding"
-                ? onClose()
-                : onOpen("onboarding")
-            }
-            className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800"
+            onClick={() => toggle("onboarding")}
+            disabled={sessionMutation.isPending}
+            className="rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
           >
             {isOpen && openMode === "onboarding"
               ? "Close"
@@ -237,11 +263,19 @@ function BrandRow({
         )}
       </div>
 
+      {sessionMutation.isError && (
+        <p role="alert" className="mt-2 text-xs text-red-600">
+          {(sessionMutation.error as any)?.response?.data?.message ??
+            "Couldn't reach Stripe. Try again."}
+        </p>
+      )}
+
       {isOpen && (
         <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
           <EmbeddedPanel
             brandId={row.brandId}
             mode={openMode!}
+            firstSecret={firstSecret}
             onExit={() => {
               refreshMutation.mutate();
               onClose();
@@ -270,17 +304,27 @@ function StatusPill({ ok, label }: { ok: boolean; label: string }) {
   );
 }
 
+type SessionResponse = { clientSecret?: string; url?: string };
+
+function sessionEndpoint(mode: PanelMode) {
+  return mode === "onboarding" ? "onboarding-session" : "management-session";
+}
+
 function EmbeddedPanel({
   brandId,
   mode,
+  firstSecret,
   onExit,
 }: {
   brandId: string;
   mode: PanelMode;
+  /** Secret from the click that opened the panel — spent on the first fetch
+   *  so opening it costs one session, not two. */
+  firstSecret: string | null;
   onExit: () => void;
 }) {
-  const endpoint =
-    mode === "onboarding" ? "onboarding-session" : "management-session";
+  const endpoint = sessionEndpoint(mode);
+  const secretRef = useRef(firstSecret);
 
   // Each brand × mode gets its own ConnectInstance, but we have to
   // memoise so React doesn't re-init on every render — Stripe charges
@@ -289,6 +333,11 @@ function EmbeddedPanel({
     return loadConnectAndInitialize({
       publishableKey: STRIPE_PUBLISHABLE_KEY,
       fetchClientSecret: async () => {
+        const first = secretRef.current;
+        if (first) {
+          secretRef.current = null;
+          return first;
+        }
         const res = await apiClient.post(
           `/v1/payments/connect/brands/${brandId}/${endpoint}`,
         );

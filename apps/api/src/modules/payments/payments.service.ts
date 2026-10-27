@@ -2841,12 +2841,8 @@ export class PaymentsService {
       if (this.stripe) {
         try {
           const stripeAccount = await this.stripe.accounts.create({
-            type: "express",
+            ...this.newConnectAccountKind().params,
             country: "GB",
-            capabilities: {
-              card_payments: { requested: true },
-              transfers: { requested: true },
-            },
             business_profile: { name: location.name },
             metadata: { tenantId, locationId, locationName: location.name },
           });
@@ -2865,7 +2861,7 @@ export class PaymentsService {
           tenantId,
           locationId,
           stripeAccountId,
-          accountType: "EXPRESS",
+          accountType: this.newConnectAccountKind().accountType,
           chargesEnabled: false,
           payoutsEnabled: false,
           onboardingComplete: false,
@@ -2915,6 +2911,74 @@ export class PaymentsService {
   // gets its own Express account so a tenant with multiple virtual
   // brands can settle each one separately. Application fees still flow
   // through PaymentIntent.application_fee_amount unchanged.
+
+  /**
+   * What a NEW Connect account looks like. Existing accounts are never touched.
+   *
+   * MERCHANT-ONLY (default) — what Stripe's dashboard creates when only
+   * "Merchant" is ticked: a STANDARD account. Stripe carries the losses and
+   * the shop pays Stripe's fees, so Stripe sets the payout hold from its own
+   * risk view: 3 days from day one (Pizza Uno Pelton, ali shaverdi). Express
+   * accounts make US liable for losses, and Stripe holds a young platform's
+   * accounts for 7 days. No capabilities are requested: v1 refuses
+   * card_payments without transfers, and a standard account is given card
+   * payments by Stripe once onboarded. Every live charge is a DIRECT charge
+   * (checkout, wallets, Terminal), so transfers is never needed.
+   *
+   * STRIPE_CONNECT_NEW_ACCOUNT_TYPE=express restores the old Express setup.
+   */
+  private newConnectAccountKind(): {
+    accountType: "STANDARD" | "EXPRESS";
+    params: Record<string, any>;
+  } {
+    const wanted = (
+      this.config.get<string>("STRIPE_CONNECT_NEW_ACCOUNT_TYPE") ?? ""
+    ).toLowerCase();
+    if (wanted === "express") {
+      return {
+        accountType: "EXPRESS",
+        params: {
+          type: "express",
+          capabilities: {
+            card_payments: { requested: true },
+            transfers: { requested: true },
+          },
+        },
+      };
+    }
+    return {
+      accountType: "STANDARD",
+      params: {
+        controller: {
+          stripe_dashboard: { type: "full" },
+          fees: { payer: "account" },
+          losses: { payments: "stripe" },
+          requirement_collection: "stripe",
+        },
+      },
+    };
+  }
+
+  /**
+   * True when the account is the shop's own full Stripe account (standard /
+   * merchant-only). Read from Stripe, not our row: an acct_… pasted into
+   * brand settings is stored as EXPRESS whatever it really is.
+   */
+  private async isFullDashboardAccount(stripeAccountId: string): Promise<boolean> {
+    if (!this.stripe || stripeAccountId.startsWith("mock_acct_")) return false;
+    try {
+      const acct: any = await this.stripe.accounts.retrieve(stripeAccountId);
+      return (
+        acct?.type === "standard" ||
+        acct?.controller?.stripe_dashboard?.type === "full"
+      );
+    } catch (err: any) {
+      this.logger.warn(
+        `Account retrieve failed for ${stripeAccountId}: ${err.message}`,
+      );
+      return false;
+    }
+  }
 
   private async ensureBrandConnectAccount(
     tenantId: string,
@@ -2975,14 +3039,15 @@ export class PaymentsService {
             prefillEmail = owner?.email ?? undefined;
           }
 
+          const kind = this.newConnectAccountKind();
           const stripeAccount = await this.stripe.accounts.create({
-            type: "express",
+            ...kind.params,
             country: brand.country || "GB",
-            email: prefillEmail,
-            capabilities: {
-              card_payments: { requested: true },
-              transfers: { requested: true },
-            },
+            // A STANDARD account's email becomes the owner's own Stripe
+            // login. The acting user is often our admin onboarding on the
+            // shop's behalf, so prefilling would hand the shop's Stripe
+            // account to us. Stripe's form asks the owner instead.
+            email: kind.accountType === "EXPRESS" ? prefillEmail : undefined,
             business_profile: {
               name: brand.name,
               support_phone: brand.phone || undefined,
@@ -3005,7 +3070,11 @@ export class PaymentsService {
           tenantId,
           brandId,
           stripeAccountId,
-          accountType: "EXPRESS",
+          // A pasted acct_… was created elsewhere; its real kind is read
+          // from Stripe when a session opens (isFullDashboardAccount).
+          accountType: brand.stripeConnectedAccountId
+            ? "EXPRESS"
+            : this.newConnectAccountKind().accountType,
           chargesEnabled: false,
           payoutsEnabled: false,
           onboardingComplete: false,
@@ -3046,6 +3115,30 @@ export class PaymentsService {
         clientSecret: `mock_cs_onboard_${account.stripeAccountId}`,
         mock: true,
       };
+    }
+    // A merchant-only account signs up on Stripe's own hosted page — the
+    // tested path for standard accounts. The web panel redirects on `url`.
+    if (await this.isFullDashboardAccount(account.stripeAccountId)) {
+      const webBase = (
+        this.config.get<string>("WEB_URL") ?? "https://www.orderhubsolutions.com"
+      ).replace(/\/+$/, "");
+      const back = `${webBase}/dashboard/payments?connect=complete&brandId=${brandId}`;
+      try {
+        const link = await this.stripe.accountLinks.create({
+          account: account.stripeAccountId,
+          refresh_url: back.replace("connect=complete", "connect=refresh"),
+          return_url: back,
+          type: "account_onboarding",
+        });
+        return { stripeAccountId: account.stripeAccountId, url: link.url };
+      } catch (err: any) {
+        this.logger.error(
+          `Stripe onboarding link failed for brand ${brandId}: ${err.message}`,
+        );
+        throw new BadRequestException(
+          `Couldn't open onboarding: ${err.message}`,
+        );
+      }
     }
     try {
       const session = await this.stripe.accountSessions.create({
@@ -3089,6 +3182,14 @@ export class PaymentsService {
         stripeAccountId: account.stripeAccountId,
         clientSecret: `mock_cs_manage_${account.stripeAccountId}`,
         mock: true,
+      };
+    }
+    // The shop's own Stripe account: bank details and payouts live behind
+    // its own Stripe login, which we can't (and shouldn't) open for it.
+    if (await this.isFullDashboardAccount(account.stripeAccountId)) {
+      return {
+        stripeAccountId: account.stripeAccountId,
+        url: "https://dashboard.stripe.com/settings/payouts",
       };
     }
     try {
@@ -3303,7 +3404,7 @@ export class PaymentsService {
       if (this.stripe) {
         try {
           const stripeAccount = await this.stripe.accounts.create({
-            type: "express",
+            ...this.newConnectAccountKind().params,
             metadata: { tenantId },
           });
           stripeAccountId = stripeAccount.id;
@@ -3316,7 +3417,7 @@ export class PaymentsService {
         data: {
           tenantId,
           stripeAccountId,
-          accountType: "EXPRESS",
+          accountType: this.newConnectAccountKind().accountType,
           chargesEnabled: false,
           payoutsEnabled: false,
           onboardingComplete: false,
