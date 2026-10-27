@@ -225,7 +225,11 @@ export class EflStatementsService {
     const total = (f: (s: (typeof active)[number]) => number) => r2(active.reduce((t, s) => t + f(s), 0));
     return {
       week,
-      weekLabel: all[0]?.weekLabel ?? week,
+      // From the week itself, not a shop: with no shops there is no row to borrow it from.
+      weekLabel: (() => {
+        const start = weekStartFromKey(week);
+        return start ? weekLabel(start, nextWeekStart(start)) : week;
+      })(),
       shops: active,
       totals: {
         orders: active.reduce((t, s) => t + s.orders, 0),
