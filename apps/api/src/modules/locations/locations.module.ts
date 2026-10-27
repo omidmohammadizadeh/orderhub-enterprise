@@ -4,13 +4,14 @@ import { LocationsService } from './locations.service';
 import { IntegrationsModule } from '../integrations/integrations.module';
 import { UploadsModule } from "../uploads/uploads.module";
 import { LocationHygieneService } from "../hygiene/location-hygiene.service";
+import { HygieneAdminController } from "../hygiene/hygiene-admin.controller";
 
 @Module({
   // Phase AU — IntegrationsModule exports CredentialEncryptionService
   // which LocationsService uses to encrypt the pasted HubRise access
   // token before it hits the database.
   imports: [IntegrationsModule, UploadsModule],
-  controllers: [LocationsController],
+  controllers: [LocationsController, HygieneAdminController],
   // LocationHygieneService — the storefront's FSA badge + its nightly refresh.
   providers: [LocationsService, LocationHygieneService],
   exports: [LocationsService],

@@ -18,6 +18,40 @@ export interface HygieneUpdate {
   show?: boolean;
 }
 
+export interface AdminHygieneRow {
+  locationId: string;
+  locationName: string;
+  brandName: string | null;
+  postcode: string | null;
+  fsaId: string | null;
+  rating: string | null;
+  ratingDate: string | null;
+  checkedAt: string | null;
+  /** Linked and switched on — the badge is on the storefront. */
+  showing: boolean;
+}
+
+function toAdminRow(l: {
+  id: string;
+  name: string;
+  postcode: string | null;
+  settings: unknown;
+  brand: { name: string } | null;
+}): AdminHygieneRow {
+  const h = readHygiene(l.settings);
+  return {
+    locationId: l.id,
+    locationName: l.name,
+    brandName: l.brand?.name ?? null,
+    postcode: l.postcode,
+    fsaId: h?.fsaId ?? null,
+    rating: h?.rating || null,
+    ratingDate: h?.ratingDate ?? null,
+    checkedAt: h?.checkedAt || null,
+    showing: !!h && h.show && !!h.rating,
+  };
+}
+
 @Injectable()
 export class LocationHygieneService {
   private readonly logger = new Logger(LocationHygieneService.name);
@@ -62,6 +96,53 @@ export class LocationHygieneService {
     const next = hygieneFromResult(result, current);
     await this.save(loc.id, loc.settings, next);
     return next;
+  }
+
+  // ── Admin Dashboard → Food hygiene ─────────────────────────────────────
+
+  /** Every location in the tenant with its badge state, for the admin list. */
+  async listForTenant(tenantId: string): Promise<AdminHygieneRow[]> {
+    const rows = await this.prisma.location.findMany({
+      where: { deletedAt: null, brand: { tenantId } },
+      select: { id: true, name: true, postcode: true, settings: true, brand: { select: { name: true } } },
+      orderBy: { name: "asc" },
+    });
+    return rows.map((r) => toAdminRow(r));
+  }
+
+  /**
+   * The admin on/off switch. Switching on a shop that isn't linked yet finds
+   * its FSA record by name at its postcode first; switching off only hides
+   * the badge, so the link and the nightly re-check stay.
+   */
+  async setEnabled(locationId: string, tenantId: string, on: boolean): Promise<AdminHygieneRow> {
+    const loc = await this.load(locationId, tenantId);
+    const current = readHygiene(loc.settings);
+    if (on && !current) await this.update(locationId, tenantId, {});
+    else if (current) await this.update(locationId, tenantId, { show: on });
+    return toAdminRow(await this.load(locationId, tenantId));
+  }
+
+  /** "Find all automatically": link every unlinked shop the FSA can find at
+   *  its postcode. Found shops start hidden — the admin decides who shows. */
+  async linkAll(tenantId: string) {
+    const rows = await this.prisma.location.findMany({
+      where: { deletedAt: null, brand: { tenantId } },
+      select: { id: true, settings: true },
+    });
+    let linked = 0;
+    let notFound = 0;
+    for (const row of rows) {
+      if (readHygiene(row.settings)) continue;
+      try {
+        await this.update(row.id, tenantId, {});
+        await this.update(row.id, tenantId, { show: false });
+        linked++;
+      } catch {
+        notFound++;
+      }
+    }
+    return { linked, notFound };
   }
 
   @Cron("0 30 3 * * *", { timeZone: "Europe/London" })
