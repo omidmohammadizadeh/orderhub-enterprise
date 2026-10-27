@@ -19,9 +19,9 @@ const NAV: Array<{ href: string; label: string; soon?: boolean }> = [
   { href: "/efl-console/hygiene", label: "Food hygiene" },
   { href: "#couriers", label: "Couriers", soon: true },
   { href: "#customers", label: "Customers", soon: true },
-  { href: "#campaigns", label: "Push & email", soon: true },
-  { href: "#ads", label: "Sponsored ads", soon: true },
-  { href: "#statements", label: "Statements", soon: true },
+  { href: "/efl-console/campaigns", label: "Push & email" },
+  { href: "/efl-console/ads", label: "Sponsored ads" },
+  { href: "/efl-console/statements", label: "Statements" },
   { href: "/efl-console/settings", label: "Settings" },
 ];
 
