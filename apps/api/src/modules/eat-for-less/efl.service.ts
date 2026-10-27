@@ -27,6 +27,7 @@ import { defaultSmsFrom, isSmsConfigured, sendSmsViaProvider } from "../sms/sms-
 import { toE164 } from "../sms/phone";
 import { ChatService } from "../chat/chat.service";
 import { EflCallsService } from "./efl-calls.service";
+import { EflAdsService } from "./efl-ads.service";
 import { PaymentsService } from "../payments/payments.service";
 import { MollieService } from "../payments/mollie/mollie.service";
 import {
@@ -56,6 +57,7 @@ export interface UpdateListingInput {
   heroImageUrl?: string | null;
   logoUrl?: string | null;
   cuisines?: string[];
+  statementEmail?: string | null;
 }
 
 export interface AdminUpdateListingInput {
@@ -113,6 +115,7 @@ export class EflService {
     @Optional() private readonly mollie?: MollieService,
     @Optional() private readonly calls?: EflCallsService,
     @Optional() private readonly chat?: ChatService,
+    @Optional() private readonly ads?: EflAdsService,
   ) {}
 
   // ── Settings ───────────────────────────────────────────────────────────
@@ -146,7 +149,7 @@ export class EflService {
    * Whether delivery is possible, and what it costs, comes from the shop's
    * own delivery zones, the same answer its storefront would give.
    */
-  async discover(point: { lat: number; lng: number; postcode?: string }) {
+  async discover(point: { lat: number; lng: number; postcode?: string }, viewerKey?: string) {
     if (!Number.isFinite(point.lat) || !Number.isFinite(point.lng)) {
       throw new BadRequestException("A location is needed to find shops near you.");
     }
@@ -212,9 +215,30 @@ export class EflService {
       }),
     );
 
-    return results
+    const shops = results
       .filter((r): r is NonNullable<typeof r> => r !== null)
       .sort((a, b) => Number(b.isOpen) - Number(a.isOpen) || a.distanceMiles - b.distanceMiles);
+
+    // Sponsored places: an auction among shops this viewer could order from.
+    // Winners move to the top, marked; the price stays inside the token.
+    const placed =
+      this.ads && viewerKey
+        ? await this.ads
+            .sponsor(
+              shops.map((s) => ({ id: s.id, isOpen: s.isOpen, orderable: s.delivery.available || s.collection.available })),
+              viewerKey,
+            )
+            .catch((e) => {
+              this.logger.warn(`Sponsored places skipped: ${(e as Error).message}`);
+              return new Map<string, { token: string }>();
+            })
+        : new Map<string, { token: string }>();
+    const withAds = shops.map((s) => ({ ...s, sponsored: placed.has(s.id) ? { token: placed.get(s.id)!.token } : null }));
+    const order = [...placed.keys()];
+    return [
+      ...order.map((id) => withAds.find((s) => s.id === id)!).filter(Boolean),
+      ...withAds.filter((s) => !placed.has(s.id)),
+    ];
   }
 
   /** A shop's menu as the app shows it: the storefront menu at Eat For Less
@@ -243,7 +267,7 @@ export class EflService {
    * rail — so the response carries the PaymentIntent secret and the shop's
    * Stripe account for the app's payment sheet.
    */
-  async checkout(customer: { id: string }, listingId: string, body: CheckoutDto) {
+  async checkout(customer: { id: string }, listingId: string, body: CheckoutDto, viewerKeys: string[] = []) {
     const { listing, location, slug, brandId } = await this.liveListing(listingId);
 
     if (body.fulfillmentType === "DELIVERY" && !listing.acceptsDelivery) {
@@ -328,10 +352,22 @@ export class EflService {
         })
           ? generateDeliveryPin()
           : null;
+        // Sponsored-listing spend still owed, taken back on this order's
+        // fee (capped per order). Ads must never stop an order going in.
+        const adRecovered = this.ads ? await this.adRecoveryFor(order.id, listing.id, location.id) : 0;
         await this.prisma.order.update({
           where: { id: order.id },
-          data: { eflCommissionPercent: commissionPercent, deliveryPin: pin },
+          data: {
+            eflCommissionPercent: commissionPercent,
+            deliveryPin: pin,
+            ...(adRecovered > 0 ? { eflAdRecovered: adRecovered } : {}),
+          },
         });
+        if (this.ads && viewerKeys.length) {
+          await this.ads
+            .attributeOrder({ listingId: listing.id, viewerKeys, orderId: order.id })
+            .catch(() => undefined);
+        }
       },
     });
 
@@ -350,6 +386,19 @@ export class EflService {
       // the payment sheet.
       checkoutUrl: result.checkoutUrl ?? null,
     };
+  }
+
+  private async adRecoveryFor(orderId: string, listingId: string, locationId: string): Promise<number> {
+    try {
+      const priced = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: { subtotal: true, discount: true },
+      });
+      const food = Math.max(0, Number(priced?.subtotal ?? 0) - Number(priced?.discount ?? 0));
+      return await this.ads!.recoveryForOrder(listingId, locationId, food);
+    } catch {
+      return 0;
+    }
   }
 
   /** One of the customer's own orders, with its delivery PIN. The PIN is the
@@ -514,6 +563,9 @@ export class EflService {
 
   async updateListing(tenantId: string, locationId: string, input: UpdateListingInput) {
     await this.assertLocation(tenantId, locationId);
+    if (input.statementEmail?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.statementEmail.trim())) {
+      throw new BadRequestException("That email address doesn't look right.");
+    }
     if (input.brandId) {
       const brand = await this.prisma.brand.findFirst({
         where: { id: input.brandId, tenantId, deletedAt: null },
@@ -531,6 +583,9 @@ export class EflService {
       ...(input.heroImageUrl !== undefined ? { heroImageUrl: input.heroImageUrl } : {}),
       ...(input.logoUrl !== undefined ? { logoUrl: input.logoUrl } : {}),
       ...(input.cuisines !== undefined ? { cuisines: input.cuisines.slice(0, 8) } : {}),
+      ...(input.statementEmail !== undefined
+        ? { statementEmail: input.statementEmail?.trim() ? input.statementEmail.trim().toLowerCase() : null }
+        : {}),
     };
     const listing = await this.prisma.eflListing.upsert({
       where: { locationId },
@@ -733,7 +788,7 @@ export class EflService {
     return out;
   }
 
-  private async assertLocation(tenantId: string, locationId: string) {
+  async assertLocation(tenantId: string, locationId: string) {
     // A location has no tenantId of its own; it hangs off its brand.
     const loc = await this.prisma.location.findFirst({
       where: { id: locationId, brand: { tenantId } },
@@ -760,6 +815,7 @@ export class EflService {
       heroImageUrl: listing?.heroImageUrl ?? null,
       logoUrl: listing?.logoUrl ?? null,
       cuisines: listing?.cuisines ?? [],
+      statementEmail: listing?.statementEmail ?? null,
     };
   }
 }

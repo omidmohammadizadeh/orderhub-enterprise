@@ -7,7 +7,7 @@ import {
   Optional,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { eflCommissionPence } from "../eat-for-less/efl-rules";
+import { eflApplicationFeePence } from "../eat-for-less/efl-rules";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { randomBytes } from "crypto";
 import { usesTap } from "@orderhub/shared";
@@ -1432,7 +1432,7 @@ export class PaymentsService {
     // storefront fee — never both, and never a surcharge on the customer.
     const { applicationFeePence, customerSurchargePence } =
       (order as any).orderSource === "EAT_FOR_LESS"
-        ? { applicationFeePence: eflCommissionPence(order), customerSurchargePence: 0 }
+        ? { applicationFeePence: eflApplicationFeePence(order as any), customerSurchargePence: 0 }
         : this.computeFeeBreakdownPence(feeSource, totalGbp);
 
     // The fixed portion is a visible surcharge the customer pays on top, so

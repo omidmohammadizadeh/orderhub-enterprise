@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, Res, UseGuards } from "@nestjs/common";
+import type { Request, Response } from "express";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import {
@@ -25,7 +26,62 @@ import { EflService } from "./efl.service";
 import { EflApplicationsService } from "./efl-applications.service";
 import { EflHygieneService } from "./efl-hygiene.service";
 import { EflAccountService } from "./efl-account.service";
+import { EflAdsService } from "./efl-ads.service";
+import { EflStatementsService } from "./efl-statements.service";
+import { EflCampaignsService } from "./efl-campaigns.service";
+import { londonDateKey, londonWeekStart, weekStartFromKey } from "./efl-ads-rules";
 
+
+/** The anonymous viewer an app request comes from, for sponsored places:
+ *  its install id (x-efl-viewer), else its IP and browser. Always hashed. */
+function viewerFrom(req: Request): string {
+  return EflAdsService.viewerKey({
+    installId: (req.headers["x-efl-viewer"] as string | undefined) ?? null,
+    ip: req.ip ?? null,
+    ua: (req.headers["user-agent"] as string | undefined) ?? null,
+  });
+}
+
+class AdTapDto {
+  @IsString() @MaxLength(2000) token!: string;
+}
+
+class AdCampaignDto {
+  @IsOptional() @IsBoolean() active?: boolean;
+  @IsOptional() @IsNumber() @Min(0) @Max(1000) weeklyBudget?: number;
+  @IsOptional() @IsNumber() @Min(0) @Max(5) maxBid?: number;
+}
+
+class EmailStatementDto {
+  @IsOptional() @IsEmail() to?: string;
+}
+
+class SendWeekDto {
+  @IsString() @MaxLength(10) week!: string;
+}
+
+function sendPdf(res: Response, bytes: Uint8Array, filename: string) {
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Cache-Control", "private, no-store");
+  res.end(Buffer.from(bytes));
+}
+
+class CampaignDto {
+  @IsIn(["PUSH", "EMAIL"]) channel!: "PUSH" | "EMAIL";
+  @IsString() @MaxLength(140) title!: string;
+  @IsString() @MaxLength(4000) body!: string;
+  @IsOptional() @IsString() @MaxLength(40) ctaLabel?: string | null;
+  @IsOptional() @IsString() @MaxLength(2000) ctaUrl?: string | null;
+}
+
+class CampaignTestDto {
+  @IsEmail() to!: string;
+}
+
+class AdminAdPauseDto {
+  @IsBoolean() paused!: boolean;
+}
 
 class StartPhoneDto {
   @IsString() @MaxLength(32) phone!: string;
@@ -50,6 +106,8 @@ class UpdateListingDto {
   @IsOptional() @IsString() @MaxLength(2000) heroImageUrl?: string | null;
   @IsOptional() @IsString() @MaxLength(2000) logoUrl?: string | null;
   @IsOptional() @IsArray() @ArrayMaxSize(8) @IsString({ each: true }) cuisines?: string[];
+  // Empty string clears it back to the account's own email.
+  @IsOptional() @IsString() @MaxLength(254) statementEmail?: string | null;
 }
 
 class AdminUpdateListingDto {
@@ -140,7 +198,30 @@ export class EflAppController {
     private readonly efl: EflService,
     private readonly applications: EflApplicationsService,
     private readonly account: EflAccountService,
+    private readonly ads: EflAdsService,
+    private readonly campaigns: EflCampaignsService,
   ) {}
+
+  // One-click unsubscribe from Eat For Less emails: the link in every email
+  // (GET), and the List-Unsubscribe-Post header mail apps use (POST).
+  @Public()
+  @Get("unsubscribe")
+  async unsubscribePage(@Query("t") token: string, @Res() res: Response) {
+    const ok = await this.campaigns.unsubscribe(token);
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.end(
+      `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Eat For Less</title>` +
+        `<body style="margin:0;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;background:#D4FF3F;color:#0B0B0B;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box">` +
+        `<div style="max-width:420px;text-align:center"><div style="font-size:28px;font-weight:900">eat for less</div>` +
+        `<p style="font-size:18px">${ok ? "You won't get offers by email from us any more." : "That link has expired. Turn offers off in the app under Account."}</p></div></body>`,
+    );
+  }
+
+  @Public()
+  @Post("unsubscribe")
+  async unsubscribeOneClick(@Query("t") token: string) {
+    return { ok: await this.campaigns.unsubscribe(token) };
+  }
 
   @Public()
   @Get("config")
@@ -224,8 +305,21 @@ export class EflAppController {
   @Public()
   @Get("shops")
   @ApiOperation({ summary: "Eat For Less shops near a point, open ones first" })
-  shops(@Query("lat") lat: string, @Query("lng") lng: string, @Query("postcode") postcode?: string) {
-    return this.efl.discover({ lat: Number(lat), lng: Number(lng), postcode });
+  shops(
+    @Req() req: Request,
+    @Query("lat") lat: string,
+    @Query("lng") lng: string,
+    @Query("postcode") postcode?: string,
+  ) {
+    return this.efl.discover({ lat: Number(lat), lng: Number(lng), postcode }, viewerFrom(req));
+  }
+
+  @Public()
+  @Post("ads/tap")
+  @Throttle({ short: { limit: 10, ttl: 10000 } })
+  @ApiOperation({ summary: "A tap on a sponsored shop (charged once, at the auction's price)" })
+  adTap(@Req() req: Request, @Body() dto: AdTapDto) {
+    return this.ads.tap(dto.token, viewerFrom(req));
   }
 
   @Public()
@@ -245,8 +339,11 @@ export class EflAppController {
     @CurrentCustomer() customer: { id: string },
     @Param("listingId") listingId: string,
     @Body() dto: CheckoutDto,
+    @Req() req: Request,
   ) {
-    return this.efl.checkout(customer, listingId, dto);
+    // Either key may have tapped the sponsored place that brought this order.
+    const keys = [viewerFrom(req), EflAdsService.viewerKey({ customerId: customer.id })];
+    return this.efl.checkout(customer, listingId, dto, keys);
   }
 
   @Public()
@@ -321,7 +418,71 @@ export class EflAppController {
 @ApiBearerAuth()
 @Controller({ path: "efl/listing", version: "1" })
 export class EflListingController {
-  constructor(private readonly efl: EflService) {}
+  constructor(
+    private readonly efl: EflService,
+    private readonly ads: EflAdsService,
+    private readonly statements: EflStatementsService,
+  ) {}
+
+  @Get(":locationId/statements")
+  async listStatements(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return {
+      recipient: await this.statements.recipientFor(locationId),
+      weeks: await this.statements.list(locationId),
+    };
+  }
+
+  @Get(":locationId/statements/:week")
+  async statement(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+    @Param("week") week: string,
+  ) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return this.statements.build(locationId, week);
+  }
+
+  @Get(":locationId/statements/:week/pdf")
+  async statementPdf(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+    @Param("week") week: string,
+    @Res() res: Response,
+  ) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    const statement = await this.statements.build(locationId, week);
+    sendPdf(res, await this.statements.pdf(statement), `eat-for-less-${week}.pdf`);
+  }
+
+  @Post(":locationId/statements/:week/email")
+  @Roles(...LISTING_WRITE)
+  async emailStatement(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+    @Param("week") week: string,
+    @Body() dto: EmailStatementDto,
+  ) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return this.statements.emailStatement(locationId, week, dto.to);
+  }
+
+  @Get(":locationId/ads")
+  async getAds(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return this.ads.campaignForLocation(locationId);
+  }
+
+  @Put(":locationId/ads")
+  @Roles(...LISTING_WRITE)
+  async saveAds(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+    @Body() dto: AdCampaignDto,
+  ) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return this.ads.saveCampaign(locationId, dto);
+  }
 
   @Get(":locationId")
   get(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
@@ -350,7 +511,72 @@ export class EflAdminController {
     private readonly efl: EflService,
     private readonly applications: EflApplicationsService,
     private readonly hygiene: EflHygieneService,
+    private readonly ads: EflAdsService,
+    private readonly statements: EflStatementsService,
+    private readonly campaigns: EflCampaignsService,
   ) {}
+
+  @Get("campaigns")
+  async listCampaigns() {
+    const [campaigns, audience] = await Promise.all([this.campaigns.list(), this.campaigns.audience()]);
+    return { campaigns, audience };
+  }
+
+  @Post("campaigns")
+  createCampaign(@Body() dto: CampaignDto, @CurrentUser() user: AuthenticatedUser) {
+    return this.campaigns.create(dto, user.userId);
+  }
+
+  @Put("campaigns/:id")
+  updateCampaign(@Param("id") id: string, @Body() dto: CampaignDto) {
+    return this.campaigns.update(id, dto);
+  }
+
+  @Delete("campaigns/:id")
+  deleteCampaign(@Param("id") id: string) {
+    return this.campaigns.remove(id);
+  }
+
+  @Post("campaigns/:id/test")
+  testCampaign(@Param("id") id: string, @Body() dto: CampaignTestDto) {
+    return this.campaigns.sendTest(id, dto.to);
+  }
+
+  @Post("campaigns/:id/send")
+  sendCampaign(@Param("id") id: string) {
+    return this.campaigns.send(id);
+  }
+
+  @Get("statements")
+  @ApiOperation({ summary: "Every shop's statement for a week (default: last week)" })
+  statementsWeek(@Query("week") week?: string) {
+    const lastWeek = londonDateKey(londonWeekStart(new Date(londonWeekStart(new Date()).getTime() - 86_400_000)));
+    return this.statements.adminWeek(week || lastWeek);
+  }
+
+  @Get("statements/:locationId/:week/pdf")
+  async adminStatementPdf(@Param("locationId") locationId: string, @Param("week") week: string, @Res() res: Response) {
+    const statement = await this.statements.build(locationId, week);
+    sendPdf(res, await this.statements.pdf(statement), `eat-for-less-${week}.pdf`);
+  }
+
+  @Post("statements/send")
+  @ApiOperation({ summary: "Email a week's statements to every shop not yet sent one" })
+  async sendStatements(@Body() dto: SendWeekDto) {
+    const start = weekStartFromKey(dto.week);
+    if (!start) return { sent: 0 };
+    return { sent: await this.statements.sendWeek(start) };
+  }
+
+  @Get("ads")
+  adCampaigns() {
+    return this.ads.adminCampaigns();
+  }
+
+  @Patch("ads/:listingId")
+  pauseAds(@Param("listingId") listingId: string, @Body() dto: AdminAdPauseDto) {
+    return this.ads.adminPause(listingId, dto.paused);
+  }
 
   @Get("applications")
   listApplications() {

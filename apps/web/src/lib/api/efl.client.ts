@@ -26,6 +26,8 @@ export interface EflShopListing {
   heroImageUrl: string | null;
   logoUrl: string | null;
   cuisines: string[];
+  /** Where Monday statements go; null = the account owner's email. */
+  statementEmail: string | null;
 }
 
 export type EflShopListingUpdate = Partial<
@@ -40,6 +42,7 @@ export type EflShopListingUpdate = Partial<
     | "heroImageUrl"
     | "logoUrl"
     | "cuisines"
+    | "statementEmail"
   >
 >;
 
@@ -165,6 +168,118 @@ export interface EflHygieneShop {
   hiddenForHygiene: boolean;
 }
 
+// ── Sponsored ads, statements, campaigns (Phase 5) ─────────────────────
+
+export interface EflAdCampaign {
+  active: boolean;
+  weeklyBudget: number;
+  maxBid: number;
+  pausedByAdmin: boolean;
+}
+
+export interface EflAdWeek {
+  shows: number;
+  taps: number;
+  spent: number;
+  orders: number;
+}
+
+export interface EflShopAds {
+  campaign: EflAdCampaign | null;
+  thisWeek: EflAdWeek;
+  /** Ad spend not yet taken back from orders, in pounds. */
+  owed: number;
+}
+
+export interface EflAdminAdRow extends EflAdCampaign {
+  listingId: string;
+  shopName: string | null;
+  town: string | null;
+  thisWeek: EflAdWeek;
+  owed: number;
+}
+
+export interface EflStatementLine {
+  orderId: string;
+  ref: string;
+  placedAt: string;
+  fulfillment: "Delivery" | "Collection";
+  food: number;
+  deliveryFee: number;
+  tip: number;
+  customerPaid: number;
+  commission: number;
+  adRecovered: number;
+  toShop: number;
+}
+
+export interface EflStatementSummary {
+  listingId: string;
+  locationId: string;
+  shopName: string;
+  /** The week's Monday, "2026-10-26". */
+  week: string;
+  /** "26 Oct – 1 Nov 2026" */
+  weekLabel: string;
+  orders: number;
+  customerPaid: number;
+  food: number;
+  deliveryFees: number;
+  tips: number;
+  commission: number;
+  ads: { shows: number; taps: number; spent: number; ordersFromAds: number; recovered: number; stillOwed: number };
+  toShop: number;
+  refundedOrders: number;
+}
+
+export interface EflStatement extends EflStatementSummary {
+  lines: EflStatementLine[];
+}
+
+export interface EflAdminStatementWeek {
+  week: string;
+  weekLabel: string;
+  shops: EflStatementSummary[];
+  totals: { orders: number; customerPaid: number; commission: number; adSpent: number; adRecovered: number; toShops: number };
+}
+
+export type EflCampaignChannel = "PUSH" | "EMAIL";
+
+export interface EflCampaign {
+  id: string;
+  channel: EflCampaignChannel;
+  title: string;
+  body: string;
+  ctaLabel: string | null;
+  ctaUrl: string | null;
+  status: "DRAFT" | "SENDING" | "SENT" | "FAILED";
+  targeted: number;
+  delivered: number;
+  sentAt: string | null;
+  createdAt: string;
+}
+
+export interface EflCampaignInput {
+  channel: EflCampaignChannel;
+  title: string;
+  body: string;
+  ctaLabel?: string | null;
+  ctaUrl?: string | null;
+}
+
+/** Saves a PDF the API returned as a file download. */
+async function downloadPdf(url: string, filename: string) {
+  const res = await apiClient.get<Blob>(url, { responseType: "blob" });
+  const href = URL.createObjectURL(res.data);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 1000);
+}
+
 export const eflPartnerClient = {
   apply: (input: EflApplicationInput) =>
     apiClient.post<{ id: string; reference: string }>("/v1/efl/applications", input).then((r) => r.data),
@@ -176,6 +291,27 @@ export const eflClient = {
 
   updateListing: (locationId: string, patch: EflShopListingUpdate) =>
     apiClient.put<EflShopListing>(`/v1/efl/listing/${locationId}`, patch).then((r) => r.data),
+
+  ads: (locationId: string) => apiClient.get<EflShopAds>(`/v1/efl/listing/${locationId}/ads`).then((r) => r.data),
+
+  saveAds: (locationId: string, patch: Partial<Pick<EflAdCampaign, "active" | "weeklyBudget" | "maxBid">>) =>
+    apiClient.put<EflAdCampaign>(`/v1/efl/listing/${locationId}/ads`, patch).then((r) => r.data),
+
+  statements: (locationId: string) =>
+    apiClient
+      .get<{ recipient: string | null; weeks: EflStatementSummary[] }>(`/v1/efl/listing/${locationId}/statements`)
+      .then((r) => r.data),
+
+  statement: (locationId: string, week: string) =>
+    apiClient.get<EflStatement>(`/v1/efl/listing/${locationId}/statements/${week}`).then((r) => r.data),
+
+  downloadStatement: (locationId: string, week: string) =>
+    downloadPdf(`/v1/efl/listing/${locationId}/statements/${week}/pdf`, `eat-for-less-${week}.pdf`),
+
+  emailStatement: (locationId: string, week: string, to?: string) =>
+    apiClient
+      .post<{ sentTo: string }>(`/v1/efl/listing/${locationId}/statements/${week}/email`, to ? { to } : {})
+      .then((r) => r.data),
 };
 
 export const eflAdminClient = {
@@ -220,6 +356,41 @@ export const eflAdminClient = {
 
   hygieneLink: (listingId: string, url?: string) =>
     apiClient.post<EflHygieneShop>(`/v1/admin/efl/hygiene/${listingId}/link`, url ? { url } : {}).then((r) => r.data),
+
+  ads: () => apiClient.get<EflAdminAdRow[]>("/v1/admin/efl/ads").then((r) => r.data),
+
+  pauseAds: (listingId: string, paused: boolean) =>
+    apiClient.patch<EflAdCampaign>(`/v1/admin/efl/ads/${listingId}`, { paused }).then((r) => r.data),
+
+  /** One week of every shop's statement; no week = last week. */
+  statements: (week?: string) =>
+    apiClient
+      .get<EflAdminStatementWeek>("/v1/admin/efl/statements", { params: week ? { week } : {} })
+      .then((r) => r.data),
+
+  downloadStatement: (locationId: string, week: string) =>
+    downloadPdf(`/v1/admin/efl/statements/${locationId}/${week}/pdf`, `eat-for-less-${week}.pdf`),
+
+  sendStatements: (week: string) =>
+    apiClient.post<{ sent: number }>("/v1/admin/efl/statements/send", { week }).then((r) => r.data),
+
+  campaigns: () =>
+    apiClient
+      .get<{ campaigns: EflCampaign[]; audience: { push: number; email: number } }>("/v1/admin/efl/campaigns")
+      .then((r) => r.data),
+
+  createCampaign: (input: EflCampaignInput) =>
+    apiClient.post<EflCampaign>("/v1/admin/efl/campaigns", input).then((r) => r.data),
+
+  updateCampaign: (id: string, input: EflCampaignInput) =>
+    apiClient.put<EflCampaign>(`/v1/admin/efl/campaigns/${id}`, input).then((r) => r.data),
+
+  deleteCampaign: (id: string) => apiClient.delete(`/v1/admin/efl/campaigns/${id}`).then((r) => r.data),
+
+  testCampaign: (id: string, to: string) =>
+    apiClient.post<{ sentTo: string }>(`/v1/admin/efl/campaigns/${id}/test`, { to }).then((r) => r.data),
+
+  sendCampaign: (id: string) => apiClient.post<EflCampaign>(`/v1/admin/efl/campaigns/${id}/send`).then((r) => r.data),
 };
 
 // ── Public website (eatforless.co.uk) ──────────────────────────────────
