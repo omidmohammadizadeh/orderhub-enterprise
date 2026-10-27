@@ -225,6 +225,18 @@ export type OrderDetail = {
   driverEtaMinutes: number | null;
   deliveryPin: string | null;
   handedOver: boolean;
+  /** Our private-line number and this customer's code, while the line is
+   *  open (until 2h after delivery). Null before calls are set up. */
+  privateLine?: { number: string; code: string } | null;
+};
+
+/** GET/POST efl/me/orders/:id/messages — one message with the driver. */
+export type OrderMessage = {
+  id: string;
+  senderType: "CUSTOMER" | "DRIVER" | "OPERATOR";
+  senderName: string | null;
+  body: string;
+  createdAt: string;
 };
 
 /** GET efl/me/orders — one row. */

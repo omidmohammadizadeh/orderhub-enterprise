@@ -322,12 +322,12 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
                 </View>
               </View>
               <View style={styles.actions}>
-                <PressScale onPress={() => navigation.navigate("Call", { name: driverName })} style={styles.action} haptic>
+                <PressScale onPress={() => navigation.navigate("Call", { orderId, name: driverName })} style={styles.action} haptic>
                   <Icon name="phone" size={18} />
                   <T v="label" style={{ fontSize: 15 }}>Call</T>
                 </PressScale>
                 <PressScale
-                  onPress={() => Alert.alert("Messages are coming", "Private messaging with your driver arrives with Eat For Less private lines.")}
+                  onPress={() => navigation.navigate("Messages", { orderId, name: driverName })}
                   style={styles.action}
                   haptic
                 >

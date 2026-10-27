@@ -19,7 +19,8 @@ export type RootStackParamList = {
   Checkout: undefined;
   Address: undefined;
   Tracking: { orderId: string };
-  Call: { name: string };
+  Call: { orderId: string; name: string };
+  Messages: { orderId: string; name: string };
 };
 
 export type RootScreen<K extends keyof RootStackParamList> = NativeStackScreenProps<RootStackParamList, K>;

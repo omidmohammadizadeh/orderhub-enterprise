@@ -1003,6 +1003,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   sourceMetadata: 'sourceMetadata',
   deliveryPin: 'deliveryPin',
   deliveryPinVerifiedAt: 'deliveryPinVerifiedAt',
+  deliveryPinAttempts: 'deliveryPinAttempts',
   eflCommissionPercent: 'eflCommissionPercent',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -2242,6 +2243,14 @@ exports.Prisma.EflSavedAddressScalarFieldEnum = {
   isDefault: 'isDefault',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflCallLineScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  customerCode: 'customerCode',
+  driverCode: 'driverCode',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.EflFavouriteScalarFieldEnum = {
@@ -4428,6 +4437,13 @@ exports.Prisma.EflSavedAddressOrderByRelevanceFieldEnum = {
   instructions: 'instructions'
 };
 
+exports.Prisma.EflCallLineOrderByRelevanceFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  customerCode: 'customerCode',
+  driverCode: 'driverCode'
+};
+
 exports.Prisma.EflFavouriteOrderByRelevanceFieldEnum = {
   id: 'id',
   customerAccountId: 'customerAccountId',
@@ -5616,6 +5632,7 @@ exports.Prisma.ModelName = {
   EflApplication: 'EflApplication',
   EflPushDevice: 'EflPushDevice',
   EflSavedAddress: 'EflSavedAddress',
+  EflCallLine: 'EflCallLine',
   EflFavourite: 'EflFavourite',
   EflConfig: 'EflConfig',
   EflPhoneVerification: 'EflPhoneVerification',

@@ -9,6 +9,7 @@ import type {
   CheckoutResult,
   Customer,
   OrderDetail,
+  OrderMessage,
   OrderStatusName,
   OrderSummary,
   SavedAddress,
@@ -116,9 +117,27 @@ export const getMyOrder = (orderId: string): Promise<OrderDetail> => {
       driverEtaMinutes: status === "OUT_FOR_DELIVERY" ? Math.max(1, Math.ceil((120 - s) / 15)) : null,
       deliveryPin: delivery ? "4821" : null,
       handedOver: status === "DELIVERED",
+      privateLine: null,
     },
     250,
   );
+};
+
+const messages = new Map<string, OrderMessage[]>();
+
+export const getOrderMessages = (orderId: string): Promise<OrderMessage[]> =>
+  delay(messages.get(orderId) ?? [], 150);
+
+export const sendOrderMessage = (orderId: string, body: string): Promise<OrderMessage> => {
+  const message: OrderMessage = {
+    id: String(Date.now()),
+    senderType: "CUSTOMER",
+    senderName: null,
+    body,
+    createdAt: iso(Date.now()),
+  };
+  messages.set(orderId, [...(messages.get(orderId) ?? []), message]);
+  return delay(message, 150);
 };
 
 export const getMyOrders = (): Promise<OrderSummary[]> =>

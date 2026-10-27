@@ -2212,6 +2212,8 @@ model Order {
   /// door. Null when the order doesn't need one. Never sent to a driver.
   deliveryPin           String?
   deliveryPinVerifiedAt DateTime?
+  /// Wrong PINs keyed at the door. Three locks the handover.
+  deliveryPinAttempts   Int       @default(0)
   /// Eat For Less: the commission rate this order was placed at, kept so a
   /// later rate change can't rewrite an old statement.
   eflCommissionPercent  Decimal?  @db.Decimal(5, 2)
@@ -4655,6 +4657,23 @@ model EflSavedAddress {
 
   @@index([customerAccountId])
   @@map("efl_saved_addresses")
+}
+
+/// Eat For Less private line for one order: one number, two codes. The
+/// customer keys theirs to reach the driver (or the shop, before a driver
+/// has it); the driver keys theirs to reach the customer. Neither sees the
+/// other's number.
+model EflCallLine {
+  id           String   @id @default(cuid())
+  orderId      String   @unique
+  /// Codes repeat over time; only a line that is still open answers one.
+  customerCode String
+  driverCode   String
+  createdAt    DateTime @default(now())
+
+  @@index([customerCode])
+  @@index([driverCode])
+  @@map("efl_call_lines")
 }
 
 /// A shop an Eat For Less customer hearted.

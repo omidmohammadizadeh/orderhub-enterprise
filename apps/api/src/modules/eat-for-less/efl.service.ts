@@ -25,12 +25,15 @@ import { PauseService } from "../pauses/pause.service";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import { defaultSmsFrom, isSmsConfigured, sendSmsViaProvider } from "../sms/sms-provider";
 import { toE164 } from "../sms/phone";
+import { ChatService } from "../chat/chat.service";
+import { EflCallsService } from "./efl-calls.service";
 import { PaymentsService } from "../payments/payments.service";
 import { MollieService } from "../payments/mollie/mollie.service";
 import {
   EFL_SEARCH_RADIUS_MILES,
   commissionPercentFor,
   deliveryWindow,
+  callLineOpen,
   eflCommissionPence,
   travelMinutes,
   generateDeliveryPin,
@@ -108,6 +111,8 @@ export class EflService {
     // so the unit tests' positional constructors keep working.
     @Optional() private readonly payments?: PaymentsService,
     @Optional() private readonly mollie?: MollieService,
+    @Optional() private readonly calls?: EflCallsService,
+    @Optional() private readonly chat?: ChatService,
   ) {}
 
   // ── Settings ───────────────────────────────────────────────────────────
@@ -352,19 +357,59 @@ export class EflService {
   async myOrder(customer: { id: string }, orderId: string) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, customerAccountId: customer.id, orderSource: "EAT_FOR_LESS" },
-      select: { id: true, deliveryPin: true, deliveryPinVerifiedAt: true },
+      select: {
+        id: true,
+        status: true,
+        deliveredAt: true,
+        updatedAt: true,
+        deliveryPin: true,
+        deliveryPinVerifiedAt: true,
+      },
     });
     if (!order) throw new NotFoundException("Order not found");
     const status: any = await this.ordering.getOrderStatus(order.id);
     return {
       ...status,
-      // Never the driver's own number: the customer calls through a private
-      // line (Phase 4), and the driver never sees theirs either.
+      // Never the driver's own number: the customer calls through the
+      // private line, and the driver never sees theirs either.
       driver: status.driver ? withoutPhone(status.driver) : null,
       driverEtaMinutes: driverEta(status.driver, status.destination),
       deliveryPin: order.deliveryPinVerifiedAt ? null : order.deliveryPin,
       handedOver: !!order.deliveryPinVerifiedAt,
+      // Our number and the customer's code, while the line is open. Null
+      // when private calls aren't set up yet or the line has closed.
+      privateLine: (await this.calls?.customerLine(order)) ?? null,
     };
+  }
+
+  /** Messages between the customer and their driver on one order. */
+  async myOrderMessages(customer: { id: string }, orderId: string) {
+    await this.ownOrder(customer, orderId);
+    if (!this.chat) return [];
+    const messages = await this.chat.customerThread(orderId);
+    await this.chat.readCustomerThread(orderId, "CUSTOMER");
+    return messages;
+  }
+
+  async sendMyOrderMessage(customer: { id: string }, orderId: string, body: string) {
+    const order = await this.ownOrder(customer, orderId);
+    const text = String(body ?? "").trim().slice(0, 500);
+    if (!text) throw new BadRequestException("Write a message first.");
+    if (!callLineOpen(order, new Date())) {
+      throw new BadRequestException("Messages close two hours after delivery.");
+    }
+    if (!this.chat) throw new BadRequestException("Messages aren't available right now.");
+    // First name only: it's what a driver needs at a door.
+    return this.chat.postCustomerDriver(orderId, "CUSTOMER", text, order.customerName?.split(" ")[0] ?? null);
+  }
+
+  private async ownOrder(customer: { id: string }, orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, customerAccountId: customer.id, orderSource: "EAT_FOR_LESS" },
+      select: { id: true, status: true, deliveredAt: true, updatedAt: true, customerName: true },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    return order;
   }
 
   async myOrders(customer: { id: string }) {

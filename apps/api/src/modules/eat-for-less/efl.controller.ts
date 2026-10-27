@@ -273,6 +273,26 @@ export class EflAppController {
 
   @Public()
   @UseGuards(CustomerJwtGuard)
+  @Get("me/orders/:orderId/messages")
+  @ApiOperation({ summary: "Messages with the driver on this order (marks them read)" })
+  myOrderMessages(@CurrentCustomer() customer: { id: string }, @Param("orderId") orderId: string) {
+    return this.efl.myOrderMessages(customer, orderId);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Post("me/orders/:orderId/messages")
+  @ApiOperation({ summary: "Message the driver on this order" })
+  sendMyOrderMessage(
+    @CurrentCustomer() customer: { id: string },
+    @Param("orderId") orderId: string,
+    @Body() body: { body?: string },
+  ) {
+    return this.efl.sendMyOrderMessage(customer, orderId, String(body?.body ?? ""));
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
   @Post("me/phone/start")
   @Throttle({ short: { limit: 2, ttl: 30000 } })
   @ApiOperation({ summary: "Text a 6-digit code to the customer's mobile" })

@@ -13,6 +13,7 @@ import type {
   Customer,
   EflMe,
   OrderDetail,
+  OrderMessage,
   OrderSummary,
   Shop,
   SavedAddress,
@@ -52,6 +53,16 @@ export function getMyOrders(): Promise<OrderSummary[]> {
 export function getMyOrder(orderId: string): Promise<OrderDetail> {
   if (MOCK) return mock.getMyOrder(orderId);
   return request("GET", `/v1/efl/me/orders/${encodeURIComponent(orderId)}`);
+}
+
+export function getOrderMessages(orderId: string): Promise<OrderMessage[]> {
+  if (MOCK) return mock.getOrderMessages(orderId);
+  return request("GET", `/v1/efl/me/orders/${encodeURIComponent(orderId)}/messages`);
+}
+
+export function sendOrderMessage(orderId: string, body: string): Promise<OrderMessage> {
+  if (MOCK) return mock.sendOrderMessage(orderId, body);
+  return request("POST", `/v1/efl/me/orders/${encodeURIComponent(orderId)}/messages`, { body });
 }
 
 // ── Phone check (S1) and consent ───────────────────────────────────────────

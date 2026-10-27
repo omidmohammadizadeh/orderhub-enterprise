@@ -643,6 +643,14 @@ export type EflPushDevice = $Result.DefaultSelection<Prisma.$EflPushDevicePayloa
  */
 export type EflSavedAddress = $Result.DefaultSelection<Prisma.$EflSavedAddressPayload>
 /**
+ * Model EflCallLine
+ * Eat For Less private line for one order: one number, two codes. The
+ * customer keys theirs to reach the driver (or the shop, before a driver
+ * has it); the driver keys theirs to reach the customer. Neither sees the
+ * other's number.
+ */
+export type EflCallLine = $Result.DefaultSelection<Prisma.$EflCallLinePayload>
+/**
  * Model EflFavourite
  * A shop an Eat For Less customer hearted.
  */
@@ -3142,6 +3150,16 @@ export class PrismaClient<
   get eflSavedAddress(): Prisma.EflSavedAddressDelegate<ExtArgs>;
 
   /**
+   * `prisma.eflCallLine`: Exposes CRUD operations for the **EflCallLine** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflCallLines
+    * const eflCallLines = await prisma.eflCallLine.findMany()
+    * ```
+    */
+  get eflCallLine(): Prisma.EflCallLineDelegate<ExtArgs>;
+
+  /**
    * `prisma.eflFavourite`: Exposes CRUD operations for the **EflFavourite** model.
     * Example usage:
     * ```ts
@@ -4203,6 +4221,7 @@ export namespace Prisma {
     EflApplication: 'EflApplication',
     EflPushDevice: 'EflPushDevice',
     EflSavedAddress: 'EflSavedAddress',
+    EflCallLine: 'EflCallLine',
     EflFavourite: 'EflFavourite',
     EflConfig: 'EflConfig',
     EflPhoneVerification: 'EflPhoneVerification',
@@ -4268,7 +4287,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflApplication" | "eflPushDevice" | "eflSavedAddress" | "eflFavourite" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflApplication" | "eflPushDevice" | "eflSavedAddress" | "eflCallLine" | "eflFavourite" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -12809,6 +12828,76 @@ export namespace Prisma {
           count: {
             args: Prisma.EflSavedAddressCountArgs<ExtArgs>
             result: $Utils.Optional<EflSavedAddressCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflCallLine: {
+        payload: Prisma.$EflCallLinePayload<ExtArgs>
+        fields: Prisma.EflCallLineFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflCallLineFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflCallLineFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload>
+          }
+          findFirst: {
+            args: Prisma.EflCallLineFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflCallLineFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload>
+          }
+          findMany: {
+            args: Prisma.EflCallLineFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload>[]
+          }
+          create: {
+            args: Prisma.EflCallLineCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload>
+          }
+          createMany: {
+            args: Prisma.EflCallLineCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflCallLineCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload>[]
+          }
+          delete: {
+            args: Prisma.EflCallLineDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload>
+          }
+          update: {
+            args: Prisma.EflCallLineUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload>
+          }
+          deleteMany: {
+            args: Prisma.EflCallLineDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflCallLineUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflCallLineUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflCallLinePayload>
+          }
+          aggregate: {
+            args: Prisma.EflCallLineAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflCallLine>
+          }
+          groupBy: {
+            args: Prisma.EflCallLineGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflCallLineGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflCallLineCountArgs<ExtArgs>
+            result: $Utils.Optional<EflCallLineCountAggregateOutputType> | number
           }
         }
       }
@@ -67354,6 +67443,7 @@ export namespace Prisma {
     total: Decimal | null
     promoDiscount: Decimal | null
     preparationMinutes: number | null
+    deliveryPinAttempts: number | null
     eflCommissionPercent: Decimal | null
   }
 
@@ -67373,6 +67463,7 @@ export namespace Prisma {
     total: Decimal | null
     promoDiscount: Decimal | null
     preparationMinutes: number | null
+    deliveryPinAttempts: number | null
     eflCommissionPercent: Decimal | null
   }
 
@@ -67454,6 +67545,7 @@ export namespace Prisma {
     cancelReason: string | null
     deliveryPin: string | null
     deliveryPinVerifiedAt: Date | null
+    deliveryPinAttempts: number | null
     eflCommissionPercent: Decimal | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -67538,6 +67630,7 @@ export namespace Prisma {
     cancelReason: string | null
     deliveryPin: string | null
     deliveryPinVerifiedAt: Date | null
+    deliveryPinAttempts: number | null
     eflCommissionPercent: Decimal | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -67626,6 +67719,7 @@ export namespace Prisma {
     sourceMetadata: number
     deliveryPin: number
     deliveryPinVerifiedAt: number
+    deliveryPinAttempts: number
     eflCommissionPercent: number
     createdAt: number
     updatedAt: number
@@ -67650,6 +67744,7 @@ export namespace Prisma {
     total?: true
     promoDiscount?: true
     preparationMinutes?: true
+    deliveryPinAttempts?: true
     eflCommissionPercent?: true
   }
 
@@ -67669,6 +67764,7 @@ export namespace Prisma {
     total?: true
     promoDiscount?: true
     preparationMinutes?: true
+    deliveryPinAttempts?: true
     eflCommissionPercent?: true
   }
 
@@ -67750,6 +67846,7 @@ export namespace Prisma {
     cancelReason?: true
     deliveryPin?: true
     deliveryPinVerifiedAt?: true
+    deliveryPinAttempts?: true
     eflCommissionPercent?: true
     createdAt?: true
     updatedAt?: true
@@ -67834,6 +67931,7 @@ export namespace Prisma {
     cancelReason?: true
     deliveryPin?: true
     deliveryPinVerifiedAt?: true
+    deliveryPinAttempts?: true
     eflCommissionPercent?: true
     createdAt?: true
     updatedAt?: true
@@ -67922,6 +68020,7 @@ export namespace Prisma {
     sourceMetadata?: true
     deliveryPin?: true
     deliveryPinVerifiedAt?: true
+    deliveryPinAttempts?: true
     eflCommissionPercent?: true
     createdAt?: true
     updatedAt?: true
@@ -68097,6 +68196,7 @@ export namespace Prisma {
     sourceMetadata: JsonValue
     deliveryPin: string | null
     deliveryPinVerifiedAt: Date | null
+    deliveryPinAttempts: number
     eflCommissionPercent: Decimal | null
     createdAt: Date
     updatedAt: Date
@@ -68204,6 +68304,7 @@ export namespace Prisma {
     sourceMetadata?: boolean
     deliveryPin?: boolean
     deliveryPinVerifiedAt?: boolean
+    deliveryPinAttempts?: boolean
     eflCommissionPercent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -68306,6 +68407,7 @@ export namespace Prisma {
     sourceMetadata?: boolean
     deliveryPin?: boolean
     deliveryPinVerifiedAt?: boolean
+    deliveryPinAttempts?: boolean
     eflCommissionPercent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -68399,6 +68501,7 @@ export namespace Prisma {
     sourceMetadata?: boolean
     deliveryPin?: boolean
     deliveryPinVerifiedAt?: boolean
+    deliveryPinAttempts?: boolean
     eflCommissionPercent?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -68532,6 +68635,10 @@ export namespace Prisma {
        */
       deliveryPin: string | null
       deliveryPinVerifiedAt: Date | null
+      /**
+       * Wrong PINs keyed at the door. Three locks the handover.
+       */
+      deliveryPinAttempts: number
       /**
        * Eat For Less: the commission rate this order was placed at, kept so a
        * later rate change can't rewrite an old statement.
@@ -69032,6 +69139,7 @@ export namespace Prisma {
     readonly sourceMetadata: FieldRef<"Order", 'Json'>
     readonly deliveryPin: FieldRef<"Order", 'String'>
     readonly deliveryPinVerifiedAt: FieldRef<"Order", 'DateTime'>
+    readonly deliveryPinAttempts: FieldRef<"Order", 'Int'>
     readonly eflCommissionPercent: FieldRef<"Order", 'Decimal'>
     readonly createdAt: FieldRef<"Order", 'DateTime'>
     readonly updatedAt: FieldRef<"Order", 'DateTime'>
@@ -152373,6 +152481,887 @@ export namespace Prisma {
 
 
   /**
+   * Model EflCallLine
+   */
+
+  export type AggregateEflCallLine = {
+    _count: EflCallLineCountAggregateOutputType | null
+    _min: EflCallLineMinAggregateOutputType | null
+    _max: EflCallLineMaxAggregateOutputType | null
+  }
+
+  export type EflCallLineMinAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    customerCode: string | null
+    driverCode: string | null
+    createdAt: Date | null
+  }
+
+  export type EflCallLineMaxAggregateOutputType = {
+    id: string | null
+    orderId: string | null
+    customerCode: string | null
+    driverCode: string | null
+    createdAt: Date | null
+  }
+
+  export type EflCallLineCountAggregateOutputType = {
+    id: number
+    orderId: number
+    customerCode: number
+    driverCode: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type EflCallLineMinAggregateInputType = {
+    id?: true
+    orderId?: true
+    customerCode?: true
+    driverCode?: true
+    createdAt?: true
+  }
+
+  export type EflCallLineMaxAggregateInputType = {
+    id?: true
+    orderId?: true
+    customerCode?: true
+    driverCode?: true
+    createdAt?: true
+  }
+
+  export type EflCallLineCountAggregateInputType = {
+    id?: true
+    orderId?: true
+    customerCode?: true
+    driverCode?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type EflCallLineAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflCallLine to aggregate.
+     */
+    where?: EflCallLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflCallLines to fetch.
+     */
+    orderBy?: EflCallLineOrderByWithRelationInput | EflCallLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflCallLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflCallLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflCallLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflCallLines
+    **/
+    _count?: true | EflCallLineCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflCallLineMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflCallLineMaxAggregateInputType
+  }
+
+  export type GetEflCallLineAggregateType<T extends EflCallLineAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflCallLine]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflCallLine[P]>
+      : GetScalarType<T[P], AggregateEflCallLine[P]>
+  }
+
+
+
+
+  export type EflCallLineGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflCallLineWhereInput
+    orderBy?: EflCallLineOrderByWithAggregationInput | EflCallLineOrderByWithAggregationInput[]
+    by: EflCallLineScalarFieldEnum[] | EflCallLineScalarFieldEnum
+    having?: EflCallLineScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflCallLineCountAggregateInputType | true
+    _min?: EflCallLineMinAggregateInputType
+    _max?: EflCallLineMaxAggregateInputType
+  }
+
+  export type EflCallLineGroupByOutputType = {
+    id: string
+    orderId: string
+    customerCode: string
+    driverCode: string
+    createdAt: Date
+    _count: EflCallLineCountAggregateOutputType | null
+    _min: EflCallLineMinAggregateOutputType | null
+    _max: EflCallLineMaxAggregateOutputType | null
+  }
+
+  type GetEflCallLineGroupByPayload<T extends EflCallLineGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflCallLineGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflCallLineGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflCallLineGroupByOutputType[P]>
+            : GetScalarType<T[P], EflCallLineGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflCallLineSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    customerCode?: boolean
+    driverCode?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["eflCallLine"]>
+
+  export type EflCallLineSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    customerCode?: boolean
+    driverCode?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["eflCallLine"]>
+
+  export type EflCallLineSelectScalar = {
+    id?: boolean
+    orderId?: boolean
+    customerCode?: boolean
+    driverCode?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $EflCallLinePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflCallLine"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      orderId: string
+      /**
+       * Codes repeat over time; only a line that is still open answers one.
+       */
+      customerCode: string
+      driverCode: string
+      createdAt: Date
+    }, ExtArgs["result"]["eflCallLine"]>
+    composites: {}
+  }
+
+  type EflCallLineGetPayload<S extends boolean | null | undefined | EflCallLineDefaultArgs> = $Result.GetResult<Prisma.$EflCallLinePayload, S>
+
+  type EflCallLineCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflCallLineFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflCallLineCountAggregateInputType | true
+    }
+
+  export interface EflCallLineDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflCallLine'], meta: { name: 'EflCallLine' } }
+    /**
+     * Find zero or one EflCallLine that matches the filter.
+     * @param {EflCallLineFindUniqueArgs} args - Arguments to find a EflCallLine
+     * @example
+     * // Get one EflCallLine
+     * const eflCallLine = await prisma.eflCallLine.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflCallLineFindUniqueArgs>(args: SelectSubset<T, EflCallLineFindUniqueArgs<ExtArgs>>): Prisma__EflCallLineClient<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflCallLine that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflCallLineFindUniqueOrThrowArgs} args - Arguments to find a EflCallLine
+     * @example
+     * // Get one EflCallLine
+     * const eflCallLine = await prisma.eflCallLine.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflCallLineFindUniqueOrThrowArgs>(args: SelectSubset<T, EflCallLineFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflCallLineClient<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflCallLine that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCallLineFindFirstArgs} args - Arguments to find a EflCallLine
+     * @example
+     * // Get one EflCallLine
+     * const eflCallLine = await prisma.eflCallLine.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflCallLineFindFirstArgs>(args?: SelectSubset<T, EflCallLineFindFirstArgs<ExtArgs>>): Prisma__EflCallLineClient<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflCallLine that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCallLineFindFirstOrThrowArgs} args - Arguments to find a EflCallLine
+     * @example
+     * // Get one EflCallLine
+     * const eflCallLine = await prisma.eflCallLine.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflCallLineFindFirstOrThrowArgs>(args?: SelectSubset<T, EflCallLineFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflCallLineClient<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflCallLines that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCallLineFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflCallLines
+     * const eflCallLines = await prisma.eflCallLine.findMany()
+     * 
+     * // Get first 10 EflCallLines
+     * const eflCallLines = await prisma.eflCallLine.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflCallLineWithIdOnly = await prisma.eflCallLine.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflCallLineFindManyArgs>(args?: SelectSubset<T, EflCallLineFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflCallLine.
+     * @param {EflCallLineCreateArgs} args - Arguments to create a EflCallLine.
+     * @example
+     * // Create one EflCallLine
+     * const EflCallLine = await prisma.eflCallLine.create({
+     *   data: {
+     *     // ... data to create a EflCallLine
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflCallLineCreateArgs>(args: SelectSubset<T, EflCallLineCreateArgs<ExtArgs>>): Prisma__EflCallLineClient<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflCallLines.
+     * @param {EflCallLineCreateManyArgs} args - Arguments to create many EflCallLines.
+     * @example
+     * // Create many EflCallLines
+     * const eflCallLine = await prisma.eflCallLine.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflCallLineCreateManyArgs>(args?: SelectSubset<T, EflCallLineCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflCallLines and returns the data saved in the database.
+     * @param {EflCallLineCreateManyAndReturnArgs} args - Arguments to create many EflCallLines.
+     * @example
+     * // Create many EflCallLines
+     * const eflCallLine = await prisma.eflCallLine.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflCallLines and only return the `id`
+     * const eflCallLineWithIdOnly = await prisma.eflCallLine.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflCallLineCreateManyAndReturnArgs>(args?: SelectSubset<T, EflCallLineCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflCallLine.
+     * @param {EflCallLineDeleteArgs} args - Arguments to delete one EflCallLine.
+     * @example
+     * // Delete one EflCallLine
+     * const EflCallLine = await prisma.eflCallLine.delete({
+     *   where: {
+     *     // ... filter to delete one EflCallLine
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflCallLineDeleteArgs>(args: SelectSubset<T, EflCallLineDeleteArgs<ExtArgs>>): Prisma__EflCallLineClient<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflCallLine.
+     * @param {EflCallLineUpdateArgs} args - Arguments to update one EflCallLine.
+     * @example
+     * // Update one EflCallLine
+     * const eflCallLine = await prisma.eflCallLine.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflCallLineUpdateArgs>(args: SelectSubset<T, EflCallLineUpdateArgs<ExtArgs>>): Prisma__EflCallLineClient<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflCallLines.
+     * @param {EflCallLineDeleteManyArgs} args - Arguments to filter EflCallLines to delete.
+     * @example
+     * // Delete a few EflCallLines
+     * const { count } = await prisma.eflCallLine.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflCallLineDeleteManyArgs>(args?: SelectSubset<T, EflCallLineDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflCallLines.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCallLineUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflCallLines
+     * const eflCallLine = await prisma.eflCallLine.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflCallLineUpdateManyArgs>(args: SelectSubset<T, EflCallLineUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflCallLine.
+     * @param {EflCallLineUpsertArgs} args - Arguments to update or create a EflCallLine.
+     * @example
+     * // Update or create a EflCallLine
+     * const eflCallLine = await prisma.eflCallLine.upsert({
+     *   create: {
+     *     // ... data to create a EflCallLine
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflCallLine we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflCallLineUpsertArgs>(args: SelectSubset<T, EflCallLineUpsertArgs<ExtArgs>>): Prisma__EflCallLineClient<$Result.GetResult<Prisma.$EflCallLinePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflCallLines.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCallLineCountArgs} args - Arguments to filter EflCallLines to count.
+     * @example
+     * // Count the number of EflCallLines
+     * const count = await prisma.eflCallLine.count({
+     *   where: {
+     *     // ... the filter for the EflCallLines we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflCallLineCountArgs>(
+      args?: Subset<T, EflCallLineCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflCallLineCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflCallLine.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCallLineAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflCallLineAggregateArgs>(args: Subset<T, EflCallLineAggregateArgs>): Prisma.PrismaPromise<GetEflCallLineAggregateType<T>>
+
+    /**
+     * Group by EflCallLine.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflCallLineGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflCallLineGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflCallLineGroupByArgs['orderBy'] }
+        : { orderBy?: EflCallLineGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflCallLineGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflCallLineGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflCallLine model
+   */
+  readonly fields: EflCallLineFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflCallLine.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflCallLineClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflCallLine model
+   */ 
+  interface EflCallLineFieldRefs {
+    readonly id: FieldRef<"EflCallLine", 'String'>
+    readonly orderId: FieldRef<"EflCallLine", 'String'>
+    readonly customerCode: FieldRef<"EflCallLine", 'String'>
+    readonly driverCode: FieldRef<"EflCallLine", 'String'>
+    readonly createdAt: FieldRef<"EflCallLine", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflCallLine findUnique
+   */
+  export type EflCallLineFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCallLine to fetch.
+     */
+    where: EflCallLineWhereUniqueInput
+  }
+
+  /**
+   * EflCallLine findUniqueOrThrow
+   */
+  export type EflCallLineFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCallLine to fetch.
+     */
+    where: EflCallLineWhereUniqueInput
+  }
+
+  /**
+   * EflCallLine findFirst
+   */
+  export type EflCallLineFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCallLine to fetch.
+     */
+    where?: EflCallLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflCallLines to fetch.
+     */
+    orderBy?: EflCallLineOrderByWithRelationInput | EflCallLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflCallLines.
+     */
+    cursor?: EflCallLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflCallLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflCallLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflCallLines.
+     */
+    distinct?: EflCallLineScalarFieldEnum | EflCallLineScalarFieldEnum[]
+  }
+
+  /**
+   * EflCallLine findFirstOrThrow
+   */
+  export type EflCallLineFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCallLine to fetch.
+     */
+    where?: EflCallLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflCallLines to fetch.
+     */
+    orderBy?: EflCallLineOrderByWithRelationInput | EflCallLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflCallLines.
+     */
+    cursor?: EflCallLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflCallLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflCallLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflCallLines.
+     */
+    distinct?: EflCallLineScalarFieldEnum | EflCallLineScalarFieldEnum[]
+  }
+
+  /**
+   * EflCallLine findMany
+   */
+  export type EflCallLineFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * Filter, which EflCallLines to fetch.
+     */
+    where?: EflCallLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflCallLines to fetch.
+     */
+    orderBy?: EflCallLineOrderByWithRelationInput | EflCallLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflCallLines.
+     */
+    cursor?: EflCallLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflCallLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflCallLines.
+     */
+    skip?: number
+    distinct?: EflCallLineScalarFieldEnum | EflCallLineScalarFieldEnum[]
+  }
+
+  /**
+   * EflCallLine create
+   */
+  export type EflCallLineCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * The data needed to create a EflCallLine.
+     */
+    data: XOR<EflCallLineCreateInput, EflCallLineUncheckedCreateInput>
+  }
+
+  /**
+   * EflCallLine createMany
+   */
+  export type EflCallLineCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflCallLines.
+     */
+    data: EflCallLineCreateManyInput | EflCallLineCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflCallLine createManyAndReturn
+   */
+  export type EflCallLineCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflCallLines.
+     */
+    data: EflCallLineCreateManyInput | EflCallLineCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflCallLine update
+   */
+  export type EflCallLineUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * The data needed to update a EflCallLine.
+     */
+    data: XOR<EflCallLineUpdateInput, EflCallLineUncheckedUpdateInput>
+    /**
+     * Choose, which EflCallLine to update.
+     */
+    where: EflCallLineWhereUniqueInput
+  }
+
+  /**
+   * EflCallLine updateMany
+   */
+  export type EflCallLineUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflCallLines.
+     */
+    data: XOR<EflCallLineUpdateManyMutationInput, EflCallLineUncheckedUpdateManyInput>
+    /**
+     * Filter which EflCallLines to update
+     */
+    where?: EflCallLineWhereInput
+  }
+
+  /**
+   * EflCallLine upsert
+   */
+  export type EflCallLineUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * The filter to search for the EflCallLine to update in case it exists.
+     */
+    where: EflCallLineWhereUniqueInput
+    /**
+     * In case the EflCallLine found by the `where` argument doesn't exist, create a new EflCallLine with this data.
+     */
+    create: XOR<EflCallLineCreateInput, EflCallLineUncheckedCreateInput>
+    /**
+     * In case the EflCallLine was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflCallLineUpdateInput, EflCallLineUncheckedUpdateInput>
+  }
+
+  /**
+   * EflCallLine delete
+   */
+  export type EflCallLineDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+    /**
+     * Filter which EflCallLine to delete.
+     */
+    where: EflCallLineWhereUniqueInput
+  }
+
+  /**
+   * EflCallLine deleteMany
+   */
+  export type EflCallLineDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflCallLines to delete
+     */
+    where?: EflCallLineWhereInput
+  }
+
+  /**
+   * EflCallLine without action
+   */
+  export type EflCallLineDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflCallLine
+     */
+    select?: EflCallLineSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model EflFavourite
    */
 
@@ -206236,6 +207225,7 @@ export namespace Prisma {
     sourceMetadata: 'sourceMetadata',
     deliveryPin: 'deliveryPin',
     deliveryPinVerifiedAt: 'deliveryPinVerifiedAt',
+    deliveryPinAttempts: 'deliveryPinAttempts',
     eflCommissionPercent: 'eflCommissionPercent',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
@@ -207715,6 +208705,17 @@ export namespace Prisma {
   };
 
   export type EflSavedAddressScalarFieldEnum = (typeof EflSavedAddressScalarFieldEnum)[keyof typeof EflSavedAddressScalarFieldEnum]
+
+
+  export const EflCallLineScalarFieldEnum: {
+    id: 'id',
+    orderId: 'orderId',
+    customerCode: 'customerCode',
+    driverCode: 'driverCode',
+    createdAt: 'createdAt'
+  };
+
+  export type EflCallLineScalarFieldEnum = (typeof EflCallLineScalarFieldEnum)[keyof typeof EflCallLineScalarFieldEnum]
 
 
   export const EflFavouriteScalarFieldEnum: {
@@ -210433,6 +211434,16 @@ export namespace Prisma {
   };
 
   export type EflSavedAddressOrderByRelevanceFieldEnum = (typeof EflSavedAddressOrderByRelevanceFieldEnum)[keyof typeof EflSavedAddressOrderByRelevanceFieldEnum]
+
+
+  export const EflCallLineOrderByRelevanceFieldEnum: {
+    id: 'id',
+    orderId: 'orderId',
+    customerCode: 'customerCode',
+    driverCode: 'driverCode'
+  };
+
+  export type EflCallLineOrderByRelevanceFieldEnum = (typeof EflCallLineOrderByRelevanceFieldEnum)[keyof typeof EflCallLineOrderByRelevanceFieldEnum]
 
 
   export const EflFavouriteOrderByRelevanceFieldEnum: {
@@ -217227,6 +218238,7 @@ export namespace Prisma {
     sourceMetadata?: JsonFilter<"Order">
     deliveryPin?: StringNullableFilter<"Order"> | string | null
     deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    deliveryPinAttempts?: IntFilter<"Order"> | number
     eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
@@ -217328,6 +218340,7 @@ export namespace Prisma {
     sourceMetadata?: SortOrder
     deliveryPin?: SortOrderInput | SortOrder
     deliveryPinVerifiedAt?: SortOrderInput | SortOrder
+    deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -217434,6 +218447,7 @@ export namespace Prisma {
     sourceMetadata?: JsonFilter<"Order">
     deliveryPin?: StringNullableFilter<"Order"> | string | null
     deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    deliveryPinAttempts?: IntFilter<"Order"> | number
     eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
@@ -217535,6 +218549,7 @@ export namespace Prisma {
     sourceMetadata?: SortOrder
     deliveryPin?: SortOrderInput | SortOrder
     deliveryPinVerifiedAt?: SortOrderInput | SortOrder
+    deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -217631,6 +218646,7 @@ export namespace Prisma {
     sourceMetadata?: JsonWithAggregatesFilter<"Order">
     deliveryPin?: StringNullableWithAggregatesFilter<"Order"> | string | null
     deliveryPinVerifiedAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    deliveryPinAttempts?: IntWithAggregatesFilter<"Order"> | number
     eflCommissionPercent?: DecimalNullableWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
@@ -225311,6 +226327,59 @@ export namespace Prisma {
     isDefault?: BoolWithAggregatesFilter<"EflSavedAddress"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"EflSavedAddress"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EflSavedAddress"> | Date | string
+  }
+
+  export type EflCallLineWhereInput = {
+    AND?: EflCallLineWhereInput | EflCallLineWhereInput[]
+    OR?: EflCallLineWhereInput[]
+    NOT?: EflCallLineWhereInput | EflCallLineWhereInput[]
+    id?: StringFilter<"EflCallLine"> | string
+    orderId?: StringFilter<"EflCallLine"> | string
+    customerCode?: StringFilter<"EflCallLine"> | string
+    driverCode?: StringFilter<"EflCallLine"> | string
+    createdAt?: DateTimeFilter<"EflCallLine"> | Date | string
+  }
+
+  export type EflCallLineOrderByWithRelationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerCode?: SortOrder
+    driverCode?: SortOrder
+    createdAt?: SortOrder
+    _relevance?: EflCallLineOrderByRelevanceInput
+  }
+
+  export type EflCallLineWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    orderId?: string
+    AND?: EflCallLineWhereInput | EflCallLineWhereInput[]
+    OR?: EflCallLineWhereInput[]
+    NOT?: EflCallLineWhereInput | EflCallLineWhereInput[]
+    customerCode?: StringFilter<"EflCallLine"> | string
+    driverCode?: StringFilter<"EflCallLine"> | string
+    createdAt?: DateTimeFilter<"EflCallLine"> | Date | string
+  }, "id" | "orderId">
+
+  export type EflCallLineOrderByWithAggregationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerCode?: SortOrder
+    driverCode?: SortOrder
+    createdAt?: SortOrder
+    _count?: EflCallLineCountOrderByAggregateInput
+    _max?: EflCallLineMaxOrderByAggregateInput
+    _min?: EflCallLineMinOrderByAggregateInput
+  }
+
+  export type EflCallLineScalarWhereWithAggregatesInput = {
+    AND?: EflCallLineScalarWhereWithAggregatesInput | EflCallLineScalarWhereWithAggregatesInput[]
+    OR?: EflCallLineScalarWhereWithAggregatesInput[]
+    NOT?: EflCallLineScalarWhereWithAggregatesInput | EflCallLineScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflCallLine"> | string
+    orderId?: StringWithAggregatesFilter<"EflCallLine"> | string
+    customerCode?: StringWithAggregatesFilter<"EflCallLine"> | string
+    driverCode?: StringWithAggregatesFilter<"EflCallLine"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"EflCallLine"> | Date | string
   }
 
   export type EflFavouriteWhereInput = {
@@ -236569,6 +237638,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -236670,6 +237740,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -236761,6 +237832,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -236862,6 +237934,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -236958,6 +238031,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -237041,6 +238115,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -237129,6 +238204,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -245866,6 +246942,62 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflCallLineCreateInput = {
+    id?: string
+    orderId: string
+    customerCode: string
+    driverCode: string
+    createdAt?: Date | string
+  }
+
+  export type EflCallLineUncheckedCreateInput = {
+    id?: string
+    orderId: string
+    customerCode: string
+    driverCode: string
+    createdAt?: Date | string
+  }
+
+  export type EflCallLineUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    customerCode?: StringFieldUpdateOperationsInput | string
+    driverCode?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflCallLineUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    customerCode?: StringFieldUpdateOperationsInput | string
+    driverCode?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflCallLineCreateManyInput = {
+    id?: string
+    orderId: string
+    customerCode: string
+    driverCode: string
+    createdAt?: Date | string
+  }
+
+  export type EflCallLineUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    customerCode?: StringFieldUpdateOperationsInput | string
+    driverCode?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflCallLineUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    customerCode?: StringFieldUpdateOperationsInput | string
+    driverCode?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EflFavouriteCreateInput = {
@@ -256590,6 +257722,7 @@ export namespace Prisma {
     sourceMetadata?: SortOrder
     deliveryPin?: SortOrder
     deliveryPinVerifiedAt?: SortOrder
+    deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -256612,6 +257745,7 @@ export namespace Prisma {
     total?: SortOrder
     promoDiscount?: SortOrder
     preparationMinutes?: SortOrder
+    deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
   }
 
@@ -256693,6 +257827,7 @@ export namespace Prisma {
     cancelReason?: SortOrder
     deliveryPin?: SortOrder
     deliveryPinVerifiedAt?: SortOrder
+    deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -256777,6 +257912,7 @@ export namespace Prisma {
     cancelReason?: SortOrder
     deliveryPin?: SortOrder
     deliveryPinVerifiedAt?: SortOrder
+    deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -256799,6 +257935,7 @@ export namespace Prisma {
     total?: SortOrder
     promoDiscount?: SortOrder
     preparationMinutes?: SortOrder
+    deliveryPinAttempts?: SortOrder
     eflCommissionPercent?: SortOrder
   }
 
@@ -262385,6 +263522,36 @@ export namespace Prisma {
   export type EflSavedAddressSumOrderByAggregateInput = {
     latitude?: SortOrder
     longitude?: SortOrder
+  }
+
+  export type EflCallLineOrderByRelevanceInput = {
+    fields: EflCallLineOrderByRelevanceFieldEnum | EflCallLineOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflCallLineCountOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerCode?: SortOrder
+    driverCode?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EflCallLineMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerCode?: SortOrder
+    driverCode?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type EflCallLineMinOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    customerCode?: SortOrder
+    driverCode?: SortOrder
+    createdAt?: SortOrder
   }
 
   export type EflFavouriteOrderByRelevanceInput = {
@@ -278024,6 +279191,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -278123,6 +279291,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -279257,6 +280426,7 @@ export namespace Prisma {
     sourceMetadata?: JsonFilter<"Order">
     deliveryPin?: StringNullableFilter<"Order"> | string | null
     deliveryPinVerifiedAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    deliveryPinAttempts?: IntFilter<"Order"> | number
     eflCommissionPercent?: DecimalNullableFilter<"Order"> | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
@@ -282198,6 +283368,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -282297,6 +283468,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -284000,6 +285172,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -284099,6 +285272,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -285441,6 +286615,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -285540,6 +286715,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -296503,6 +297679,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -296602,6 +297779,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -298659,6 +299837,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -298759,6 +299938,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -298932,6 +300112,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -299032,6 +300213,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -301828,6 +303010,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -301928,6 +303111,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -302062,6 +303246,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -302162,6 +303347,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -302281,6 +303467,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -302381,6 +303568,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -302487,6 +303675,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -302587,6 +303776,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -307329,6 +308519,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -307429,6 +308620,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -307570,6 +308762,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -307670,6 +308863,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -309032,6 +310226,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -309132,6 +310327,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -309496,6 +310692,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -309596,6 +310793,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -313605,6 +314803,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -313705,6 +314904,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -313888,6 +315088,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -313988,6 +315189,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -314511,6 +315713,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -314611,6 +315814,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -314838,6 +316042,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -314938,6 +316143,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -325430,6 +326636,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -325530,6 +326737,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -325831,6 +327039,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -325931,6 +327140,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -329577,6 +330787,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -330226,6 +331437,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -330325,6 +331537,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -330420,6 +331633,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -331910,6 +333124,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -332051,6 +333266,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -332150,6 +333366,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -332245,6 +333462,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -332665,6 +333883,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -333437,6 +334656,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -333536,6 +334756,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -333631,6 +334852,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -334121,6 +335343,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -334674,6 +335897,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -334773,6 +335997,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -334868,6 +336093,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -337243,6 +338469,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: string | null
     deliveryPinVerifiedAt?: Date | string | null
+    deliveryPinAttempts?: number
     eflCommissionPercent?: Decimal | DecimalJsLike | number | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -337377,6 +338604,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -337476,6 +338704,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -337571,6 +338800,7 @@ export namespace Prisma {
     sourceMetadata?: JsonNullValueInput | InputJsonValue
     deliveryPin?: NullableStringFieldUpdateOperationsInput | string | null
     deliveryPinVerifiedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    deliveryPinAttempts?: IntFieldUpdateOperationsInput | number
     eflCommissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -343166,6 +344396,10 @@ export namespace Prisma {
      * @deprecated Use EflSavedAddressDefaultArgs instead
      */
     export type EflSavedAddressArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflSavedAddressDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflCallLineDefaultArgs instead
+     */
+    export type EflCallLineArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflCallLineDefaultArgs<ExtArgs>
     /**
      * @deprecated Use EflFavouriteDefaultArgs instead
      */

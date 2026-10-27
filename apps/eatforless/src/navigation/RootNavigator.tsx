@@ -5,6 +5,7 @@ import { useSession } from "@/auth/session";
 import { AccountScreen } from "@/screens/AccountScreen";
 import { AddressScreen } from "@/screens/AddressScreen";
 import { CallScreen } from "@/screens/CallScreen";
+import { MessagesScreen } from "@/screens/MessagesScreen";
 import { CheckoutScreen } from "@/screens/CheckoutScreen";
 import { EmailAuthScreen } from "@/screens/EmailAuthScreen";
 import { HomeScreen } from "@/screens/HomeScreen";
@@ -58,6 +59,7 @@ export function RootNavigator() {
       <Stack.Screen name="Address" component={AddressScreen} options={{ presentation: "modal" }} />
       <Stack.Screen name="Tracking" component={TrackingScreen} options={{ animation: "slide_from_bottom", gestureEnabled: false }} />
       <Stack.Screen name="Call" component={CallScreen} options={{ presentation: "fullScreenModal", animation: "fade" }} />
+      <Stack.Screen name="Messages" component={MessagesScreen} options={{ animation: "slide_from_right" }} />
     </Stack.Navigator>
   );
 }

@@ -132,3 +132,84 @@ export function deliveryWindow(prepMinutes: number, miles: number): { min: numbe
   const min = Math.max(10, Math.round((mid - 5) / 5) * 5);
   return { min, max: min + 10 };
 }
+
+/** Wrong PINs before a handover locks. After that only the shop can close
+ *  the order, from the board: a driver guessing at a door is the attack. */
+export const MAX_PIN_ATTEMPTS = 3;
+
+export type PinCheck =
+  | { ok: true }
+  | { ok: false; locked: boolean; attemptsLeft: number; message: string };
+
+/**
+ * The driver's PIN at the door, against the one the customer was given.
+ *
+ * Called before the attempt is counted: `attempts` is how many wrong ones
+ * were already made. A verified order always passes, so a retried request
+ * after a dropped signal doesn't lock a handover that already happened.
+ */
+export function checkDeliveryPin(input: {
+  expected: string | null;
+  given: string | null | undefined;
+  attempts: number;
+  verified: boolean;
+}): PinCheck {
+  if (!input.expected || input.verified) return { ok: true };
+  if (input.attempts >= MAX_PIN_ATTEMPTS) {
+    return { ok: false, locked: true, attemptsLeft: 0, message: lockedMessage() };
+  }
+  const given = String(input.given ?? "").replace(/\D/g, "");
+  if (!given) {
+    return {
+      ok: false,
+      locked: false,
+      attemptsLeft: MAX_PIN_ATTEMPTS - input.attempts,
+      message: "This order needs the customer's 4-digit PIN. Ask them for it at the door.",
+    };
+  }
+  if (given === input.expected) return { ok: true };
+  const left = MAX_PIN_ATTEMPTS - input.attempts - 1;
+  return left <= 0
+    ? { ok: false, locked: true, attemptsLeft: 0, message: lockedMessage() }
+    : {
+        ok: false,
+        locked: false,
+        attemptsLeft: left,
+        message: `That PIN isn't right. ${left} ${left === 1 ? "try" : "tries"} left.`,
+      };
+}
+
+function lockedMessage(): string {
+  return "Too many wrong PINs, so this handover is locked. Call the shop: they can close the order once they've spoken to the customer.";
+}
+
+/** How long a private line stays open after the food is handed over, for
+ *  "you forgot the drinks". Then neither side can reach the other again. */
+export const CALL_LINE_HOURS_AFTER = 2;
+
+const LINE_DEAD_STATUSES = ["CANCELLED", "REJECTED", "FAILED"];
+const LINE_DONE_STATUSES = ["COMPLETED"];
+
+/** Can this order's private line still connect a call? */
+export function callLineOpen(
+  order: { status: string; deliveredAt?: Date | null; updatedAt?: Date | null },
+  now: Date,
+): boolean {
+  if (LINE_DEAD_STATUSES.includes(order.status)) return false;
+  if (!LINE_DONE_STATUSES.includes(order.status)) return true;
+  const doneAt = order.deliveredAt ?? order.updatedAt;
+  if (!doneAt) return false;
+  return now.getTime() - doneAt.getTime() < CALL_LINE_HOURS_AFTER * 3600_000;
+}
+
+/** A 6-digit code for one side of a private line. Six, not four: it's the
+ *  only thing between a stranger with our number and a customer's phone. */
+export function generateCallCode(): string {
+  return String(randomInt(0, 1_000_000)).padStart(6, "0");
+}
+
+/** Digits a caller keyed, as the code they meant: the # that ends entry, and
+ *  anything that isn't a digit, are dropped. */
+export function normaliseKeyedCode(digits: unknown): string {
+  return String(digits ?? "").replace(/\D/g, "");
+}
