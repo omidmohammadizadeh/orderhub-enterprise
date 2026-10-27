@@ -109,6 +109,15 @@ export function emptyOpeningHours(): OpeningHoursMap {
   };
 }
 
+/** Location.settings.hygiene — the shop's FSA food hygiene rating. */
+export interface LocationHygiene {
+  fsaId: string;
+  rating: string;
+  ratingDate: string | null;
+  checkedAt: string;
+  show: boolean;
+}
+
 export const locationsClient = {
   list: () => apiClient.get<Location[]>("/v1/locations").then((r) => r.data),
   get: (id: string) => apiClient.get<Location>(`/v1/locations/${id}`).then((r) => r.data),
@@ -131,6 +140,20 @@ export const locationsClient = {
     apiClient
       .post<{ slug: string; url: string }>(`/v1/locations/${id}/generate-slug`, { name })
       .then((r) => r.data),
+  getHygiene: (id: string) =>
+    apiClient
+      .get<{ hygiene: LocationHygiene | null }>(`/v1/locations/${id}/hygiene`)
+      .then((r) => r.data.hygiene),
+  /** Link from a ratings link / id, search by name + postcode when neither,
+   *  and/or flip the storefront switch. */
+  setHygiene: (id: string, body: { fsaId?: string; url?: string; show?: boolean }) =>
+    apiClient
+      .put<{ hygiene: LocationHygiene | null }>(`/v1/locations/${id}/hygiene`, body)
+      .then((r) => r.data.hygiene),
+  refreshHygiene: (id: string) =>
+    apiClient
+      .post<{ hygiene: LocationHygiene }>(`/v1/locations/${id}/hygiene/refresh`)
+      .then((r) => r.data.hygiene),
   getOpeningHours: (id: string) =>
     apiClient.get<OpeningHoursMap>(`/v1/locations/${id}/opening-hours`).then((r) => r.data),
   setOpeningHours: (id: string, hours: OpeningHoursMap) =>
@@ -150,6 +173,8 @@ export interface Brand {
   description?: string | null;
   cuisine?: string | null;
   logoUrl?: string | null;
+  /** Storefront accent colour, `#rrggbb`. Null = the storefront default. */
+  primaryColor?: string | null;
   isActive: boolean;
   isSuspended: boolean;
   primaryLocationId?: string | null;

@@ -3,5 +3,7 @@ packages:
   - "packages/*"
   - "integrations/*"
   - "!apps/mobile"
+  - "!apps/customer"
   - "!apps/driver"
+  - "!apps/eatforless"
   - "!apps/caller-id"

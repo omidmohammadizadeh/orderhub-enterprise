@@ -14,7 +14,7 @@
 // /v1/brand-connections backend.
 
 import { useEffect, useState } from "react";
-import { visibleChannelIds } from "@orderhub/shared";
+import { resolveCountryCode, visibleChannelIds } from "@orderhub/shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Pencil, RefreshCw, Settings, Trash2 } from "lucide-react";
 import {
@@ -38,6 +38,8 @@ import { glovoClient } from "@/lib/api/glovo.client";
 import { keetaClient } from "@/lib/api/keeta.client";
 import { apiClient } from "@/lib/api/client";
 import { StorePickerModal } from "@/components/locations/store-picker-modal";
+import { EflListingPanel, eflListingQueryKey, eflTileStatus } from "@/components/locations/efl-listing-panel";
+import { eflClient } from "@/lib/api/efl.client";
 import toast from "react-hot-toast";
 
 // Phase AU — HubRise lives on Location (not Brand) because the access
@@ -118,9 +120,18 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Which channel's settings are open. Null = none, so the page opens as a
   // clean grid instead of six expanded forms.
-  const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | null>(
+  const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | "EAT_FOR_LESS" | null>(
     null,
   );
+
+  // Eat For Less is our own app, not a marketplace connection: one listing
+  // per LOCATION, and UK-only while the pilot is in Newcastle.
+  const offersEatForLess = resolveCountryCode(country) === "GB";
+  const eflQuery = useQuery({
+    queryKey: eflListingQueryKey(locationId),
+    queryFn: () => eflClient.getListing(locationId),
+    enabled: offersEatForLess,
+  });
 
   // Tile status. DIRECT_ONLINE's connected-ness lives on the Brand row
   // itself (directOrderingEnabled + onlineOrderingSlug), not on a
@@ -289,12 +300,33 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
             }
           />
         ))}
+        {offersEatForLess && (
+          <ChannelTile
+            platform={"EAT_FOR_LESS" as PlatformId}
+            status={eflTileStatus(eflQuery.data)}
+            chipText={
+              { connected: "Live", pending: "Pending", suspended: "Hidden", not_connected: "Not listed" }[
+                eflTileStatus(eflQuery.data)
+              ]
+            }
+            selected={selectedPlatform === "EAT_FOR_LESS"}
+            onClick={() =>
+              setSelectedPlatform((cur) => (cur === "EAT_FOR_LESS" ? null : "EAT_FOR_LESS"))
+            }
+          />
+        )}
       </div>
 
       {/* The selected channel's settings, rendered by the SAME row component
           the list used. Collapsed by default so the grid stays scannable. */}
       {selectedPlatform && (
-        <ul className="mt-3">{renderPanel(selectedPlatform)}</ul>
+        <ul className="mt-3">
+          {selectedPlatform === "EAT_FOR_LESS" ? (
+            <EflListingPanel locationId={locationId} brandId={brandId} brandName={currentBrand.name} />
+          ) : (
+            renderPanel(selectedPlatform)
+          )}
+        </ul>
       )}
 
 
@@ -320,11 +352,14 @@ function ChannelTile({
   status,
   selected,
   onClick,
+  chipText,
 }: {
   platform: PlatformId;
   status: ConnectionStatus;
   selected: boolean;
   onClick: () => void;
+  /** Overrides the chip's wording, for a channel that isn't a connection. */
+  chipText?: string;
 }) {
   const live = status === "connected";
   const bad = status === "error" || status === "suspended";
@@ -356,7 +391,8 @@ function ChannelTile({
                 : "bg-zinc-100 text-zinc-500")
         }
       >
-        {live
+        {chipText ??
+          (live
           ? "Connected"
           : bad
             ? status === "error"
@@ -364,7 +400,7 @@ function ChannelTile({
               : "Suspended"
             : status === "pending"
               ? "Pending"
-              : "Not connected"}
+              : "Not connected")}
       </span>
     </button>
   );
@@ -708,6 +744,16 @@ function JustEatRow({
   const [restaurantId, setRestaurantId] = useState("");
   const [menuKey, setMenuKey] = useState("");
   const [orderKey, setOrderKey] = useState("");
+  // A brand that trades from many shops holds ONE key from Just Eat, but each
+  // shop is its own brand row — so without this the same key gets pasted onto
+  // every one of them, and again on every rotation.
+  const [keyGroup, setKeyGroup] = useState("");
+
+  const keyGroups = useQuery({
+    queryKey: ["jet-brand-key-groups"],
+    queryFn: () => justEatClient.brandKeyGroups(),
+    staleTime: 5 * 60_000,
+  });
 
   // The connection row carries the POS location id; the Restaurant ID lives in
   // metadata, so it is read back from the JET endpoint rather than guessed.
@@ -729,6 +775,7 @@ function JustEatRow({
         restaurantReference: restaurantId.trim(),
         menuKey: menuKey.trim() || undefined,
         orderKey: orderKey.trim() || undefined,
+        brandKeyGroup: keyGroup || undefined,
       }),
     onSuccess: () => {
       toast.success("Just Eat restaurant connected");
@@ -760,6 +807,28 @@ function JustEatRow({
                 placeholder="Restaurant ID (from Just Eat)"
                 className="w-full rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
               />
+              {/* The shared-key picker comes BEFORE the paste-a-key toggle:
+                  for Monster Burgerz, Greek Gyros and Korean Fried Chicken
+                  this is the whole job, and the fields below are then the
+                  exception rather than the thing you reach for first. Only
+                  rendered when groups are actually configured in Render. */}
+              {(keyGroups.data?.length ?? 0) > 0 && (
+                <label className="flex items-center gap-1.5 text-[10px] text-zinc-600">
+                  <span className="whitespace-nowrap">Shared brand key</span>
+                  <select
+                    value={keyGroup}
+                    onChange={(e) => setKeyGroup(e.target.value)}
+                    className="min-w-0 flex-1 rounded-md border border-zinc-200 px-2 py-1 text-xs focus:border-zinc-900 focus:outline-none"
+                  >
+                    <option value="">None — use the shared country key</option>
+                    {(keyGroups.data ?? []).map((g) => (
+                      <option key={g.name} value={g.name}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
               {/* Keys are the exception, not the rule: only brands over six
                   locations get their own. Hiding them behind a toggle keeps
                   the common case a single field, the way Just Eat's own
@@ -800,14 +869,18 @@ function JustEatRow({
               </div>
               <p className="text-[10px] text-zinc-400">
                 Just Eat sends the Restaurant ID once your integration is
-                approved. API keys are optional — leave them empty to use the
-                shared country keys.
+                approved. API keys are optional — pick a shared brand key
+                above, or leave everything empty to use the shared country
+                keys.
               </p>
             </div>
           ) : (
             <p className="text-[10px] text-zinc-500">
               Restaurant {details.data?.restaurantReference ?? "—"}
               {details.data?.hasBrandKeys ? " · own API keys" : ""}
+              {!details.data?.hasBrandKeys && details.data?.brandKeyGroup
+                ? ` · ${details.data.brandKeyGroup} key`
+                : ""}
             </p>
           )}
         </div>

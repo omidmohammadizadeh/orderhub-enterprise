@@ -12,6 +12,7 @@ import { Loader2, Printer } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { formatVideoTime, parseYouTubeId, youTubeWatchUrl } from "@orderhub/shared";
 import { buildGuidesClient, type BuildGuidePrintFeed } from "@/lib/api/build-guides.client";
+import { printLinksClient } from "@/lib/print-links";
 
 export default function PrintBuildGuidesPage() {
   return (
@@ -29,27 +30,38 @@ function PrintBuildGuides() {
   const params = useSearchParams();
   const menuId = params.get("menu");
   const itemId = params.get("item");
+  // ?pt= is a signed print link (opened from the tablet app) — no session needed.
+  const pt = params.get("pt");
 
   // This page is outside the dashboard tree, so nothing has restored the
   // signed-in session yet: wait for the persisted tokens before calling the
   // API, or the first request goes out without them, 401s, and bounces to /login.
   const hydrated = useAuthHydrated();
   const q = useQuery<BuildGuidePrintFeed>({
-    queryKey: ["build-guides-print", menuId, itemId],
-    queryFn: () => (menuId ? buildGuidesClient.printMenu(menuId) : buildGuidesClient.printItem(itemId!)),
-    enabled: hydrated && !!(menuId || itemId),
+    queryKey: ["build-guides-print", menuId, itemId, pt],
+    queryFn: () =>
+      pt
+        ? printLinksClient.read<BuildGuidePrintFeed>(pt)
+        : menuId
+          ? buildGuidesClient.printMenu(menuId)
+          : buildGuidesClient.printItem(itemId!),
+    enabled: (!!pt || hydrated) && !!(menuId || itemId),
     retry: false,
   });
 
   if (!menuId && !itemId) return <Centered>Nothing to print — open this from a product or a menu.</Centered>;
-  if (q.isPending || !hydrated)
+  if (q.isPending || (!pt && !hydrated))
     return (
       <Centered>
         <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading build guides…
       </Centered>
     );
   if (q.isError || !q.data)
-    return <Centered>Could not load the guides. Make sure you are signed in to the dashboard in this browser.</Centered>;
+    return (
+      <Centered>
+        {pt ? "This link has expired — tap Download again in Kitchen training." : "Could not load the guides. Make sure you are signed in to the dashboard in this browser."}
+      </Centered>
+    );
 
   const sheets = q.data.categories.flatMap((c) => c.items.map((item) => ({ category: c.name, item })));
   const brand = q.data.brandName;

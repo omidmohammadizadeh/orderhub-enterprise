@@ -76,6 +76,7 @@ import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 import { BulkPriceModal } from "@/components/menu/bulk-price-modal";
 import { GeneratePhotosModal } from "@/components/menu/generate-photos-modal";
+import { openPrintPage } from "@/lib/print-links";
 
 /**
  * How names are compared when sorting a category A-Z.
@@ -539,7 +540,7 @@ export default function MenuEditorPage() {
             className="h-9 flex-shrink-0 gap-1.5"
             title="Print every product's How to build guide on this menu, one A4 sheet each"
             onClick={() =>
-              window.open(`/print/build-guides?menu=${encodeURIComponent(menuId)}`, "_blank")
+              openPrintPage(`/print/build-guides?menu=${encodeURIComponent(menuId)}`, { kind: "guides-menu", id: menuId })
             }
           >
             <ClipboardList className="h-4 w-4" />
@@ -551,7 +552,7 @@ export default function MenuEditorPage() {
             className="h-9 flex-shrink-0 gap-1.5"
             title="Print the assembly board — every product's chart side by side, A4 landscape"
             onClick={() =>
-              window.open(`/print/assembly-charts?menu=${encodeURIComponent(menuId)}`, "_blank")
+              openPrintPage(`/print/assembly-charts?menu=${encodeURIComponent(menuId)}`, { kind: "charts-menu", id: menuId })
             }
           >
             <Sandwich className="h-4 w-4" />

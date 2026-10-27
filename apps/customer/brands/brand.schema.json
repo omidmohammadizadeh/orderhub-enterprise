@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrderHub customer app brand",
+  "description": "One restaurant's store app. brands/load.js enforces the same rules at build time.",
+  "type": "object",
+  "required": ["slug", "name", "brandId", "storefrontUrl", "primaryColor", "ios", "android"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "slug": {
+      "description": "File name and the last part of both store ids. Lowercase letters and digits only: Android package names can't contain hyphens.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]{1,30}$"
+    },
+    "name": { "description": "App name under the icon (keep it under ~12 characters).", "type": "string", "minLength": 1, "maxLength": 30 },
+    "brandId": { "description": "OrderHub Brand.id — push installs and offers are filed under it.", "type": "string" },
+    "locationId": { "description": "Optional Location.id, for a single-shop brand.", "type": ["string", "null"] },
+    "storefrontUrl": { "description": "Full storefront URL including ?brand= when the shop trades several brands.", "type": "string", "pattern": "^https://" },
+    "apiUrl": { "description": "API base ending in /api. Defaults to production.", "type": "string", "pattern": "^https?://" },
+    "primaryColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "backgroundColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+    "icon": { "description": "1024×1024 PNG, no alpha. Default brands/<slug>/icon.png", "type": "string" },
+    "adaptiveIcon": { "description": "Android foreground, 1024×1024 PNG with alpha. Default brands/<slug>/adaptive-icon.png", "type": "string" },
+    "splash": { "description": "Default brands/<slug>/splash.png", "type": "string" },
+    "notificationIcon": { "description": "Android status-bar icon, white on transparent. Default brands/<slug>/notification-icon.png", "type": "string" },
+    "version": { "description": "Store version string. Build numbers are managed remotely by EAS.", "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "ios": {
+      "type": "object",
+      "required": ["bundleId"],
+      "properties": {
+        "bundleId": { "type": "string", "pattern": "^com\\.orderhubsolutions\\.[a-z][a-z0-9]+$" },
+        "appleTeamId": { "description": "The CLIENT's Apple team (guideline 4.2.6).", "type": ["string", "null"] },
+        "ascAppId": { "description": "App Store Connect app id, once the app record exists.", "type": ["string", "null"] },
+        "appleSignIn": { "description": "Offer Sign in with Apple (default true). Needs the Sign in with Apple capability on the client's App ID, and is required by guideline 4.8 whenever Google sign-in is offered.", "type": "boolean" }
+      }
+    },
+    "android": {
+      "type": "object",
+      "required": ["package"],
+      "properties": {
+        "package": { "type": "string", "pattern": "^com\\.orderhubsolutions\\.[a-z][a-z0-9]+$" }
+      }
+    },
+    "multiShop": {
+      "description": "One app for a brand trading at several shops: on first open the customer allows location and picks from the brand's shops, nearest first (GET /v1/ordering/brands/:brandId/shops). storefrontUrl/locationId are then only the fallback.",
+      "type": "boolean"
+    },
+    "google": {
+      "description": "Native Sign in with Google. Omit until the brand's iOS OAuth client exists (README → Sign-in setup).",
+      "type": ["object", "null"],
+      "required": ["iosClientId"],
+      "properties": {
+        "iosClientId": { "description": "iOS OAuth client for this bundle id, in OrderHub's Google Cloud project.", "type": "string", "pattern": "^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$" },
+        "webClientId": { "description": "Audience of the ID token. Defaults to OrderHub's web client (the API's GOOGLE_CLIENT_ID).", "type": "string", "pattern": "^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$" },
+        "android": { "description": "Offer Google on Android (default true). Needs an Android OAuth client with the Play app-signing SHA-1.", "type": "boolean" }
+      }
+    },
+    "easProjectId": { "description": "EAS project for this brand (one per brand, so OTA updates and credentials never cross brands). Null until `npm run brand -- init <slug>`.", "type": ["string", "null"] }
+  }
+}

@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { printLinkClick } from "@/lib/print-links";
 import {
   ArrowLeft,
   ArrowRight,
@@ -33,7 +34,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { buildGuidesClient, type TrainingOverviewRow } from "@/lib/api/build-guides.client";
 import { assemblyChartsClient } from "@/lib/api/assembly-charts.client";
-import { PRESENTATIONS } from "@/lib/menu-presentations";
+import { PRESENTATIONS, presentationsForMenus } from "@/lib/menu-presentations";
 import { CoverThumb } from "@/components/menu-presentation/presentation";
 import { SUPPLIERS, suppliersOf, supplierListsForMenus, type SupplierKey, type SupplierList } from "@/lib/supplier-lists";
 import { menusClient } from "@/lib/api/menus.client";
@@ -214,7 +215,7 @@ export default function TrainingPage() {
       </div>
 
       {tab === "charts" && <AssemblyBoards locationId={locationId} />}
-      {tab === "presentations" && <MenuPresentations />}
+      {tab === "presentations" && <MenuPresentations locationId={locationId} />}
       {tab === "suppliers" && <SupplierLists locationId={locationId} />}
 
       {tab === "build" && (
@@ -418,19 +419,46 @@ function SupplierListPicker({ lists }: { lists: SupplierList[] }) {
   );
 }
 
-// Virtual-brand menu presentations — each drawn live from its brand's menu
-// (lib/menu-presentations), so prices and photos are always current.
-function MenuPresentations() {
-  const href = (slug: string, download = false) =>
-    `/print/menu-presentation?brand=${encodeURIComponent(slug)}${download ? "&download=1" : ""}`;
+// Virtual-brand menu presentations — each drawn live from a menu
+// (lib/menu-presentations), so prices and photos are always current. At a
+// location: only the brands it cooks, drawn from its own copy of each menu.
+function MenuPresentations({ locationId }: { locationId: string | null | undefined }) {
+  const menusQ = useQuery({
+    queryKey: ["training-supplier-menus", locationId ?? "all"],
+    queryFn: () => (locationId ? menusClient.listMenusForLocation(locationId) : menusClient.listMenusForTenant()),
+    enabled: !!locationId,
+  });
+  const decks = useMemo(
+    () =>
+      locationId
+        ? presentationsForMenus((menusQ.data ?? []).filter((m: any) => m.status !== "ARCHIVED"))
+        : PRESENTATIONS,
+    [locationId, menusQ.data],
+  );
+  const href = (slug: string, menuId: string, download = false) =>
+    `/print/menu-presentation?brand=${encodeURIComponent(slug)}&menu=${encodeURIComponent(menuId)}${download ? "&download=1" : ""}`;
+  if (locationId && menusQ.isLoading)
+    return (
+      <div className="flex items-center justify-center py-20 text-sm text-zinc-500">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
+      </div>
+    );
+  if (menusQ.isError) return <p className="py-20 text-center text-sm text-red-600">Could not load this location&apos;s menus.</p>;
+  if (!decks.length)
+    return (
+      <div className="rounded-xl border border-dashed border-zinc-300 py-16 text-center">
+        <p className="text-sm text-zinc-600">No menu presentations for this location&apos;s brands yet.</p>
+      </div>
+    );
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {PRESENTATIONS.map((p) => (
+      {decks.map((p) => (
         <div key={p.slug} className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
           <a
-            href={href(p.slug)}
+            href={href(p.slug, p.menuId)}
             target="_blank"
             rel="noopener"
+            onClick={(e) => printLinkClick(e, href(p.slug, p.menuId), { kind: "presentation", id: p.menuId })}
             aria-label={`Open the ${p.name} menu presentation`}
             className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange-500"
           >
@@ -443,17 +471,19 @@ function MenuPresentations() {
             </div>
             <div className="flex gap-2">
               <a
-                href={href(p.slug)}
+                href={href(p.slug, p.menuId)}
                 target="_blank"
                 rel="noopener"
+                onClick={(e) => printLinkClick(e, href(p.slug, p.menuId), { kind: "presentation", id: p.menuId })}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
               >
                 <ExternalLink className="h-4 w-4" /> Browse
               </a>
               <a
-                href={href(p.slug, true)}
+                href={href(p.slug, p.menuId, true)}
                 target="_blank"
                 rel="noopener"
+                onClick={(e) => printLinkClick(e, href(p.slug, p.menuId, true), { kind: "presentation", id: p.menuId })}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
               >
                 <Download className="h-4 w-4" /> Download PDF
@@ -521,6 +551,7 @@ function AssemblyBoards({ locationId }: { locationId: string | null | undefined 
                 href={href(b.menuId)}
                 target="_blank"
                 rel="noopener"
+                onClick={(e) => printLinkClick(e, href(b.menuId), { kind: "charts-menu", id: b.menuId })}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#d81b6a] px-3 py-2 text-sm font-semibold text-white hover:bg-pink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
               >
                 <ExternalLink className="h-4 w-4" /> Browse
@@ -529,6 +560,7 @@ function AssemblyBoards({ locationId }: { locationId: string | null | undefined 
                 href={href(b.menuId, true)}
                 target="_blank"
                 rel="noopener"
+                onClick={(e) => printLinkClick(e, href(b.menuId, true), { kind: "charts-menu", id: b.menuId })}
                 className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-600"
               >
                 <Download className="h-4 w-4" /> Download PDF

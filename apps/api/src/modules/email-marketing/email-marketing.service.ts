@@ -29,6 +29,7 @@ import {
   ORDER_EMAIL_SQL,
 } from "./email-audience";
 import { makeEmailToken, readEmailToken } from "./email-tokens";
+import { pickForLocation } from "../promo-codes/promo-scope";
 
 // Email marketing: restaurants emailing their own customers.
 //
@@ -49,8 +50,12 @@ import { makeEmailToken, readEmailToken } from "./email-tokens";
 // Sending itself is EmailCampaignSenderService's job (a cron sweep, so a
 // redeploy mid-campaign resumes instead of losing or repeating anyone).
 
-/** Our own channels — the only ones whose customers a shop may email. */
-export const EMAIL_IMPORT_SOURCES = ["ONLINE", "POS", "DIRECT", "WHATSAPP", "VOICE"];
+/** Our own channels — the only ones whose customers a shop may email.
+ *  Not EAT_FOR_LESS: those customers belong to the Eat For Less app, which
+ *  asks for its own consent, the same way a marketplace's do. */
+export const EMAIL_IMPORT_SOURCES = [
+  "ONLINE", "POS", "DIRECT", "WHATSAPP", "VOICE",
+];
 
 const TENANT_WIDE_ROLES = ["PLATFORM_ADMIN", "TENANT_OWNER"];
 
@@ -1174,6 +1179,7 @@ export class EmailMarketingService {
     c: {
       tenantId: string; subject: string; preheader?: string | null; replyTo?: string | null;
       fromName?: string | null; brandId?: string | null; locationId?: string | null; design: unknown;
+      offerExpires?: string | null;
     },
     to: string[],
   ) {
@@ -1187,6 +1193,7 @@ export class EmailMarketingService {
     const rendered = renderEmail(design, {
       ...ctx,
       firstName: null,
+      offerExpires: c.offerExpires ?? null,
       preheader: c.preheader,
       // A test has no recipient row, so it carries a link to the page in
       // preview mode rather than one that could unsubscribe anybody.
@@ -1232,7 +1239,10 @@ export class EmailMarketingService {
       .filter((b: any) => b?.type === "offer" && String(b.code ?? "").trim())
       .map((b: any) => String(b.code).trim().toUpperCase());
     for (const code of Array.from(new Set<string>(codes))) {
-      const promo = await this.prisma.promoCode.findFirst({ where: { tenantId: c.tenantId, code } });
+      // Each shop may have its own code with this text: check the one that
+      // works where this email's customers order.
+      const same = await this.prisma.promoCode.findMany({ where: { tenantId: c.tenantId, code } });
+      const promo = pickForLocation(same, c.locationId) ?? same[0];
       const where = `The code ${code} in your offer`;
       if (!promo) {
         throw new BadRequestException(`${where} doesn't exist yet. Open the offer section and create it.`);

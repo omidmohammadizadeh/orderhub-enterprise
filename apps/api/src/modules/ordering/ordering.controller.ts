@@ -8,12 +8,14 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  Headers,
 } from "@nestjs/common";
 import type { Response } from "express";
 import { ApiTags, ApiOperation } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { OrderingService, CheckoutDto } from "./ordering.service";
 import { Public } from "../../common/decorators/public.decorator";
+import { appClientFromUserAgent } from "./app-client";
 
 @ApiTags("ordering")
 @Controller({ path: "ordering", version: "1" })
@@ -83,6 +85,13 @@ export class OrderingController {
   }
 
   @Public()
+  @Get("brands/:brandId/shops")
+  @ApiOperation({ summary: "The shops a brand trades at, with positions, for a multi-shop restaurant app" })
+  brandShops(@Param("brandId") brandId: string) {
+    return this.ordering.brandShops(brandId);
+  }
+
+  @Public()
   @Post("store/:slug/checkout")
   @Throttle({ short: { limit: 3, ttl: 10000 }, medium: { limit: 20, ttl: 60000 } })
   @ApiOperation({ summary: "Submit an online order" })
@@ -94,8 +103,9 @@ export class OrderingController {
     @Param("slug") slug: string,
     @Body() dto: CheckoutDto,
     @Query("brand") brandId?: string,
+    @Headers("user-agent") userAgent?: string,
   ) {
-    return this.ordering.checkout(slug, dto, brandId);
+    return this.ordering.checkout(slug, dto, brandId, appClientFromUserAgent(userAgent));
   }
 
   @Public()

@@ -28,6 +28,7 @@ import { HubRiseDeliverySyncService } from "../integrations/hubrise/hubrise-deli
 import { PaymentsService } from "../payments/payments.service";
 import { TapService } from "../payments/tap.service";
 import { DojoService } from "../payments/dojo/dojo.service";
+import { MollieService } from "../payments/mollie/mollie.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import {
   assertTransition,
@@ -181,6 +182,7 @@ export const SIMULATABLE_PLATFORMS = [
   "ONLINE",
   "WHATSAPP",
   "VOICE",
+  "EAT_FOR_LESS",
 ] as const;
 export type SimulatablePlatform = (typeof SIMULATABLE_PLATFORMS)[number];
 
@@ -287,6 +289,8 @@ export class OrdersService {
     @Optional() private readonly dojo?: DojoService,
     // Walk-in loyalty card scanned at the till. Optional for the same reason.
     @Optional() private readonly walkInLoyalty?: WalkInLoyaltyService,
+    // Mollie refunds on cancel. Optional and last, same reason as dojo.
+    @Optional() private readonly mollie?: MollieService,
   ) {}
 
   /**
@@ -479,7 +483,9 @@ export class OrdersService {
         fresh.orderSource === "DIRECT" ||
         fresh.orderSource === "ONLINE" ||
         fresh.orderSource === "WHATSAPP" ||
-        fresh.orderSource === "VOICE";
+        fresh.orderSource === "VOICE" ||
+        // Eat For Less is our own app and our own card checkout.
+        fresh.orderSource === "EAT_FOR_LESS";
       const unpaidPaymentLink =
         (payMethod === "PAYMENT_LINK" || payMethod === "QR_CODE") &&
         payStatus !== "PAID";
@@ -962,16 +968,22 @@ export class OrdersService {
         this.logger.warn(
           `Concurrent ingest detected for ${canonical.platform}/${canonical.externalId} — returning existing order`,
         );
-        const existing = await this.prisma.order.findFirst({
-          where: canonical.externalId
-            ? {
-                externalId: canonical.externalId,
-                platform: canonical.platform,
-              }
-            : {
-                idempotencyKey: canonical.idempotencyKey,
-              },
-        });
+        const existing =
+          (canonical.externalId
+            ? await this.prisma.order.findFirst({
+                where: {
+                  externalId: canonical.externalId,
+                  platform: canonical.platform,
+                },
+              })
+            : null) ??
+          // Two replays of one till order racing each other: each minted its
+          // own externalId, so only the idempotencyKey ties them together.
+          (canonical.idempotencyKey
+            ? await this.prisma.order.findFirst({
+                where: { idempotencyKey: canonical.idempotencyKey, locationId },
+              })
+            : null);
         if (existing) {
           // Safety net: if the order is still PENDING (e.g. the original
           // create event failed to auto-accept), try again on this repeat
@@ -1110,11 +1122,42 @@ export class OrdersService {
 
   // ── Direct order creation (POS / staff) ──────────────
 
+  /**
+   * The order an idempotencyKey already created, if any. Keys are unique
+   * across the whole table, so the location check is what stops a key from
+   * one shop ever handing back another shop's order.
+   */
+  private async findIdempotentReplay(
+    idempotencyKey: string,
+    locationId: string,
+  ): Promise<Order | null> {
+    const existing = await this.prisma.order.findFirst({
+      where: { idempotencyKey },
+    });
+    if (!existing) return null;
+    if (existing.locationId !== locationId) {
+      throw new ConflictException("idempotencyKey already used");
+    }
+    return existing;
+  }
+
   async create(dto: CreateOrderDto, tenantId: string, actorUserId?: string): Promise<Order> {
     const location = await this.prisma.location.findFirst({
       where: { id: dto.locationId, brand: { tenantId } },
     });
     if (!location) throw new NotFoundException("Location not found");
+
+    // A replay of an order we already have — the till lost the response, or
+    // the offline queue is re-sending after a reconnect. Return the original.
+    // This can't be left to the P2002 safety net in ingestCanonical: that
+    // looks the existing row up by externalId, and create() mints a fresh
+    // random externalId on every call, so the lookup found nothing and the
+    // replay died as a 500 — an offline order then retried for ever and
+    // never reached the board.
+    if (dto.idempotencyKey) {
+      const replay = await this.findIdempotentReplay(dto.idempotencyKey, dto.locationId);
+      if (replay) return replay;
+    }
 
     const scheduledFor = dto.scheduledFor ? new Date(dto.scheduledFor) : undefined;
     const isScheduled = dto.isScheduled === true || this.isFutureScheduled(scheduledFor);
@@ -1147,7 +1190,8 @@ export class OrdersService {
     const resolvedSource = (dto.orderSource ?? "DIRECT") as
       | "POS"
       | "DIRECT"
-      | "VOICE";
+      | "VOICE"
+      | "EAT_FOR_LESS";
     const idPrefix = resolvedSource.toLowerCase();
 
     // POS display brand: a location can pin a "POS display name" brand in its
@@ -1269,6 +1313,20 @@ export class OrdersService {
         ...((dto as any).guestPrepay === true ? { guestPrepay: true } : {}),
         // The marketing email that brought this order in (online checkout).
         ...(dto.emailAttribution ? { emailAttribution: dto.emailAttribution } : {}),
+        // Taken on a till with no connection and synced later: when it was
+        // really taken, the reference on its offline ticket, and whether that
+        // ticket already printed (so the tablet doesn't print it twice).
+        ...(dto.offline
+          ? {
+              offline: {
+                takenAt: dto.offline.takenAt,
+                ...(dto.offline.ref ? { ref: dto.offline.ref } : {}),
+                ...(dto.offline.printedLocally ? { printedLocally: true } : {}),
+              },
+            }
+          : {}),
+        // The restaurant app (and phone platform) this online order came from.
+        ...(dto.appClient ? { appClient: dto.appClient } : {}),
         // Retail — the due-diligence record for an age-restricted sale:
         // what was checked, how, and by whom, stamped by the server.
         ...(dto.ageCheck
@@ -1359,7 +1417,8 @@ export class OrdersService {
       (canonical.orderSource as string) === "POS" ||
       (canonical.orderSource as string) === "DIRECT" ||
       (canonical.orderSource as string) === "ONLINE" ||
-      (canonical.orderSource as string) === "VOICE";
+      (canonical.orderSource as string) === "VOICE" ||
+      (canonical.orderSource as string) === "EAT_FOR_LESS";
     if (isInternal) {
       const orderNumber = await this.allocateOrderNumber(tenantId);
       posUpdate.orderNumber = orderNumber;
@@ -1389,6 +1448,7 @@ export class OrdersService {
           tenantId,
           code: dto.promoCode,
           orderId: order.id,
+          locationId: order.locationId,
           customerAccountId: (dto as any).customerAccountId ?? null,
           customerEmail: dto.customerInfo?.email ?? null,
           customerPhone: dto.customerInfo?.phone ?? null,
@@ -2788,6 +2848,9 @@ export class OrdersService {
           // on cancel with nothing saying so. No-op when there's no Dojo
           // payment on the order.
           await this.dojo?.refundOrder(orderId, dto.cancelReason ?? "Order cancelled");
+          // Same for a brand on Mollie: refundForOrder skips its rows (no
+          // stripePaymentIntentId). No-op with no paid Mollie payment.
+          await this.mollie?.refundOrder(orderId, dto.cancelReason ?? "Order cancelled");
         }
       })().catch((err: any) =>
         this.logger.error(`Refund/cancel failed for ${orderId}: ${err.message}`),
@@ -3438,7 +3501,8 @@ export class OrdersService {
             // authorised. They reliably flip to AUTHORIZED via the Stripe
             // webhook or the WhatsAppReconcileCron (~20s), at which point
             // they appear (and auto-accept if enabled).
-            { orderSource: { in: ["DIRECT", "ONLINE", "WHATSAPP"] } },
+            // Eat For Less is the same: our app, our card checkout.
+            { orderSource: { in: ["DIRECT", "ONLINE", "WHATSAPP", "EAT_FOR_LESS"] } },
           ],
         },
         OR: [

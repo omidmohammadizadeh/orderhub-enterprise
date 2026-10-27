@@ -8,6 +8,8 @@ import {
   merchantIdFromSignup,
   tapPlatformFromEnv,
   tapPlatformProblem,
+  publicApiRoot,
+  tapChargeWebhookUrl,
 } from "../tap.service";
 import {
   paymentProviderForCountry,
@@ -174,6 +176,18 @@ describe("tapPlatformFromEnv", () => {
     // That key belonged to a different account type; charging with it would
     // route money as if we were the merchant.
     expect(tapPlatformFromEnv("COMMERCE", { TAP_SECRET_KEY: "sk_old" } as any)).toBeNull();
+  });
+});
+
+describe("publicApiRoot", () => {
+  it("adds Nest's global /api prefix to the bare API_URL host", () => {
+    expect(publicApiRoot({ API_URL: "https://x.onrender.com/" } as any)).toBe("https://x.onrender.com/api");
+    expect(tapChargeWebhookUrl({ API_URL: "https://x.onrender.com" } as any)).toBe(
+      "https://x.onrender.com/api/v1/payments/tap/webhook",
+    );
+  });
+  it("doesn't double it when API_URL already ends in /api", () => {
+    expect(publicApiRoot({ API_URL: "https://x.com/api" } as any)).toBe("https://x.com/api");
   });
 });
 
@@ -536,7 +550,9 @@ describe("Tap onboarding", () => {
     const svc = new TapService({} as any, {} as any);
     const url = svc.onboardingWebhookUrl("brand_a");
     const sig = url.split("/").pop()!;
-    expect(url).toBe(`https://api.example/v1/payments/tap/onboarding/brand_a/${sig}`);
+    // The global "api" prefix is part of the path — without it every Tap
+    // signup post 404'd in production (2026-10-22).
+    expect(url).toBe(`https://api.example/api/v1/payments/tap/onboarding/brand_a/${sig}`);
     expect(svc.verifyOnboardingSignature("brand_a", sig)).toBe(true);
     expect(svc.verifyOnboardingSignature("brand_b", sig)).toBe(false);
     expect(svc.verifyOnboardingSignature("brand_a", "nope")).toBe(false);
@@ -591,7 +607,7 @@ describe("Tap onboarding", () => {
     expect(connUrl).toBe("https://api.tap.company/v3/connect");
     const conn = JSON.parse(connInit.body);
     expect(conn.lead).toEqual({ id: "led_1" });
-    expect(conn.post.url).toMatch(/^https:\/\/api\.example\/v1\/payments\/tap\/onboarding\/b1\/[0-9a-f]{64}$/);
+    expect(conn.post.url).toMatch(/^https:\/\/api\.example\/api\/v1\/payments\/tap\/onboarding\/b1\/[0-9a-f]{64}$/);
 
     expect(prisma.brand.update).toHaveBeenCalledWith({
       where: { id: "b1" },

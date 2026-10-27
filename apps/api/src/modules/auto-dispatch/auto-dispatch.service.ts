@@ -268,7 +268,7 @@ export class AutoDispatchService {
       brands,
       channels: [
         "DIRECT", "ONLINE", "POS", "VOICE", "WHATSAPP", "JUST_EAT", "UBER_EATS",
-        "DELIVEROO", "HUBRISE", "TALABAT", "CAREEM", "GLOVO", "KEETA",
+        "DELIVEROO", "HUBRISE", "TALABAT", "CAREEM", "GLOVO", "KEETA", "EAT_FOR_LESS",
       ],
       providers: AUTO_DISPATCH_PROVIDERS,
     };

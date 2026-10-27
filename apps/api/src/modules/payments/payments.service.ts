@@ -7,6 +7,7 @@ import {
   Optional,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { eflApplicationFeePence } from "../eat-for-less/efl-rules";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { randomBytes } from "crypto";
 import { usesTap } from "@orderhub/shared";
@@ -27,6 +28,17 @@ export const DOJO_PAYMENT_LINKS = "DOJO_PAYMENT_LINKS";
 
 export interface DojoPaymentLinkPort {
   /** A Dojo-hosted link for this order, or null when the shop is on Stripe. */
+  paymentLinkForOrder(tenantId: string, orderId: string): Promise<{ url: string } | null>;
+}
+
+/**
+ * Pay-by-link through Mollie instead of Stripe, for a brand switched to
+ * Mollie. Same string-token trick as Dojo: MollieService imports this file.
+ */
+export const MOLLIE_PAYMENT_LINKS = "MOLLIE_PAYMENT_LINKS";
+
+export interface MolliePaymentLinkPort {
+  /** A Mollie checkout link for this order, or null when its brand is on Stripe. */
   paymentLinkForOrder(tenantId: string, orderId: string): Promise<{ url: string } | null>;
 }
 
@@ -155,6 +167,7 @@ export class PaymentsService {
     // Optional so the hand-built unit specs keep working — and because a shop
     // with no Dojo account never needs it.
     @Optional() @Inject(DOJO_PAYMENT_LINKS) private readonly dojoLinks?: DojoPaymentLinkPort,
+    @Optional() @Inject(MOLLIE_PAYMENT_LINKS) private readonly mollieLinks?: MolliePaymentLinkPort,
   ) {
     const key = this.config.get<string>("STRIPE_SECRET_KEY");
     if (key && Stripe) {
@@ -517,7 +530,7 @@ export class PaymentsService {
       // Scoped to the sources where WE take the payment. A marketplace
       // order arrives already settled and must not be re-announced.
       (paidMethod === "CARD" &&
-        ["DIRECT", "ONLINE", "WHATSAPP"].includes(
+        ["DIRECT", "ONLINE", "WHATSAPP", "EAT_FOR_LESS"].includes(
           String(paidOrder?.orderSource),
         ));
     if (
@@ -1415,8 +1428,12 @@ export class PaymentsService {
       brand?.applicationFeeMode && brand.applicationFeeMode !== "none"
         ? brand
         : order.location;
+    // An Eat For Less order pays our commission instead of the shop's own
+    // storefront fee — never both, and never a surcharge on the customer.
     const { applicationFeePence, customerSurchargePence } =
-      this.computeFeeBreakdownPence(feeSource, totalGbp);
+      (order as any).orderSource === "EAT_FOR_LESS"
+        ? { applicationFeePence: eflApplicationFeePence(order as any), customerSurchargePence: 0 }
+        : this.computeFeeBreakdownPence(feeSource, totalGbp);
 
     // The fixed portion is a visible surcharge the customer pays on top, so
     // it has to be in the amount charged as well as in the platform's cut.
@@ -1863,6 +1880,14 @@ export class PaymentsService {
     if (dojo) {
       this.logger.log(`Payment link for order ${orderId} hosted by Dojo`);
       return dojo;
+    }
+
+    // Mollie next, when the order's brand has been switched to Mollie. Null
+    // for every brand that hasn't, so Stripe below is unchanged for them.
+    const mollie = await this.mollieLinks?.paymentLinkForOrder(tenantId, orderId);
+    if (mollie) {
+      this.logger.log(`Payment link for order ${orderId} hosted by Mollie`);
+      return mollie;
     }
 
     const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(

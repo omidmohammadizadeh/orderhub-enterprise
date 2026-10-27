@@ -24,6 +24,7 @@
 //     methods the operator turned off
 
 import { WelcomeSplash, type WelcomeSplashData } from "@/components/storefront/welcome-splash";
+import { HygieneBadge, type StorefrontHygiene } from "@/components/storefront/hygiene-badge";
 import {
   Suspense,
   useCallback,
@@ -35,6 +36,8 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { readEmailRef, rememberEmailRef } from "@/lib/email-marketing/attribution";
+import { useInRestaurantApp } from "@/lib/in-restaurant-app";
+import { AppInstallBanner, AppInstallCard, type CustomerAppLinks } from "@/components/storefront/app-install";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   formatMoney,
@@ -50,6 +53,9 @@ import {
   type MultiBuyDeal,
   isPlausibleCustomerPhone,
   hasHouseNumberOrName,
+  loyaltyRewardDiscount,
+  loyaltyRewardKind,
+  type LoyaltyRewardTerms,
 } from "@orderhub/shared";
 import axios from "axios";
 import { LoginModal } from "@/components/storefront/login-modal";
@@ -67,6 +73,15 @@ import {
   StorefrontReviews,
 } from "@/components/storefront/storefront-reviews";
 import { HeaderAuthButton } from "@/components/storefront/header-auth-button";
+import { BasketBar, BasketPanel } from "@/components/storefront/basket";
+import {
+  CategoryTabs,
+  sectionDomId,
+  type CategoryTab,
+} from "@/components/storefront/category-tabs";
+import { MenuItemCard } from "@/components/storefront/menu-item-card";
+import { StorefrontSkeleton } from "@/components/storefront/storefront-skeleton";
+import { pickBrandColour, storefrontThemeStyle } from "@/lib/storefront-theme";
 import { useCustomerAuth } from "@/hooks/use-customer-auth";
 import {
   ShoppingBag,
@@ -133,8 +148,7 @@ import {
 } from "@/lib/api/group-orders.client";
 import { publicReservationsClient } from "@/lib/api/reservations.client";
 import { cn } from "@/lib/utils";
-import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
-import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
+import { LiveDeliveryPanel } from "@/components/order/live-delivery-panel";
 import {
   ModifierSelectionModal,
 } from "@/components/pos/modifier-selection-modal";
@@ -148,7 +162,15 @@ import {
   itemAllowsFulfillment,
 } from "@orderhub/shared";
 import { displayPrice } from "@/lib/menu/display-price";
-import { cartIsStale, clearCart, loadCart, saveCart } from "@/lib/cart-storage";
+import {
+  cartIsStale,
+  clearCart,
+  loadCart,
+  loadFulfillment,
+  saveCart,
+  saveFulfillment,
+} from "@/lib/cart-storage";
+import { forgetCheckout, readCheckout, rememberCheckout } from "@/lib/checkout-resume";
 import type { SelectedModifier, ProductSku } from "@orderhub/shared";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -176,7 +198,13 @@ interface Storefront {
     busyMode?: boolean;
     currentPrepTime?: number;
   };
-  brand: { id: string; name: string; logoUrl?: string | null };
+  brand: {
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+    /** The brand's storefront accent, `#rrggbb`; null = default. */
+    primaryColor?: string | null;
+  };
   menu:
     | {
         id: string;
@@ -228,6 +256,8 @@ interface Storefront {
   } | null;
   /** Today's phone welcome screen for this location, if one is scheduled. */
   splash?: WelcomeSplashData | null;
+  /** FSA food hygiene rating; null when unlinked or hidden by the shop. */
+  hygiene?: StorefrontHygiene | null;
 }
 
 interface CartLine {
@@ -374,6 +404,8 @@ function WhatsAppIcon({ className }: { className?: string }) {
 
 function OrderPage() {
   const { slug } = useParams<{ slug: string }>();
+  // Inside one of the restaurant apps (WebView user agent "OrderHubApp/").
+  const inApp = useInRestaurantApp();
   // Phase AW — brand context. /brand/<slug> redirects here with
   // ?brand=<id>; we forward that to the API so the storefront returns
   // the brand's identity (name, logo, address, about, Stripe Connect)
@@ -528,10 +560,33 @@ function OrderPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
   const [search, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string>("all");
   const [fulfillmentType, setFulfillmentType] = useState<"PICKUP" | "DELIVERY">(
     "PICKUP",
   );
+  // Kept with the basket (lib/cart-storage) — a reload used to bring the
+  // basket back but reset this to collection, so a customer who chose
+  // delivery and then signed in paid for a collection order. Same
+  // read-before-write key guard as the basket above.
+  const [fulfillmentHydratedKey, setFulfillmentHydratedKey] = useState<string | null>(null);
+  useEffect(() => {
+    // ?mode=delivery|collection (the restaurant apps' Home buttons) beats
+    // the saved choice, then leaves the URL so a reload keeps what the
+    // customer changes it to afterwards.
+    const asked = new URL(window.location.href).searchParams.get("mode");
+    const fromLink = asked === "delivery" ? "DELIVERY" : asked === "collection" ? "PICKUP" : null;
+    const saved = fromLink ?? loadFulfillment(cartKey);
+    if (saved) setFulfillmentType(saved);
+    if (fromLink) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("mode");
+      window.history.replaceState(null, "", url.toString());
+    }
+    setFulfillmentHydratedKey(cartKey);
+  }, [cartKey]);
+  useEffect(() => {
+    if (fulfillmentHydratedKey !== cartKey) return;
+    saveFulfillment(cartKey, fulfillmentType);
+  }, [fulfillmentType, cartKey, fulfillmentHydratedKey]);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null); // ISO
   const [modalItem, setModalItem] = useState<MenuItem | null>(null);
@@ -852,7 +907,7 @@ function OrderPage() {
   const storeCampaign = (storefront as any)?.campaign ?? null;
   // Phase AW-19 — per-item promo map from PERCENT_OFF_ITEMS campaigns.
   // Keyed by itemId → { percentageOff, campaignName }. Drives the
-  // strikethrough badge on ProductCard and the discounted unitPrice
+  // strikethrough badge on MenuItemCard and the discounted unitPrice
   // applied when the item lands in the cart.
   const itemPromos: Record<
     string,
@@ -1167,7 +1222,6 @@ function OrderPage() {
     const q = search.trim().toLowerCase();
     const lists: Array<{ cat: MenuCategory; items: MenuItem[] }> = [];
     for (const cat of allCategories) {
-      if (activeCategory !== "all" && cat.id !== activeCategory) continue;
       // A whole category can be turned off for a service mode, which takes
       // everything inside it — skip it rather than rendering an empty heading.
       if (!itemAllowsFulfillment(cat, fulfillmentType)) continue;
@@ -1184,16 +1238,12 @@ function OrderPage() {
             it.name.toLowerCase().includes(q) ||
             (it.description ?? "").toLowerCase().includes(q),
         );
-      // On "All" we hide empty categories so the page doesn't render a
-      // wall of headings with no products. When the operator picks a
-      // specific chip we always render that category so they see the
-      // "no items in this category yet" placeholder rather than nothing.
-      if (items.length > 0 || activeCategory === cat.id) {
-        lists.push({ cat, items });
-      }
+      // Empty categories are left out: the tabs are a table of contents for
+      // the sections below, and a tab with no section has nowhere to go.
+      if (items.length > 0) lists.push({ cat, items });
     }
     return lists;
-  }, [allCategories, activeCategory, search, fulfillmentType]);
+  }, [allCategories, search, fulfillmentType]);
 
   // ── Group ordering ───────────────────────────────────────────────────────
   //
@@ -1477,7 +1527,7 @@ function OrderPage() {
         subtotal,
         deliveryFee,
         tipAmount,
-        total: round2(total + tipAmount),
+        total: round2(orderTotal + tipAmount),
         specialInstructions: notes || undefined,
         scheduledFor: scheduledFor ?? undefined,
         paymentMethod,
@@ -1487,7 +1537,7 @@ function OrderPage() {
         embedded: paymentMethod === "CARD",
         // Phase AP fix #1 — applied promo discount lands on the order
         // so it shows in operator + accounting reports.
-        discount: effectiveDiscount,
+        discount: orderDiscount,
         promoCode: promoApplied?.code,
         discountType: promoApplied
           ? promoApplied.freeDelivery
@@ -1501,7 +1551,8 @@ function OrderPage() {
         // The reward the customer chose to spend. The id only — the server
         // takes the item and its price from the reward itself, because a
         // basket that says "this is free" is a basket anyone can write.
-        loyaltyRewardId: useLoyaltyReward ? (loyaltyReward?.id ?? undefined) : undefined,
+        loyaltyRewardId:
+          useLoyaltyReward && loyaltyReward && loyaltyMoney.short === 0 ? loyaltyReward.id : undefined,
         // "Keep me updated by SMS" checkbox → SMS-marketing consent.
         marketingConsent: smsMarketingConsent,
         // "Email me offers" → email-marketing consent, separate from SMS.
@@ -1518,6 +1569,25 @@ function OrderPage() {
         .then((r) => r.data);
     },
     onSuccess: (order) => {
+      // Inside a restaurant's own app: tell the shell about the order so it
+      // follows it for push. The app's injected checkout hook can miss on
+      // Android (its script races the page load), and a cash order confirms
+      // in place with no URL for it to notice — so every stage went out to
+      // "no subscribers". ReactNativeWebView is added natively to every page.
+      try {
+        const rn = (window as any).ReactNativeWebView;
+        if (order?.id && rn?.postMessage) {
+          rn.postMessage(
+            JSON.stringify({
+              type: "checkout",
+              orderId: String(order.id),
+              checkoutUrl: order.checkoutUrl || null,
+              pendingPayment: !!order.clientSecret,
+              url: window.location.href,
+            }),
+          );
+        }
+      } catch {}
       // Embedded card — the order exists but isn't paid yet, so open the
       // payment sheet over the page. The cart is deliberately NOT cleared
       // here: if the customer backs out or their card is declined, they
@@ -1569,8 +1639,15 @@ function OrderPage() {
   // it. Pre-fills cart name + phone with the customer's profile so
   // they don't retype, and auto-fires checkout if they hit "Place
   // order" before signing in.
-  const { customer: authCustomer, token: customerToken, logout: logoutCustomer } =
-    useCustomerAuth();
+  const {
+    customer: authCustomer,
+    token: customerToken,
+    logout: logoutCustomer,
+    updateProfile,
+  } = useCustomerAuth();
+  // "Save my details for next time" at checkout. On by default: the whole
+  // point is not typing the address again.
+  const [saveDetails, setSaveDetails] = useState(true);
 
   // A reward waiting on this customer's card at this shop. Read at checkout
   // rather than carried in the basket, so it reflects what they actually have
@@ -1585,12 +1662,26 @@ function OrderPage() {
           params: { locationId: storefront!.location.id },
           headers: { Authorization: `Bearer ${customerToken}` },
         })
-        .then((r) => r.data as Array<{ id: string; label: string }>),
+        .then(
+          (r) =>
+            r.data as Array<
+              { id: string; label: string } & Pick<LoyaltyRewardTerms, "percentOff" | "amountOff" | "maxDiscount" | "minOrder">
+            >,
+        ),
   });
   const loyaltyReward = claimable?.[0] ?? null;
   // Opt IN, not out. Someone may be saving it for a bigger order, and
   // spending it for them is spending something they earned.
   const [useLoyaltyReward, setUseLoyaltyReward] = useState(false);
+  // A money-off reward (% or £ off) comes off after deals and offers, worked
+  // out exactly as the server does it. Under its minimum order it gives
+  // nothing and is not spent. A free-item reward is a £0 line instead.
+  const loyaltyMoney =
+    useLoyaltyReward && loyaltyReward && loyaltyRewardKind(loyaltyReward) !== "FREE_ITEM"
+      ? loyaltyRewardDiscount(loyaltyReward, subtotal - effectiveDiscount)
+      : { amount: 0, short: 0 };
+  const orderDiscount = round2(effectiveDiscount + loyaltyMoney.amount);
+  const orderTotal = round2(Math.max(0, total - loyaltyMoney.amount));
   useEffect(() => {
     if (!authCustomer) return;
     if (!customerName) {
@@ -1601,12 +1692,47 @@ function OrderPage() {
     if (!customerPhone && authCustomer.phone) {
       setCustomerPhone(authCustomer.phone);
     }
+    // The saved address, but never over anything already typed.
+    if (!addrLine1 && !addrFlat && !addrPostcode && authCustomer.addressLine1) {
+      setAddrLine1(authCustomer.addressLine1);
+      if (authCustomer.addressLine2) setAddrFlat(authCustomer.addressLine2);
+      if (authCustomer.addressCity) setAddrCity(authCustomer.addressCity);
+      if (authCustomer.addressPostcode) setAddrPostcode(authCustomer.addressPostcode);
+      if (authCustomer.addressArea) setAddrArea(authCustomer.addressArea);
+    }
+    // Signed in from the checkout's own "Place order" (email + password,
+    // same page): carry on to the tip step exactly as if they had been
+    // signed in all along. This used to call checkout.mutate() directly,
+    // which skipped the tip and the undo hold and placed the order the
+    // instant the modal closed.
     if (pendingPlaceOrder) {
       setPendingPlaceOrder(false);
-      checkout.mutate();
+      forgetCheckout();
+      setCartOpen(true);
+      setTipOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authCustomer]);
+
+  // Back from a sign-in that LEFT the page (Google, or the confirmation
+  // email). First make sure we're on the brand they were ordering from — the
+  // basket is saved per brand, so the wrong URL shows an empty one — then,
+  // once signed in with the basket loaded, reopen it where they left off.
+  useEffect(() => {
+    const note = readCheckout(String(slug));
+    if (note?.brandId && !brandId) {
+      router.replace(`/order/${slug}?brand=${encodeURIComponent(note.brandId)}`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, brandId]);
+  useEffect(() => {
+    if (!authCustomer || hydratedKey !== cartKey) return;
+    const note = readCheckout(String(slug));
+    if (!note || (note.brandId ?? null) !== brandId) return;
+    forgetCheckout();
+    if (cart.length > 0) setCartOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authCustomer, hydratedKey, cartKey]);
 
   // Wraps the existing checkout.mutate() call so the modal opens when
   // the customer isn't authenticated. The pending flag is consumed
@@ -1618,8 +1744,26 @@ function OrderPage() {
     if (storefront?.closed) return;
     if (!authCustomer) {
       setPendingPlaceOrder(true);
+      rememberCheckout(String(slug), brandId);
       setLoginOpen(true);
       return;
+    }
+    // Next order on any of their shops starts filled in. Fire and forget:
+    // a failed save must never stand between the customer and their food.
+    if (saveDetails) {
+      const delivery = fulfillmentType === "DELIVERY";
+      void updateProfile({
+        phone: customerPhone.trim() || undefined,
+        ...(delivery && addrLine1.trim()
+          ? {
+              addressLine1: addrLine1.trim(),
+              addressLine2: addrFlat.trim() || null,
+              addressCity: addrCity.trim() || null,
+              addressPostcode: addrPostcode.trim() || null,
+              addressArea: addrArea.trim() || null,
+            }
+          : {}),
+      }).catch(() => undefined);
     }
     // Ask about a tip, then hold. The order is deliberately NOT created
     // until the hold expires — see PlacingOrderSheet.
@@ -1715,14 +1859,25 @@ function OrderPage() {
     }
   };
 
+  // Never sit on a mode the shop doesn't offer. A delivery-only shop shows
+  // just the Delivery pill, but the page starts on collection — so nothing
+  // looked selected and an order placed without tapping it went through as
+  // a collection.
+  useEffect(() => {
+    if (groupMode || !cfg) return;
+    const acceptDelivery = cfg.acceptsDelivery ?? true;
+    const acceptCollection = cfg.acceptsCollection ?? true;
+    if (fulfillmentType === "PICKUP" && !acceptCollection && acceptDelivery) {
+      setFulfillmentType("DELIVERY");
+    } else if (fulfillmentType === "DELIVERY" && !acceptDelivery && acceptCollection) {
+      setFulfillmentType("PICKUP");
+    }
+  }, [fulfillmentType, cfg, groupMode]);
+
   // ── Render ───────────────────────────────────────────────────────────────
 
   if (storefrontQuery.isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
-      </div>
-    );
+    return <StorefrontSkeleton />;
   }
   if (storefrontQuery.error || !storefront) {
     return (
@@ -1747,6 +1902,7 @@ function OrderPage() {
         onReset={() => setConfirmedOrderId(null)}
         storeSlug={slug}
         brandId={brandId}
+        customerApp={(storefront as any).customerApp ?? null}
       />
     );
   }
@@ -1776,7 +1932,9 @@ function OrderPage() {
     storefront.whatsapp?.enabled && storefront.whatsapp.displayPhoneNumber
       ? storefront.whatsapp.displayPhoneNumber.replace(/\D/g, "")
       : "";
-  const whatsappHref = waDigits
+  // Not inside the restaurant's own app: it already is the ordering channel,
+  // and sending its customer off to WhatsApp mid-order is a step backwards.
+  const whatsappHref = waDigits && !inApp
     ? `https://wa.me/${waDigits}?text=${encodeURIComponent(
         `Hi ${headerTitle}, I'd like to place an order.`,
       )}`
@@ -1791,8 +1949,32 @@ function OrderPage() {
     ? `/book/${storefront.location.id}`
     : null;
 
+  // The brand's own colour (Brands → storefront settings). Per brand, so
+  // ?brand= swaps it along with the name and logo; none set = default accent.
+  const brandColour = pickBrandColour(storefront.brand?.primaryColor);
+  const searching = !!search.trim();
+  const menuTabs: CategoryTab[] = [
+    ...(!searching && promoItems.length > 0
+      ? [{ id: "promotions", label: "Promotions" }]
+      : []),
+    ...(!searching && topSellers.length > 0
+      ? [{ id: "top-sellers", label: "Top sellers" }]
+      : []),
+    ...visibleItems.map(({ cat }) => ({ id: cat.id, label: cat.name })),
+  ];
+  const basketCount = groupMode ? groupCount : cartCount;
+  const basketSubtotal = groupMode ? (basket?.subtotal ?? 0) : subtotal;
+  const openBasket = () =>
+    groupMode ? basket && setGroupPanelOpen(true) : setCartOpen(true);
+  // A full loyalty card is an order on its own — keep a way into checkout
+  // even with nothing else in the basket.
+  const rewardOnly =
+    !groupMode && cartCount === 0 && !!loyaltyReward && loyaltyRewardKind(loyaltyReward) === "FREE_ITEM";
+  const chipClass =
+    "inline-flex h-11 items-center gap-1.5 rounded-full border border-sf-border bg-sf-surface px-3.5 text-[13px] font-semibold text-sf-text transition-[border-color,transform] duration-150 hover:border-sf-border-strong active:scale-[0.97] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sf-accent focus-visible:ring-offset-2 focus-visible:ring-offset-sf-bg";
+
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div className="sf-root min-h-screen" style={storefrontThemeStyle(brandColour)}>
       <WelcomeSplash
         splash={storefront.splash}
         storeKey={String(slug)}
@@ -1808,535 +1990,504 @@ function OrderPage() {
         name={headerTitle}
         logoUrl={logoUrl}
       />
-      {/* Top nav */}
-      <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <div className="flex shrink-0 items-center gap-2">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt=""
-                className="h-9 w-9 shrink-0 rounded-md bg-white object-contain p-1"
-              />
-            ) : (
-              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-orange-500 text-sm font-bold text-white">
-                {headerTitle.slice(0, 1).toUpperCase()}
-              </div>
-            )}
-            <span className="hidden sm:inline text-sm font-semibold text-zinc-900">
-              {headerTitle}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Phase AP-AUTH increment 2b — persistent customer auth
-                control. Shows "Sign in" pre-auth, or the avatar +
-                first-name dropdown post-auth. Lives next to the cart
-                pill so it stays visible the whole time the customer
-                is browsing. */}
-            {/* Book a table — sits next to Cart because booking and
-                ordering are the two things a diner comes here to do.
-                Outline, not solid, so it never competes with Cart. */}
+      {/* Top nav. No basket here: on a phone it lives in the bar at the
+          bottom where the thumb is, on a laptop in the panel beside the menu. */}
+      {/* "Get the app" on phones, when this brand's own app is promoted. */}
+      <AppInstallBanner
+        app={(storefront as any).customerApp ?? null}
+        brandKey={brandId ?? slug}
+        name={headerTitle}
+        logoUrl={logoUrl}
+      />
+      <header className="sticky top-0 z-40 h-16 border-b border-sf-border bg-sf-surface">
+        <div className="mx-auto flex h-full max-w-6xl items-center gap-3 px-4">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt=""
+              className="h-10 w-10 shrink-0 rounded-xl bg-white object-contain p-1 ring-1 ring-sf-border"
+            />
+          ) : (
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sf-cta text-base font-bold text-white">
+              {headerTitle.slice(0, 1).toUpperCase()}
+            </div>
+          )}
+          <span className="min-w-0 truncate text-[15px] font-semibold text-sf-text">
+            {headerTitle}
+          </span>
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            {/* Book a table — booking and ordering are the two things a diner
+                comes here to do. Quiet, so it never competes with the basket. */}
             {bookingHref && (
               <a
                 href={bookingHref}
-                title="Book a table"
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-zinc-300 bg-white px-2.5 py-2 text-xs font-semibold text-zinc-800 hover:border-zinc-400 hover:bg-zinc-50 sm:px-3 sm:text-sm"
+                aria-label="Book a table"
+                className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-2.5 text-sm font-semibold text-sf-text transition-colors hover:bg-sf-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sf-accent sm:px-3.5"
               >
-                <CalendarDays className="h-4 w-4 shrink-0" />
-                {/* One span, not two — a second element would inherit the
-                    flex gap on top of the word space and render
-                    "Book  a table". */}
-                <span className="whitespace-nowrap">
-                  Book<span className="hidden sm:inline"> a table</span>
-                </span>
+                <CalendarDays className="h-5 w-5 shrink-0" aria-hidden />
+                <span className="hidden whitespace-nowrap sm:inline">Book a table</span>
               </a>
             )}
+            {/* Phase AP-AUTH increment 2b — persistent customer auth control:
+                a person icon pre-auth, the avatar + account menu after. */}
             <HeaderAuthButton
               customer={authCustomer ?? null}
               onSignInClick={() => setLoginOpen(true)}
               onLogout={logoutCustomer}
               myOrdersHref={`/order/${slug}/my-orders${brandId ? `?brand=${brandId}` : ""}`}
+              rewardsHref={`/order/${slug}/rewards${brandId ? `?brand=${brandId}` : ""}`}
+              accountHref={`/order/${slug}/account${brandId ? `?brand=${brandId}` : ""}`}
             />
-            {/* In group mode the personal cart isn't the basket that
-                matters, so the pill opens the shared one instead. */}
-            {groupMode ? (
-              <button
-                onClick={() => setGroupPanelOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
-              >
-                <Users className="h-4 w-4" /> Group
-                {groupCount > 0 && (
-                  <span className="ml-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-orange-600">
-                    {groupCount}
-                  </span>
-                )}
-              </button>
-            ) : (
-              <button
-                onClick={() => setCartOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-2 text-sm font-semibold text-white hover:bg-orange-600"
-              >
-                <ShoppingBag className="h-4 w-4" /> Cart
-                {cartCount > 0 && (
-                  <span className="ml-1 rounded-full bg-white px-1.5 text-[10px] font-bold text-orange-600">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            )}
           </div>
         </div>
       </header>
 
       {/* Hero banner */}
-      <div className="w-full bg-zinc-100">
+      <div className="relative h-44 w-full overflow-hidden bg-sf-raised sm:h-64 lg:h-72">
         {heroImage ? (
-          <img
-            src={heroImage}
-            alt=""
-            className="h-48 w-full object-cover sm:h-72"
-          />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={heroImage} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="h-48 w-full bg-gradient-to-r from-orange-100 to-amber-50 sm:h-64" />
+          <div
+            className="h-full w-full"
+            style={{
+              background:
+                "linear-gradient(135deg, color-mix(in srgb, var(--sf-accent) 28%, var(--sf-bg)) 0%, var(--sf-bg) 100%)",
+            }}
+          />
         )}
       </div>
 
-      <div className="mx-auto max-w-5xl px-4">
-        {/* Refer a friend, hung at the TOP of the menu.
-            It used to sit at the very bottom, below every category — on a
-            193-item menu that is several screens of scrolling past food
-            nobody has to scroll past to leave. Unlike the loyalty card this
-            one is MEANT to be seen: it only works if somebody notices it and
-            tells a friend. Renders nothing when the shop runs no programme,
-            so a shop without one loses nothing to it being here. */}
-        <div className="pt-4">
-          <ReferAFriend
-            locationId={storefront?.location?.id}
-            brandName={storefront?.brand?.name ?? storefront?.location?.name}
-            shareUrl={
-              typeof window !== "undefined"
-                ? `${window.location.origin}/order/${encodeURIComponent(String(slug))}${brandId ? `?brand=${brandId}` : ""}`
-                : ""
-            }
-            currency={currency}
-            token={customerToken}
-          />
-        </div>
-        {/* Restaurant info card.
-            Sat below the hero now — the previous -mt-12 made the
-            title text clip into the banner image at certain viewport
-            widths. Dropping the negative margin keeps the banner
-            fully visible. The "About" description has also been
-            removed from this card; it already lives inside the Info
-            modal and was duplicated here. */}
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex items-start gap-4">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt=""
-                className="h-24 w-24 shrink-0 rounded-lg bg-white object-contain p-1.5 ring-2 ring-white shadow sm:h-28 sm:w-28"
-              />
-            ) : (
-              <div className="grid h-24 w-24 shrink-0 place-items-center rounded-lg bg-orange-500 text-3xl font-bold text-white ring-2 ring-white shadow sm:h-28 sm:w-28">
-                {headerTitle.slice(0, 1).toUpperCase()}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <h1 className="text-xl font-bold text-zinc-900 sm:text-2xl">
-                  {headerTitle}
-                </h1>
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-8">
+          <main className="min-w-0">
+            {/* Restaurant identity. Only the logo overlaps the hero; the name
+                sits below it, so a long name never clips into the banner. */}
+            <section aria-labelledby="store-name">
+              {logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logoUrl}
+                  alt=""
+                  className="relative -mt-10 h-20 w-20 rounded-2xl bg-white object-contain p-1.5 shadow-[0_6px_20px_-8px_rgba(0,0,0,0.35)] ring-4 ring-[var(--sf-bg)] sm:-mt-12 sm:h-24 sm:w-24"
+                />
+              ) : (
+                <div className="relative -mt-10 grid h-20 w-20 place-items-center rounded-2xl bg-sf-cta text-3xl font-bold text-white ring-4 ring-[var(--sf-bg)] sm:-mt-12 sm:h-24 sm:w-24">
+                  {headerTitle.slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              <div className="mt-3 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h1
+                    id="store-name"
+                    className="text-2xl font-bold tracking-tight text-sf-text [overflow-wrap:anywhere] [text-wrap:balance] sm:text-3xl"
+                  >
+                    {headerTitle}
+                  </h1>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[13px] text-sf-muted">
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-sf-text">
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "h-2 w-2 rounded-full",
+                          storefront.isOpen && !storefront.closed ? "bg-emerald-500" : "bg-zinc-400",
+                        )}
+                      />
+                      {storefront.isOpen && !storefront.closed ? "Open now" : "Closed"}
+                    </span>
+                    {headerAddress && (
+                      <span className="inline-flex min-w-0 items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        <span className="min-w-0">{headerAddress}</span>
+                      </span>
+                    )}
+                    {/* Your own rating, from your own customers — the reason we
+                        stopped sending people to Google. Renders nothing until a
+                        shop actually has reviews. */}
+                    <RatingPill
+                      brandId={brandId ?? undefined}
+                      locationId={storefront?.location?.id}
+                      onClick={() =>
+                        document
+                          .getElementById("reviews")
+                          ?.scrollIntoView({ behavior: "smooth" })
+                      }
+                    />
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={() => setInfoOpen(true)}
-                  className="inline-flex items-center gap-1 rounded-full border border-zinc-200 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
+                  className={cn(chipClass, "shrink-0")}
                 >
-                  <Info className="h-3.5 w-3.5" /> Info
+                  <Info className="h-4 w-4" aria-hidden /> Info
                 </button>
-                {/* Your own rating, from your own customers — the reason we
-                    stopped sending people to Google. Renders nothing until a
-                    shop actually has reviews. */}
-                <RatingPill
-                  brandId={brandId ?? undefined}
-                  locationId={storefront?.location?.id}
-                  onClick={() =>
-                    document
-                      .getElementById("reviews")
-                      ?.scrollIntoView({ behavior: "smooth" })
-                  }
-                />
               </div>
-              {headerAddress && (
-                <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-500">
-                  <MapPin className="h-3 w-3" /> {headerAddress}
-                </p>
-              )}
-            </div>
-          </div>
 
-          {/* Pills + schedule */}
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            {acceptDelivery && (
-              <FulfillmentPill
-                active={fulfillmentType === "DELIVERY"}
-                // Fixed by the host in group mode — it decides the fees the
-                // whole group is sharing, so it can't move once people have
-                // started adding.
-                onClick={() => !groupMode && setFulfillmentType("DELIVERY")}
-                icon={<Bike className="h-4 w-4" />}
-                label="Delivery"
-                sub={`${cfg?.deliveryPrepMinutes ?? 45} mins`}
-              />
-            )}
-            {acceptCollection && (
-              <FulfillmentPill
-                active={fulfillmentType === "PICKUP"}
-                onClick={() => !groupMode && setFulfillmentType("PICKUP")}
-                icon={<ShoppingBag className="h-4 w-4" />}
-                label="Pickup"
-                sub={`${cfg?.collectionPrepMinutes ?? 20} mins`}
-              />
-            )}
-            {/* WhatsApp ordering belongs HERE, not in the header: it is
-                another way to place the order, the same kind of choice as
-                collection or delivery. In the header it read as a banner and
-                competed with the Cart button on a phone. */}
-            {whatsappHref && (
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-3 py-2 text-xs font-semibold text-white hover:bg-[#1ebe5d]"
-              >
-                <WhatsAppIcon className="h-3.5 w-3.5 shrink-0" />
-                WhatsApp AI ordering
-              </a>
-            )}
-            {!groupMode && (
-              <button
-                onClick={() => setScheduleOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-700 hover:border-zinc-300"
-              >
-                <Clock className="h-3.5 w-3.5" />
-                {scheduledFor
-                  ? `Scheduled ${formatScheduledFor(scheduledFor)}`
-                  : "Schedule"}
-              </button>
-            )}
-
-            {/* Order together — one basket, several people, one order. Sits
-                with the fulfillment pills because "who's eating" is the same
-                kind of decision as "how does it get here". Hidden while the
-                shop is paused, like every other way into a basket. */}
-            {!groupMode && !storefront.closed && (
-              <button
-                onClick={() => setStartGroupOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 hover:border-orange-400 hover:bg-orange-100"
-              >
-                <Users className="h-4 w-4" />
-                Order together
-              </button>
-            )}
-
-            {/* Eating in? Sits with Delivery/Pickup because "how do I
-                want to be served" is the same question — but styled as a
-                link, not a fulfillment pill, since it leaves the menu. */}
-            {bookingHref && (
-              <a
-                href={bookingHref}
-                className="inline-flex items-center gap-1.5 rounded-full border border-orange-300 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 hover:border-orange-400 hover:bg-orange-100"
-              >
-                <CalendarDays className="h-4 w-4" />
-                Book a table
-              </a>
-            )}
-          </div>
-
-          {/* Group mode — say so plainly and permanently. Without this the
-              customer adds three things, opens the cart out of habit, finds it
-              empty and assumes the site is broken. */}
-          {groupMode && (basket || groupQuery.error) && (
-            <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-xs text-orange-900">
-              {groupQuery.error || !basket ? (
-                <>
-                  <p className="font-semibold">This group order isn&apos;t available</p>
-                  <p className="mt-0.5 text-[11px] text-orange-800">
-                    {((groupQuery.error as any)?.response?.data?.message as string) ??
-                      "The link may have expired."}{" "}
-                    <a
-                      className="underline"
-                      href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
-                    >
-                      Order on your own instead
-                    </a>
-                    .
-                  </p>
-                </>
-              ) : basket.status === "PLACED" ? (
-                <>
-                  <p className="font-semibold">
-                    This group order has already been placed
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-orange-800">
-                    Anything you add now would be a separate order.{" "}
-                    <a
-                      className="underline"
-                      href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
-                    >
-                      Start your own
-                    </a>
-                    .
-                  </p>
-                </>
-              ) : basket.status === "CANCELLED" || basket.status === "EXPIRED" ? (
-                <>
-                  <p className="font-semibold">
-                    This group order is {basket.status === "EXPIRED" ? "expired" : "cancelled"}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-orange-800">
-                    <a
-                      className="underline"
-                      href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
-                    >
-                      Order on your own instead
-                    </a>
-                    .
-                  </p>
-                </>
-              ) : (
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-1.5 font-semibold">
-                      <Users className="h-3.5 w-3.5" />
-                      {basket.isHost
-                        ? "Your group order"
-                        : `${basket.hostName ?? "A friend"}'s group order`}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-orange-800">
-                      {basket.status === "LOCKED"
-                        ? `Basket closed — ${
-                            basket.isHost
-                              ? "finish checkout in the basket"
-                              : `${basket.hostName ?? "the host"} is checking out`
-                          }.`
-                        : `Everything you add goes in together · ${
-                            basket.people.length
-                          } ${basket.people.length === 1 ? "person" : "people"} · ${money(
-                            basket.subtotal,
-                          )}`}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setGroupPanelOpen(true)}
-                    className="shrink-0 rounded-full bg-orange-500 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-orange-600"
-                  >
-                    View basket
-                  </button>
+              {/* FSA food hygiene rating — refreshed nightly by the API. */}
+              {storefront.hygiene && (
+                <div className="mt-3">
+                  <HygieneBadge hygiene={storefront.hygiene} />
                 </div>
               )}
-              {/* Failures from an Add belong here, not only in the panel —
-                  the customer is looking at the menu when they happen. */}
-              {groupError && (
-                <p className="mt-2 border-t border-orange-200 pt-2 text-[11px] text-red-700">
-                  {groupError}
-                </p>
-              )}
-            </div>
-          )}
 
-          {!storefront.isOpen && (
-            <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
-              Store is currently closed — schedule for later or come back.
-            </p>
-          )}
-
-          {/* Phase AW-15 — operator-pushed pause / busy banners. The
-              closed banner blocks Add + Checkout (handled below by
-              isAcceptingOrders); busy keeps everything live but warns
-              about a longer prep time. */}
-          {storefront.closed && (
-            <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
-              <p className="font-semibold">
-                {storefront.closed.brandName} currently isn&apos;t accepting
-                online orders
-              </p>
-              {storefront.closed.resumeAt && (
-                <p className="mt-0.5">
-                  Reopens at{" "}
-                  <strong>
-                    {new Date(storefront.closed.resumeAt).toLocaleString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </strong>
-                </p>
-              )}
-              {storefront.closed.reason && (
-                <p className="mt-0.5 italic">
-                  &ldquo;{storefront.closed.reason}&rdquo;
-                </p>
-              )}
-              <p className="mt-1.5 text-[11px] text-red-700">
-                You can keep browsing the menu — checkout is disabled until we
-                reopen.
-              </p>
-            </div>
-          )}
-          {storeCampaign && !groupMode && !storefront.closed && (storeCampaign.percentageOff != null || storeCampaign.amountOff != null) && (
-            <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900">
-              <p className="font-semibold">
-                🎉{" "}
-                {storeCampaign.percentageOff != null
-                  ? `${Number(storeCampaign.percentageOff)}% off your order`
-                  : `${money(Number(storeCampaign.amountOff))} off your order`}
-                {storeCampaign.minOrder
-                  ? ` on ${money(Number(storeCampaign.minOrder))}+`
-                  : ""}
-              </p>
-              {storeCampaign.name && (
-                <p className="mt-0.5 text-[11px] text-orange-800">
-                  {storeCampaign.name} — applied automatically at checkout.
-                </p>
-              )}
-            </div>
-          )}
-          {/* Phase AW-19 — items-only campaign banner. Only shown when
-              there's no storewide campaign already taking the slot. */}
-          {bogo && !groupMode && !storefront.closed && (
-            <div className="mt-4 rounded-md border border-pink-200 bg-pink-50 px-4 py-2 text-xs text-pink-900">
-              <p className="font-semibold">🎁 Buy 1, get 1 free</p>
-              <p className="mt-0.5 text-[11px] text-pink-800">
-                {bogo.campaignName} — add any highlighted item and a free
-                copy of the same item lands in your cart automatically.
-              </p>
-            </div>
-          )}
-          {freeDeliveryCampaign && !storefront.closed && (
-            <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-900">
-              <p className="font-semibold">🚚 Free delivery</p>
-              <p className="mt-0.5 text-[11px] text-emerald-800">
-                {freeDeliveryCampaign.campaignName} — delivery is on the house
-                for this order.
-              </p>
-            </div>
-          )}
-          {freeItem && !groupMode && !storefront.closed && (() => {
-            const eligible = eligibleSubtotal >= freeItem.minOrder;
-            const remaining = Math.max(0, freeItem.minOrder - eligibleSubtotal);
-            const named = freeItem.freeItemIds
-              .map((id) => itemsById[id]?.name)
-              .filter(Boolean) as string[];
-            const headline =
-              named.length === 0
-                ? "a free item"
-                : named.length === 1
-                  ? `a free ${named[0]}`
-                  : named.length === 2
-                    ? `a free ${named[0]} or ${named[1]}`
-                    : `a free item (${named.slice(0, -1).join(", ")}, or ${named[named.length - 1]})`;
-            return (
-              <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
-                <p className="font-semibold">
-                  ✨ Spend {money(freeItem.minOrder)} and get {headline}
-                </p>
-                <p className="mt-0.5 text-[11px] text-amber-800">
-                  {eligible
-                    ? "🎉 Unlocked! Pick your free item in the cart."
-                    : `Add ${money(remaining)} more (eligible items only) to unlock.`}
-                </p>
+              {/* How, when and who. */}
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {(acceptDelivery || acceptCollection) && (
+                  <div
+                    role="group"
+                    aria-label="Order type"
+                    className="inline-flex rounded-full bg-sf-raised p-1"
+                  >
+                    {acceptDelivery && (
+                      <FulfillmentPill
+                        active={fulfillmentType === "DELIVERY"}
+                        // Fixed by the host in group mode — it decides the fees the
+                        // whole group is sharing, so it can't move once people have
+                        // started adding.
+                        onClick={() => !groupMode && setFulfillmentType("DELIVERY")}
+                        icon={<Bike className="h-4 w-4" aria-hidden />}
+                        label="Delivery"
+                        sub={`${cfg?.deliveryPrepMinutes ?? 45} min`}
+                      />
+                    )}
+                    {acceptCollection && (
+                      <FulfillmentPill
+                        active={fulfillmentType === "PICKUP"}
+                        onClick={() => !groupMode && setFulfillmentType("PICKUP")}
+                        icon={<ShoppingBag className="h-4 w-4" aria-hidden />}
+                        label="Pickup"
+                        sub={`${cfg?.collectionPrepMinutes ?? 20} min`}
+                      />
+                    )}
+                  </div>
+                )}
+                {!groupMode && (
+                  <button onClick={() => setScheduleOpen(true)} className={chipClass}>
+                    <Clock className="h-4 w-4" aria-hidden />
+                    {scheduledFor
+                      ? `Scheduled ${formatScheduledFor(scheduledFor)}`
+                      : "Schedule"}
+                  </button>
+                )}
+                {/* Order together — one basket, several people, one order.
+                    Hidden while the shop is paused, like every other way into
+                    a basket. */}
+                {!groupMode && !storefront.closed && (
+                  <button onClick={() => setStartGroupOpen(true)} className={chipClass}>
+                    <Users className="h-4 w-4" aria-hidden />
+                    Order together
+                  </button>
+                )}
+                {/* WhatsApp ordering is another way to place the order, the
+                    same kind of choice as collection or delivery. */}
+                {whatsappHref && (
+                  <a
+                    href={whatsappHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={chipClass}
+                  >
+                    <WhatsAppIcon className="h-4 w-4 shrink-0 text-[#25D366]" />
+                    WhatsApp AI ordering
+                    <span className="sr-only"> (opens WhatsApp in a new tab)</span>
+                  </a>
+                )}
+                {bookingHref && (
+                  <a href={bookingHref} className={chipClass}>
+                    <CalendarDays className="h-4 w-4" aria-hidden />
+                    Book a table
+                  </a>
+                )}
               </div>
-            );
-          })()}
-          {!storeCampaign && !storefront.closed && Object.keys(itemPromos).length > 0 && (() => {
-            const promos = Object.values(itemPromos);
-            const uniquePercents = Array.from(new Set(promos.map((p) => p.percentageOff)));
-            const uniqueNames = Array.from(new Set(promos.map((p) => p.campaignName)));
-            const headline =
-              uniquePercents.length === 1
-                ? `${uniquePercents[0]}% off selected items`
-                : "Discounts on selected items";
-            return (
-              <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900">
-                <p className="font-semibold">🎉 {headline}</p>
-                <p className="mt-0.5 text-[11px] text-orange-800">
-                  {uniqueNames.length === 1 ? uniqueNames[0] : "Multiple offers"} —
-                  applied automatically. Look for the price tags below.
+
+              <div>
+              {/* Group mode — say so plainly and permanently. Without this the
+                  customer adds three things, opens the cart out of habit, finds it
+                  empty and assumes the site is broken. */}
+              {groupMode && (basket || groupQuery.error) && (
+                <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-xs text-orange-900">
+                  {groupQuery.error || !basket ? (
+                    <>
+                      <p className="font-semibold">This group order isn&apos;t available</p>
+                      <p className="mt-0.5 text-[11px] text-orange-800">
+                        {((groupQuery.error as any)?.response?.data?.message as string) ??
+                          "The link may have expired."}{" "}
+                        <a
+                          className="underline"
+                          href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
+                        >
+                          Order on your own instead
+                        </a>
+                        .
+                      </p>
+                    </>
+                  ) : basket.status === "PLACED" ? (
+                    <>
+                      <p className="font-semibold">
+                        This group order has already been placed
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-orange-800">
+                        Anything you add now would be a separate order.{" "}
+                        <a
+                          className="underline"
+                          href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
+                        >
+                          Start your own
+                        </a>
+                        .
+                      </p>
+                    </>
+                  ) : basket.status === "CANCELLED" || basket.status === "EXPIRED" ? (
+                    <>
+                      <p className="font-semibold">
+                        This group order is {basket.status === "EXPIRED" ? "expired" : "cancelled"}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-orange-800">
+                        <a
+                          className="underline"
+                          href={`/order/${slug}${brandId ? `?brand=${brandId}` : ""}`}
+                        >
+                          Order on your own instead
+                        </a>
+                        .
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-1.5 font-semibold">
+                          <Users className="h-3.5 w-3.5" />
+                          {basket.isHost
+                            ? "Your group order"
+                            : `${basket.hostName ?? "A friend"}'s group order`}
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-orange-800">
+                          {basket.status === "LOCKED"
+                            ? `Basket closed — ${
+                                basket.isHost
+                                  ? "finish checkout in the basket"
+                                  : `${basket.hostName ?? "the host"} is checking out`
+                              }.`
+                            : `Everything you add goes in together · ${
+                                basket.people.length
+                              } ${basket.people.length === 1 ? "person" : "people"} · ${money(
+                                basket.subtotal,
+                              )}`}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setGroupPanelOpen(true)}
+                        className="shrink-0 rounded-full bg-orange-500 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-orange-600"
+                      >
+                        View basket
+                      </button>
+                    </div>
+                  )}
+                  {/* Failures from an Add belong here, not only in the panel —
+                      the customer is looking at the menu when they happen. */}
+                  {groupError && (
+                    <p className="mt-2 border-t border-orange-200 pt-2 text-[11px] text-red-700">
+                      {groupError}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {!storefront.isOpen && (
+                <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  Store is currently closed — schedule for later or come back.
                 </p>
+              )}
+
+              {/* Phase AW-15 — operator-pushed pause / busy banners. The
+                  closed banner blocks Add + Checkout (handled below by
+                  isAcceptingOrders); busy keeps everything live but warns
+                  about a longer prep time. */}
+              {storefront.closed && (
+                <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-800">
+                  <p className="font-semibold">
+                    {storefront.closed.brandName} currently isn&apos;t accepting
+                    online orders
+                  </p>
+                  {storefront.closed.resumeAt && (
+                    <p className="mt-0.5">
+                      Reopens at{" "}
+                      <strong>
+                        {new Date(storefront.closed.resumeAt).toLocaleString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })}
+                      </strong>
+                    </p>
+                  )}
+                  {storefront.closed.reason && (
+                    <p className="mt-0.5 italic">
+                      &ldquo;{storefront.closed.reason}&rdquo;
+                    </p>
+                  )}
+                  <p className="mt-1.5 text-[11px] text-red-700">
+                    You can keep browsing the menu — checkout is disabled until we
+                    reopen.
+                  </p>
+                </div>
+              )}
+              {storeCampaign && !groupMode && !storefront.closed && (storeCampaign.percentageOff != null || storeCampaign.amountOff != null) && (
+                <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900">
+                  <p className="font-semibold">
+                    🎉{" "}
+                    {storeCampaign.percentageOff != null
+                      ? `${Number(storeCampaign.percentageOff)}% off your order`
+                      : `${money(Number(storeCampaign.amountOff))} off your order`}
+                    {storeCampaign.minOrder
+                      ? ` on ${money(Number(storeCampaign.minOrder))}+`
+                      : ""}
+                  </p>
+                  {storeCampaign.name && (
+                    <p className="mt-0.5 text-[11px] text-orange-800">
+                      {storeCampaign.name} — applied automatically at checkout.
+                    </p>
+                  )}
+                </div>
+              )}
+              {/* Phase AW-19 — items-only campaign banner. Only shown when
+                  there's no storewide campaign already taking the slot. */}
+              {bogo && !groupMode && !storefront.closed && (
+                <div className="mt-4 rounded-md border border-pink-200 bg-pink-50 px-4 py-2 text-xs text-pink-900">
+                  <p className="font-semibold">🎁 Buy 1, get 1 free</p>
+                  <p className="mt-0.5 text-[11px] text-pink-800">
+                    {bogo.campaignName} — add any highlighted item and a free
+                    copy of the same item lands in your cart automatically.
+                  </p>
+                </div>
+              )}
+              {freeDeliveryCampaign && !storefront.closed && (
+                <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-900">
+                  <p className="font-semibold">🚚 Free delivery</p>
+                  <p className="mt-0.5 text-[11px] text-emerald-800">
+                    {freeDeliveryCampaign.campaignName} — delivery is on the house
+                    for this order.
+                  </p>
+                </div>
+              )}
+              {freeItem && !groupMode && !storefront.closed && (() => {
+                const eligible = eligibleSubtotal >= freeItem.minOrder;
+                const remaining = Math.max(0, freeItem.minOrder - eligibleSubtotal);
+                const named = freeItem.freeItemIds
+                  .map((id) => itemsById[id]?.name)
+                  .filter(Boolean) as string[];
+                const headline =
+                  named.length === 0
+                    ? "a free item"
+                    : named.length === 1
+                      ? `a free ${named[0]}`
+                      : named.length === 2
+                        ? `a free ${named[0]} or ${named[1]}`
+                        : `a free item (${named.slice(0, -1).join(", ")}, or ${named[named.length - 1]})`;
+                return (
+                  <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
+                    <p className="font-semibold">
+                      ✨ Spend {money(freeItem.minOrder)} and get {headline}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-amber-800">
+                      {eligible
+                        ? "🎉 Unlocked! Pick your free item in the cart."
+                        : `Add ${money(remaining)} more (eligible items only) to unlock.`}
+                    </p>
+                  </div>
+                );
+              })()}
+              {!storeCampaign && !storefront.closed && Object.keys(itemPromos).length > 0 && (() => {
+                const promos = Object.values(itemPromos);
+                const uniquePercents = Array.from(new Set(promos.map((p) => p.percentageOff)));
+                const uniqueNames = Array.from(new Set(promos.map((p) => p.campaignName)));
+                const headline =
+                  uniquePercents.length === 1
+                    ? `${uniquePercents[0]}% off selected items`
+                    : "Discounts on selected items";
+                return (
+                  <div className="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-2 text-xs text-orange-900">
+                    <p className="font-semibold">🎉 {headline}</p>
+                    <p className="mt-0.5 text-[11px] text-orange-800">
+                      {uniqueNames.length === 1 ? uniqueNames[0] : "Multiple offers"} —
+                      applied automatically. Look for the price tags below.
+                    </p>
+                  </div>
+                );
+              })()}
+              {storefront.busy && !storefront.closed && (
+                <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
+                  <p className="font-semibold">
+                    Busy right now — orders are taking longer
+                  </p>
+                  {storefront.busy.extraPrepTime && (
+                    <p className="mt-0.5">
+                      Add about{" "}
+                      <strong>{storefront.busy.extraPrepTime} minutes</strong> to
+                      the usual prep time.
+                    </p>
+                  )}
+                  {storefront.busy.reason && (
+                    <p className="mt-0.5 italic">
+                      &ldquo;{storefront.busy.reason}&rdquo;
+                    </p>
+                  )}
+                </div>
+              )}
               </div>
-            );
-          })()}
-          {storefront.busy && !storefront.closed && (
-            <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
-              <p className="font-semibold">
-                Busy right now — orders are taking longer
-              </p>
-              {storefront.busy.extraPrepTime && (
-                <p className="mt-0.5">
-                  Add about{" "}
-                  <strong>{storefront.busy.extraPrepTime} minutes</strong> to
-                  the usual prep time.
-                </p>
-              )}
-              {storefront.busy.reason && (
-                <p className="mt-0.5 italic">
-                  &ldquo;{storefront.busy.reason}&rdquo;
-                </p>
-              )}
+            </section>
+
+            {/* Refer a friend, above the menu. It only works if somebody
+                notices it and tells a friend; renders nothing when the shop
+                runs no programme. */}
+            <div className="mt-5 empty:hidden">
+              <ReferAFriend
+                locationId={storefront?.location?.id}
+                brandName={storefront?.brand?.name ?? storefront?.location?.name}
+                shareUrl={
+                  typeof window !== "undefined"
+                    ? `${window.location.origin}/order/${encodeURIComponent(String(slug))}${brandId ? `?brand=${brandId}` : ""}`
+                    : ""
+                }
+                currency={currency}
+                token={customerToken}
+              />
             </div>
-          )}
-        </div>
 
-        {/* Search */}
-        <div className="mt-6">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isShop ? "Search products…" : "Search for food…"}
-              className="w-full rounded-xl border border-zinc-200 bg-white px-9 py-3 text-sm focus:border-zinc-400 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Sticky category chips */}
-        <div className="sticky top-[60px] z-30 -mx-4 mt-4 bg-zinc-50/95 backdrop-blur supports-[backdrop-filter]:bg-zinc-50/80">
-          <div className="px-4 py-3">
-            <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <CategoryChip
-                active={activeCategory === "all"}
-                onClick={() => setActiveCategory("all")}
-              >
-                All
-              </CategoryChip>
-              {allCategories.map((c) => (
-                <CategoryChip
-                  key={c.id}
-                  active={activeCategory === c.id}
-                  onClick={() => setActiveCategory(c.id)}
-                >
-                  {c.name}
-                </CategoryChip>
-              ))}
+            {/* Search */}
+            <div className="mt-6">
+              <label className="relative block">
+                <span className="sr-only">Search the menu</span>
+                <Search
+                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-sf-muted"
+                  aria-hidden
+                />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={isShop ? "Search products…" : "Search for food…"}
+                  className="h-12 w-full rounded-full border border-sf-border bg-sf-surface pl-11 pr-4 text-[15px] text-sf-text placeholder:text-sf-muted focus:border-sf-border-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-sf-accent"
+                />
+              </label>
             </div>
-          </div>
-        </div>
 
-        {/* Product grid */}
-        <div className="space-y-8 pb-24 pt-4">
-          {/* Promotions and Top sellers lead the menu, above every category —
-              the two things a browsing customer responds to first. Both are
-              hidden while a specific category or a search is active, so they
-              never sit between the customer and what they asked for. */}
-          {activeCategory === "all" && !search.trim() && (
-            <>
-              {promoItems.length > 0 && (
-                <section id="category-promotions">
-                  <h2 className="mb-3 text-xl font-bold text-zinc-900 sm:text-lg">
+            {/* Sticky category tabs — scroll-spy, tap to jump. */}
+            <div className="h-3" aria-hidden />
+            <CategoryTabs tabs={menuTabs} stickyTop={64} />
+
+            {/* Menu */}
+            <div className="space-y-10 pb-16 pt-6">
+              {/* Promotions and Top sellers lead the menu — the two things a
+                  browsing customer responds to first. Hidden while searching,
+                  so they never sit between the customer and what they asked for. */}
+              {!searching && promoItems.length > 0 && (
+                <section id={sectionDomId("promotions")} aria-labelledby="h-promotions">
+                  <h2 id="h-promotions" className="mb-3 text-xl font-bold tracking-tight text-sf-text [overflow-wrap:anywhere]">
                     Promotions
                   </h2>
                   <ItemRail
@@ -2348,9 +2499,9 @@ function OrderPage() {
                   />
                 </section>
               )}
-              {topSellers.length > 0 && (
-                <section id="category-top-sellers">
-                  <h2 className="mb-3 text-xl font-bold text-zinc-900 sm:text-lg">
+              {!searching && topSellers.length > 0 && (
+                <section id={sectionDomId("top-sellers")} aria-labelledby="h-top-sellers">
+                  <h2 id="h-top-sellers" className="mb-3 text-xl font-bold tracking-tight text-sf-text [overflow-wrap:anywhere]">
                     Top sellers
                   </h2>
                   <ItemRail
@@ -2362,117 +2513,134 @@ function OrderPage() {
                   />
                 </section>
               )}
-            </>
-          )}
 
-          {visibleItems.length === 0 ? (
-            <p className="py-16 text-center text-sm text-zinc-400">
-              No items match your search.
-            </p>
-          ) : (
-            visibleItems.map(({ cat, items }) => (
-              <section key={cat.id} id={`category-${cat.id}`}>
-                {activeCategory === "all" && (
-                  <h2 className="mb-3 text-xl font-bold text-zinc-900 sm:text-lg">
-                    {cat.name}
-                  </h2>
-                )}
-                {items.length === 0 ? (
-                  <p className="rounded-md border border-dashed border-zinc-200 py-6 text-center text-xs text-zinc-400">
-                    Nothing in {cat.name} yet — check back soon.
-                  </p>
-                ) : (
-                  isShop ? (
-                    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                      {items.map((item) => {
-                        const { amount, from } = displayPrice(item as any);
-                        const promo = itemPromos[item.id] ?? null;
-                        const off = promo && promo.percentageOff > 0 ? promo.percentageOff : 0;
-                        const simple = isSimpleItem(item);
-                        return (
-                          <ShopProductTile
+              {visibleItems.length === 0 ? (
+                <p className="py-16 text-center text-sm text-sf-muted">
+                  {searching ? "No items match your search." : "Nothing on the menu yet — check back soon."}
+                </p>
+              ) : (
+                visibleItems.map(({ cat, items }) => (
+                  <section
+                    key={cat.id}
+                    id={sectionDomId(cat.id)}
+                    aria-labelledby={`h-${cat.id}`}
+                  >
+                    <h2
+                      id={`h-${cat.id}`}
+                      className="mb-3 text-xl font-bold tracking-tight text-sf-text [overflow-wrap:anywhere]"
+                    >
+                      {cat.name}
+                    </h2>
+                    {isShop ? (
+                      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-4">
+                        {items.map((item) => {
+                          const { amount, from } = displayPrice(item as any);
+                          const promo = itemPromos[item.id] ?? null;
+                          const off = promo && promo.percentageOff > 0 ? promo.percentageOff : 0;
+                          const simple = isSimpleItem(item);
+                          return (
+                            <ShopProductTile
+                              key={item.id}
+                              name={item.name}
+                              imageUrl={(cfg?.showItemImages ?? true) ? (item as any).imageUrl : null}
+                              price={money(off ? Math.round(amount * (1 - off / 100) * 100) / 100 : amount)}
+                              wasPrice={off ? money(amount) : null}
+                              fromPrice={!!from}
+                              soldOut={!!(item as any).outOfStock}
+                              qty={simple ? (plainLineFor(item.id)?.quantity ?? 0) : 0}
+                              simple={simple}
+                              onInc={() => handleProductClick(item)}
+                              onDec={() => {
+                                const line = plainLineFor(item.id);
+                                if (line) dispatch({ type: "DECREMENT", id: line.id });
+                              }}
+                              onOpen={() => openItemSheet(item)}
+                              unitSuffix={
+                                normaliseSellBy((item as any).sellBy)
+                                  ? sellByLabel(normaliseSellBy((item as any).sellBy) as SellBy)
+                                  : null
+                              }
+                              deal={dealLabelFor(item.id)}
+                            />
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {items.map((item) => (
+                          <MenuItemCard
                             key={item.id}
-                            name={item.name}
-                            imageUrl={(cfg?.showItemImages ?? true) ? (item as any).imageUrl : null}
-                            price={money(off ? Math.round(amount * (1 - off / 100) * 100) / 100 : amount)}
-                            wasPrice={off ? money(amount) : null}
-                            fromPrice={!!from}
-                            soldOut={!!(item as any).outOfStock}
-                            qty={simple ? (plainLineFor(item.id)?.quantity ?? 0) : 0}
-                            simple={simple}
-                            onInc={() => handleProductClick(item)}
-                            onDec={() => {
-                              const line = plainLineFor(item.id);
-                              if (line) dispatch({ type: "DECREMENT", id: line.id });
-                            }}
+                            item={item}
+                            money={money}
+                            promo={itemPromos[item.id] ?? null}
+                            bogoTrigger={bogoTriggerSet.has(item.id)}
+                            showImage={cfg?.showItemImages ?? true}
+                            categoryName={cat.name}
+                            disabled={!!storefront.closed}
                             onOpen={() => openItemSheet(item)}
-                            unitSuffix={
-                              normaliseSellBy((item as any).sellBy)
-                                ? sellByLabel(normaliseSellBy((item as any).sellBy) as SellBy)
+                            onQuickAdd={() => handleProductClick(item)}
+                            stepper={
+                              isSimpleItem(item)
+                                ? {
+                                    qty: plainLineFor(item.id)?.quantity ?? 0,
+                                    onInc: () => handleProductClick(item),
+                                    onDec: () => {
+                                      const line = plainLineFor(item.id);
+                                      if (line) dispatch({ type: "DECREMENT", id: line.id });
+                                    },
+                                  }
                                 : null
                             }
-                            deal={dealLabelFor(item.id)}
                           />
-                        );
-                      })}
-                    </div>
-                  ) : (
-                  <>
-                    {/* Phones get a list, not a grid. A card per row wastes
-                        most of a 375px screen on padding and image, so the
-                        customer scrolls past three items where a row layout
-                        shows six — the same shape the table-ordering page
-                        already uses. Desktop keeps the card grid. */}
-                    <div className="flex flex-col gap-2.5 sm:hidden">
-                      {items.map((item) => (
-                        <StoreItemRow
-                          money={money}
-                          key={item.id}
-                          item={item}
-                          promo={itemPromos[item.id] ?? null}
-                          showImage={cfg?.showItemImages ?? true}
-                          onClick={() => openItemSheet(item)}
-                          categoryName={cat.name}
-                          stepper={
-                            isSimpleItem(item)
-                              ? {
-                                  qty: plainLineFor(item.id)?.quantity ?? 0,
-                                  onInc: () => handleProductClick(item),
-                                  onDec: () => {
-                                    const line = plainLineFor(item.id);
-                                    if (line) dispatch({ type: "DECREMENT", id: line.id });
-                                  },
-                                }
-                              : null
-                          }
-                        />
-                      ))}
-                    </div>
-                    <div className="hidden gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
-                      {items.map((item) => (
-                        <ProductCard
-                          money={money}
-                          key={item.id}
-                          item={item}
-                          promo={itemPromos[item.id] ?? null}
-                          bogoTrigger={bogoTriggerSet.has(item.id)}
-                          showImage={cfg?.showItemImages ?? true}
-                          onClick={() => handleProductClick(item)}
-                        />
-                      ))}
-                    </div>
-                  </>
-                  )
-                )}
-              </section>
-            ))
-          )}
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                ))
+              )}
 
-          {/* Customer reviews — below the menu, where a browsing customer
-              lands after scrolling. Renders nothing until the shop has one. */}
-          <StorefrontReviews
-            brandId={brandId ?? undefined}
-            locationId={storefront?.location?.id}
+              {/* Customer reviews — below the menu, where a browsing customer
+                  lands after scrolling. Renders nothing until the shop has one. */}
+              <StorefrontReviews
+                brandId={brandId ?? undefined}
+                locationId={storefront?.location?.id}
+              />
+            </div>
+          </main>
+
+          {/* Desktop basket — beside the menu, always in view. */}
+          <BasketPanel
+            title={groupMode ? "Group basket" : "Your basket"}
+            lines={
+              groupMode
+                ? []
+                : cart.map((l) => ({
+                    id: l.id,
+                    name: l.displayName,
+                    detail: l.modifiers.map((m) => m.name).join(", ") || null,
+                    quantity: l.quantity,
+                    lineTotal: money(l.unitPrice * l.quantity),
+                  }))
+            }
+            count={basketCount}
+            subtotal={money(basketSubtotal)}
+            ctaLabel={groupMode ? "View group basket" : "Go to checkout"}
+            onCta={openBasket}
+            ctaDisabled={groupMode && !basket}
+            onInc={groupMode ? undefined : (id) => dispatch({ type: "INCREMENT", id })}
+            onDec={groupMode ? undefined : (id) => dispatch({ type: "DECREMENT", id })}
+            footnote={
+              groupMode
+                ? "Everyone's items go in together as one order."
+                : fulfillmentType === "DELIVERY"
+                  ? "Delivery fee and offers are added at checkout."
+                  : "Offers are applied at checkout."
+            }
+            emptyAction={
+              rewardOnly
+                ? { label: "Claim your reward", onClick: () => setCartOpen(true) }
+                : null
+            }
           />
         </div>
       </div>
@@ -2608,7 +2776,8 @@ function OrderPage() {
           subtotal={subtotal}
           deliveryFee={deliveryFee}
           serviceCharge={serviceCharge}
-          total={total}
+          total={orderTotal}
+          loyaltyMoney={loyaltyMoney}
           fulfillmentType={fulfillmentType}
           setFulfillmentType={setFulfillmentType}
           acceptDelivery={acceptDelivery}
@@ -2625,6 +2794,8 @@ function OrderPage() {
           emailMarketingConsent={emailMarketingConsent}
           setEmailMarketingConsent={setEmailMarketingConsent}
           accountEmail={authCustomer?.email ?? null}
+          saveDetails={saveDetails}
+          setSaveDetails={setSaveDetails}
           loyaltyReward={loyaltyReward}
           useLoyaltyReward={useLoyaltyReward}
           setUseLoyaltyReward={setUseLoyaltyReward}
@@ -2887,7 +3058,7 @@ function OrderPage() {
               name: l.displayName,
             })),
             tip: tipAmount,
-            total: round2(total + tipAmount),
+            total: round2(orderTotal + tipAmount),
           }}
           onCommit={() => {
             setHolding(false);
@@ -2963,6 +3134,15 @@ function OrderPage() {
           earned — and a footer is the only navigation a thumb can reach while
           scrolling a long menu. Desktop keeps its header and never renders
           this. */}
+      {/* Phone / tablet basket — slides up with the first item. */}
+      <BasketBar
+        count={basketCount}
+        total={money(basketSubtotal)}
+        label={groupMode ? "View group basket" : "View basket"}
+        onOpen={openBasket}
+        idleLabel={rewardOnly ? "Claim your reward" : null}
+      />
+
       <PoweredByOrderHub />
 
       <StorefrontTabBar slug={String(slug)} brandId={brandId} />
@@ -3003,7 +3183,7 @@ function OrderPage() {
       return;
     }
     // Phase AW-19 — apply per-item promo at add time so cart subtotal
-    // and order line price are already discounted. ProductCard shows
+    // and order line price are already discounted. MenuItemCard shows
     // the strikethrough; cart shows the net price.
     const promo = itemPromos[item.id];
     const unitPrice = promo
@@ -3040,62 +3220,29 @@ function FulfillmentPill({
   label: string;
   sub: string;
 }) {
+  // One half of a segmented control: the selected side lifts onto a surface,
+  // the other recedes. Reads as "pick one" without any extra copy.
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={active}
       className={cn(
-        // Smaller than it was: four choices now share this row, and on a
-        // 390px phone the old sizing wrapped them onto three lines and pushed
-        // the menu below the fold.
-        "flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-medium transition",
+        "flex min-h-[44px] items-center gap-1.5 rounded-full px-3.5 text-[13px] font-semibold",
+        "transition-[background-color,color,box-shadow] duration-150 motion-reduce:transition-none",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sf-accent",
         active
-          ? "border-zinc-900 bg-zinc-900 text-white"
-          : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300",
+          ? "bg-sf-surface text-sf-text shadow-[0_1px_4px_rgba(0,0,0,0.14)]"
+          : "text-sf-muted hover:text-sf-text",
       )}
     >
       {icon}
-      <span className="flex flex-col text-left">
-        <span className="font-semibold leading-tight">{label}</span>
-        <span className={cn("text-[10px] leading-tight", active ? "text-white/70" : "text-zinc-500")}>
-          {sub}
-        </span>
-      </span>
+      <span>{label}</span>
+      <span className="font-medium text-sf-muted">· {sub}</span>
     </button>
   );
 }
 
-function CategoryChip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "flex-shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium transition",
-        active
-          ? "border-orange-500 bg-orange-500 text-white"
-          : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-/**
- * A menu item as a list row — the phone layout.
- *
- * Text leads and the image sits right, which is what a customer scanning a
- * menu on a phone actually reads: name, price, then the picture to confirm.
- * The add button overlays the image corner so the whole row stays tappable
- * without a separate control stealing width.
- */
 /**
  * A horizontally-scrolling strip of items — Promotions and Top sellers.
  *
@@ -3132,10 +3279,10 @@ function ItemRail({
             type="button"
             onClick={() => onPick(item)}
             disabled={item.outOfStock}
-            className="w-[150px] flex-shrink-0 snap-start text-left disabled:opacity-50 sm:w-[170px]"
+            className="group w-[150px] flex-shrink-0 snap-start rounded-xl text-left transition-transform duration-150 active:scale-[0.97] disabled:opacity-50 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sf-accent focus-visible:ring-offset-2 focus-visible:ring-offset-sf-bg sm:w-[170px]"
           >
             {showImage !== false && (
-              <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-zinc-100">
+              <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-sf-raised">
                 {item.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -3147,26 +3294,29 @@ function ItemRail({
                   <FoodPlaceholder name={item.name} className="h-full w-full" />
                 )}
                 {!item.outOfStock && (
-                  <span className="absolute bottom-1.5 right-1.5 grid h-8 w-8 place-items-center rounded-full bg-white text-zinc-900 shadow-md">
+                  <span
+                    aria-hidden
+                    className="absolute bottom-1.5 right-1.5 grid h-9 w-9 place-items-center rounded-full bg-sf-cta text-white shadow-md"
+                  >
                     <Plus className="h-4 w-4" />
                   </span>
                 )}
               </div>
             )}
-            <p className="mt-2 line-clamp-2 text-[13px] font-semibold leading-snug text-zinc-900">
+            <p className="mt-2 line-clamp-2 text-[13px] font-semibold leading-snug text-sf-text">
               {item.name}
             </p>
             <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
               {fromSize && (
-                <span className="text-[10px] font-medium text-zinc-500">From</span>
+                <span className="text-[11px] font-medium text-sf-muted">From</span>
               )}
               <span
-                className={`text-[13px] font-bold ${hasPromo ? "text-red-600" : "text-zinc-900"}`}
+                className={`text-[13px] font-semibold tabular-nums ${hasPromo ? "text-sf-promo" : "text-sf-text"}`}
               >
                 {money(discounted)}
               </span>
               {hasPromo && (
-                <span className="text-[12px] text-zinc-400 line-through">
+                <span className="text-[12px] tabular-nums text-sf-muted line-through">
                   {money(base)}
                 </span>
               )}
@@ -3180,305 +3330,6 @@ function ItemRail({
         );
       })}
     </div>
-  );
-}
-
-function StoreItemRow({
-  item,
-  promo,
-  showImage,
-  onClick,
-  categoryName,
-  stepper,
-  money,
-}: {
-  item: MenuItem;
-  /** Bound to THIS store's currency by the page — never format money here. */
-  money: (n: number | string | null | undefined) => string;
-  promo: { percentageOff: number; campaignName: string } | null;
-  showImage?: boolean;
-  onClick: () => void;
-  /** Category name — picks the placeholder graphic when the dish name is silent. */
-  categoryName?: string;
-  /** Set for items with nothing to choose — shows −/qty/+ instead of a plain +. */
-  stepper?: {
-    qty: number;
-    onInc: () => void;
-    onDec: () => void;
-  } | null;
-}) {
-  const { amount: base, from: fromSize } = displayPrice(item as any);
-  const hasPromo = !!promo && promo.percentageOff > 0;
-  const discounted = hasPromo
-    ? Math.round(base * (1 - promo!.percentageOff / 100) * 100) / 100
-    : base;
-
-  // A dead image URL is as common as a missing one; fall back to the drawing.
-  const [imgFailed, setImgFailed] = useState(false);
-
-  const showStepper = !!stepper && stepper.qty > 0 && !item.outOfStock;
-  // A simple item (no modifiers) always carries a stepper, even at qty 0, so
-  // the whole card can be a div with its own onClick — tapping the photo,
-  // the name, or the + all add one, the same result. An item that opens the
-  // modifier sheet has no stepper, so the row stays a real <button> instead.
-  const hasControls = !!stepper && !item.outOfStock;
-
-  const RowTag: any = hasControls ? "div" : "button";
-  const rowProps = hasControls
-    ? { onClick, role: "button" as const, tabIndex: 0 }
-    : { type: "button" as const, onClick, disabled: item.outOfStock };
-
-  return (
-    <RowTag
-      {...rowProps}
-      // Each item is its own tile — rounded card, border, shadow, sitting on
-      // the page's zinc-50 background — rather than rows separated by a 1px
-      // divider line. Matches the table QR-code menu's card layout.
-      className="flex w-full items-center gap-3 rounded-2xl border border-zinc-100 bg-white p-3 text-left shadow-sm transition active:scale-[0.99] disabled:opacity-50"
-    >
-      {showImage !== false && (
-        <div className="h-[76px] w-[76px] flex-shrink-0 overflow-hidden rounded-xl bg-zinc-100">
-          {item.imageUrl && !imgFailed ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={item.imageUrl}
-              alt=""
-              loading="lazy"
-              onError={() => setImgFailed(true)}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            // Covers "no photo" AND "photo link is dead" — a broken-image
-            // glyph on every tile looks like the site is broken, and a stale
-            // URL is at least as common as a missing one.
-            <FoodPlaceholder
-              name={item.name}
-              hint={categoryName}
-              className="h-full w-full"
-            />
-          )}
-        </div>
-      )}
-
-      <div className="min-w-0 flex-1">
-        <h3 className="text-[15px] font-semibold leading-snug text-zinc-900">
-          {item.name}
-        </h3>
-        {item.outOfStock && (
-          <span className="mt-1 inline-block rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
-            Sold out
-          </span>
-        )}
-        {item.description && (
-          <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-zinc-500">
-            {item.description}
-          </p>
-        )}
-        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          {fromSize && (
-            <span className="text-[11px] font-medium text-zinc-500">From</span>
-          )}
-          <span
-            className={`text-[15px] font-bold ${hasPromo ? "text-red-600" : "text-zinc-900"}`}
-          >
-            {money(discounted)}
-          </span>
-          {hasPromo && (
-            <>
-              <span className="text-[13px] text-zinc-400 line-through">
-                {money(base)}
-              </span>
-              <span className="rounded bg-red-600 px-1.5 py-0.5 text-[11px] font-bold text-white">
-                -{promo!.percentageOff}%
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Control column — vertically centred against the whole card. The
-          stepper's own −/+ buttons stop the click from bubbling to the
-          card's onClick, or tapping + would fire the row handler as well
-          and add two instead of one. */}
-      {!item.outOfStock && (
-        <div
-          className="flex-shrink-0"
-          onClick={(e) => hasControls && e.stopPropagation()}
-        >
-          {showStepper ? (
-            <div className="flex items-center gap-1 rounded-full border border-zinc-200 bg-white px-1 py-1">
-              <button
-                type="button"
-                aria-label={`Remove one ${item.name}`}
-                onClick={stepper!.onDec}
-                className="grid h-7 w-7 place-items-center rounded-full text-zinc-700 active:bg-zinc-100"
-              >
-                <Minus className="h-3.5 w-3.5" />
-              </button>
-              <span className="min-w-[1rem] text-center text-[13px] font-semibold tabular-nums text-zinc-900">
-                {stepper!.qty}
-              </span>
-              <button
-                type="button"
-                aria-label={`Add another ${item.name}`}
-                onClick={stepper!.onInc}
-                className="grid h-7 w-7 place-items-center rounded-full bg-zinc-900 text-white active:opacity-80"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ) : stepper ? (
-            // A simple item at zero. This HAS to be a real button: the wrapper
-            // above stops the click reaching the tile precisely when a stepper
-            // exists, so a plain span here left the + dead — and only for
-            // items with no modifiers, which is the half that should be the
-            // easiest to add.
-            <button
-              type="button"
-              aria-label={`Add ${item.name}`}
-              onClick={stepper.onInc}
-              className="grid h-11 w-11 place-items-center rounded-full bg-zinc-900 text-white shadow-sm active:opacity-80"
-            >
-              <Plus className="h-5 w-5" />
-            </button>
-          ) : (
-            // Opens the modifier sheet. No handler needed — the whole tile is
-            // the button, and this wrapper does not stop the click.
-            <span className="grid h-11 w-11 place-items-center rounded-full bg-zinc-900 text-white shadow-sm">
-              <Plus className="h-5 w-5" />
-            </span>
-          )}
-        </div>
-      )}
-    </RowTag>
-  );
-}
-
-function ProductCard({
-  item,
-  promo,
-  bogoTrigger,
-  showImage = true,
-  onClick,
-  money,
-}: {
-  item: MenuItem;
-  /** Bound to THIS store's currency by the page — never format money here. */
-  money: (n: number | string | null | undefined) => string;
-
-  promo: { percentageOff: number; campaignName: string } | null;
-  bogoTrigger?: boolean;
-  showImage?: boolean;
-  onClick: () => void;
-}) {
-  // A sized product prices its sizes, not itself — show the cheapest rather
-  // than the placeholder 0 sitting on basePrice.
-  const { amount: basePrice, from: fromSize } = displayPrice(item as any);
-  const hasPromo = !!promo && promo.percentageOff > 0;
-  const discounted = hasPromo
-    ? Math.round(basePrice * (1 - promo!.percentageOff / 100) * 100) / 100
-    : basePrice;
-  return (
-    <button
-      onClick={onClick}
-      disabled={item.outOfStock}
-      className="group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white text-left transition hover:shadow-md disabled:opacity-50"
-    >
-      {showImage && (
-        <div className="relative aspect-square w-full bg-zinc-50">
-          {item.imageUrl ? (
-            <img
-              src={item.imageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="grid h-full w-full place-items-center text-zinc-300">
-              <ShoppingBag className="h-10 w-10" />
-            </div>
-          )}
-          {item.outOfStock && (
-            <span className="absolute top-2 left-2 rounded-md bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-              Out of stock
-            </span>
-          )}
-          {hasPromo && !item.outOfStock && (
-            <span className="absolute top-2 right-2 rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-              {promo!.percentageOff}% OFF
-            </span>
-          )}
-          {bogoTrigger && !hasPromo && !item.outOfStock && (
-            <span className="absolute top-2 right-2 rounded-md bg-pink-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-              BUY 1 GET 1 FREE
-            </span>
-          )}
-          {bogoTrigger && !item.outOfStock && (
-            <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-md bg-pink-50 px-2 py-0.5 text-[10px] font-semibold text-pink-700 ring-1 ring-pink-200">
-              🎁 Free item included
-            </span>
-          )}
-        </div>
-      )}
-      <div className="flex flex-1 flex-col gap-1 p-4">
-        {/* Image-off menus surface the same status badges inline, since the
-            image overlay that normally carries them isn't rendered. */}
-        {!showImage &&
-          (item.outOfStock || hasPromo || bogoTrigger) && (
-            <div className="flex flex-wrap gap-1">
-              {item.outOfStock && (
-                <span className="rounded-md bg-red-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-                  Out of stock
-                </span>
-              )}
-              {hasPromo && !item.outOfStock && (
-                <span className="rounded-md bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                  {promo!.percentageOff}% OFF
-                </span>
-              )}
-              {bogoTrigger && !item.outOfStock && (
-                <span className="rounded-md bg-pink-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                  BUY 1 GET 1 FREE
-                </span>
-              )}
-            </div>
-          )}
-        <h3 className="text-sm font-bold text-zinc-900 line-clamp-1">
-          {item.name}
-        </h3>
-        {item.description && (
-          <p className="text-xs text-zinc-500 line-clamp-2">
-            {item.description}
-          </p>
-        )}
-        <div className="mt-auto flex items-center justify-between pt-2">
-          {hasPromo ? (
-            <div className="flex flex-col leading-tight">
-              <span className="text-[11px] text-zinc-400 line-through">
-                {money(basePrice)}
-              </span>
-              <span className="text-base font-bold text-red-600">
-                {fromSize && (
-                  <span className="mr-1 text-[11px] font-medium">From</span>
-                )}
-                {money(discounted)}
-              </span>
-            </div>
-          ) : (
-            <span className="text-base font-bold text-orange-600">
-              {fromSize && (
-                <span className="mr-1 text-[11px] font-medium text-zinc-500">
-                  From
-                </span>
-              )}
-              {money(basePrice)}
-            </span>
-          )}
-          <span className="inline-flex items-center gap-1 rounded-md bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white group-hover:bg-orange-600">
-            <Plus className="h-3.5 w-3.5" /> Add
-          </span>
-        </div>
-      </div>
-    </button>
   );
 }
 
@@ -3512,7 +3363,12 @@ interface CartPanelProps {
   setEmailMarketingConsent: (v: boolean) => void;
   /** The signed-in account's address — where offers would go. */
   accountEmail: string | null;
-  loyaltyReward: { id: string; label: string } | null;
+  /** Signed in: remember phone + address on the account at Place order. */
+  saveDetails: boolean;
+  setSaveDetails: (v: boolean) => void;
+  loyaltyReward: ({ id: string; label: string } & LoyaltyRewardTerms) | null;
+  /** What a money-off reward takes off, or how much more it needs. */
+  loyaltyMoney: { amount: number; short: number };
   useLoyaltyReward: boolean;
   setUseLoyaltyReward: (v: boolean) => void;
   setSmsMarketingConsent: (v: boolean) => void;
@@ -3652,7 +3508,10 @@ function CartPanel(props: CartPanelProps) {
     emailMarketingConsent,
     setEmailMarketingConsent,
     accountEmail,
+    saveDetails,
+    setSaveDetails,
     loyaltyReward,
+    loyaltyMoney,
     useLoyaltyReward,
     setUseLoyaltyReward,
     setSmsMarketingConsent,
@@ -3708,33 +3567,49 @@ function CartPanel(props: CartPanelProps) {
   // without buying something else first — being made to add a drink to claim
   // a free chicken is the sort of small meanness people remember.
   const rewardApplied = !!loyaltyReward && useLoyaltyReward;
+  // Only a free item is an order on its own; % or £ off needs a basket.
+  const rewardIsItem = !!loyaltyReward && loyaltyRewardKind(loyaltyReward) === "FREE_ITEM";
+  const freeItemApplied = rewardApplied && rewardIsItem;
   // Retail R3 — a shop's delivery minimum (the server enforces it too).
   const belowShopMinimum =
     !!isShop && fulfillmentType === "DELIVERY" && !!minOrderForDelivery && subtotal + 1e-9 < minOrderForDelivery;
   // Any string used to place an order, so a shop could be left unable to
   // ring the customer. Shape only: it can't prove the number is theirs.
   const phoneValid = isPlausibleCustomerPhone(customerPhone, shopCountry);
+  // A dialog closes on Escape.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const canPlace =
     !belowShopMinimum &&
-    (cart.length > 0 || rewardApplied) &&
+    (cart.length > 0 || freeItemApplied) &&
     customerName.trim().length > 0 &&
     phoneValid &&
     (fulfillmentType === "PICKUP" || addressComplete) &&
     (!cartMinAge || ageConfirmed);
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
+    <div className="sf-backdrop-enter fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
       <aside
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cart-panel-title"
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full max-w-md flex-col overflow-hidden bg-white shadow-2xl"
+        className="flex h-full w-full max-w-md animate-slide-in-right flex-col overflow-hidden bg-white text-zinc-900 shadow-2xl [color-scheme:light] motion-reduce:animate-none"
       >
-        <header className="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
-          <h2 className="text-sm font-semibold text-zinc-900">Current order</h2>
+        <header className="flex items-center justify-between border-b border-zinc-200 py-1 pl-4 pr-1">
+          <h2 id="cart-panel-title" className="text-base font-semibold text-zinc-900">
+            Your order
+          </h2>
           <button
             onClick={onClose}
-            className="rounded-md p-1 text-zinc-400 hover:bg-zinc-100"
+            aria-label="Close basket"
+            className="grid h-11 w-11 place-items-center rounded-full text-zinc-500 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </header>
 
@@ -3785,7 +3660,7 @@ function CartPanel(props: CartPanelProps) {
               DISPLAY ONLY — it is not in `cart` and is never sent as an item.
               The server adds the real line from the reward itself, because a
               basket that says "this is free" is a basket anyone can write. */}
-          {rewardApplied && (
+          {freeItemApplied && (
             <div className="mb-2 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
               <span className="mt-0.5 text-amber-500">★</span>
               <div className="min-w-0 flex-1">
@@ -3801,7 +3676,7 @@ function CartPanel(props: CartPanelProps) {
               </span>
             </div>
           )}
-          {cart.length === 0 && !rewardApplied ? (
+          {cart.length === 0 && !freeItemApplied ? (
             <p className="py-10 text-center text-sm text-zinc-400">
               Cart is empty
             </p>
@@ -3844,21 +3719,27 @@ function CartPanel(props: CartPanelProps) {
                       </label>
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="-my-1.5 -mr-2 flex items-center">
                     <button
                       onClick={() => dispatch({ type: "DECREMENT", id: l.id })}
-                      className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                      aria-label={`Remove one ${l.displayName}`}
+                      className="group/step grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none"
                     >
-                      <Minus className="h-3 w-3" />
+                      <span className="grid h-8 w-8 place-items-center rounded-full border border-zinc-200 text-zinc-700 group-hover/step:bg-zinc-50 group-focus-visible/step:ring-2 group-focus-visible/step:ring-zinc-400">
+                        <Minus className="h-3.5 w-3.5" />
+                      </span>
                     </button>
-                    <span className="w-5 text-center text-xs font-semibold">
+                    <span className="w-5 text-center text-sm font-semibold tabular-nums">
                       {l.quantity}
                     </span>
                     <button
                       onClick={() => dispatch({ type: "INCREMENT", id: l.id })}
-                      className="grid h-6 w-6 place-items-center rounded-md border border-zinc-200 text-zinc-600 hover:bg-zinc-50"
+                      aria-label={`Add another ${l.displayName}`}
+                      className="group/step grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none"
                     >
-                      <Plus className="h-3 w-3" />
+                      <span className="grid h-8 w-8 place-items-center rounded-full border border-zinc-200 text-zinc-700 group-hover/step:bg-zinc-50 group-focus-visible/step:ring-2 group-focus-visible/step:ring-zinc-400">
+                        <Plus className="h-3.5 w-3.5" />
+                      </span>
                     </button>
                   </div>
                 </li>
@@ -3916,6 +3797,22 @@ function CartPanel(props: CartPanelProps) {
                 </span>
               </label>
             )}
+            {/* Signed in: offer to remember the phone + delivery address on
+                their account, so the next order anywhere starts filled in. */}
+            {accountEmail && (
+              <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-zinc-500">
+                <input
+                  type="checkbox"
+                  checked={saveDetails}
+                  onChange={(e) => setSaveDetails(e.target.checked)}
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
+                />
+                <span>
+                  Save my phone number{fulfillmentType === "DELIVERY" ? " and address" : ""} for
+                  next time. Change it any time in My account.
+                </span>
+              </label>
+            )}
           </Section>
 
           {cartMinAge && (
@@ -3965,9 +3862,13 @@ function CartPanel(props: CartPanelProps) {
                     {loyaltyReward.label}
                   </span>
                   <span className="block text-xs text-zinc-500">
-                    {useLoyaltyReward
-                      ? "Added to this order — free"
-                      : "Your card is full. Tap to use it."}
+                    {!rewardIsItem && useLoyaltyReward && loyaltyMoney.short > 0
+                      ? `Add ${money(loyaltyMoney.short)} more to use it — or save it for next time`
+                      : !rewardIsItem && useLoyaltyReward
+                        ? `${money(loyaltyMoney.amount)} off this order`
+                        : useLoyaltyReward
+                          ? "Added to this order — free"
+                          : "Your card is full. Tap to use it."}
                   </span>
                 </span>
                 <span
@@ -4297,6 +4198,9 @@ function CartPanel(props: CartPanelProps) {
               label={`Discount (${campaignName ?? "Promo"})`}
               value={`-${money(campaignDiscount)}`}
             />
+          )}
+          {loyaltyMoney.amount > 0 && (
+            <Row label={`Reward (${loyaltyReward?.label ?? "loyalty"})`} value={`-${money(loyaltyMoney.amount)}`} />
           )}
           {promoDiscount > campaignDiscount && promoDiscount > 0 && (
             <Row
@@ -4686,11 +4590,14 @@ function OrderConfirmed({
   onReset,
   storeSlug,
   brandId,
+  customerApp,
 }: {
   orderId: string;
   storeName: string;
   onReset: () => void;
   storeSlug: string;
+  /** The brand's own app, when it's being promoted. */
+  customerApp?: CustomerAppLinks | null;
   // Phase AW — passed through so the "Back to menu" anchor in
   // AcceptedScreen rebuilds the URL with ?brand=<id>; without it the
   // anchor falls back to the location's default storefront.
@@ -4742,6 +4649,7 @@ function OrderConfirmed({
       onReset={onReset}
       storeSlug={storeSlug}
       brandId={brandId}
+      customerApp={customerApp}
     />
   );
 }
@@ -4845,8 +4753,10 @@ function AcceptedScreen({
   onReset,
   storeSlug,
   brandId,
+  customerApp,
 }: {
   data: StatusPayload;
+  customerApp?: CustomerAppLinks | null;
   storeName: string;
   onReset: () => void;
   /** Phase AP-5 — used by the "Back to menu" link to navigate without
@@ -4934,40 +4844,13 @@ function AcceptedScreen({
         {/* Live delivery tracking — appears the moment the driver starts the
             job (status → out for delivery): map, call + chat, front-and-centre. */}
         {data.driver && (
-          <div className="mb-8 space-y-4 text-left">
-            <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <div>
-                <p className="text-xs font-medium text-emerald-700">Your driver</p>
-                <p className="text-sm font-bold text-zinc-900">{data.driver.name ?? "On the way"}</p>
-              </div>
-              {data.driver.phone && (
-                <a
-                  href={`tel:${data.driver.phone}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
-                >
-                  <Phone className="h-4 w-4" /> Call
-                </a>
-              )}
-            </div>
-
-            {(data.driver.lat != null && data.driver.lng != null) || data.destination ? (
-              <DeliveryTrackingMap
-                driver={
-                  data.driver.lat != null && data.driver.lng != null
-                    ? { lat: data.driver.lat, lng: data.driver.lng }
-                    : null
-                }
-                destination={data.destination ?? null}
-              />
-            ) : (
-              <p className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center text-xs text-zinc-500">
-                Waiting for your driver&apos;s location…
-              </p>
-            )}
-
-            <CustomerDriverChat orderId={data.id} driverName={data.driver.name} />
+          <div className="mb-8 text-left">
+            <LiveDeliveryPanel order={data as any} orderId={data.id} />
           </div>
         )}
+
+        {/* Next time, the restaurant's own app (when it's being promoted). */}
+        <AppInstallCard app={customerApp} name={storeName} className="mb-8" />
 
         {/* Vertical timeline — each step lights up as the POS marks it. */}
         <ol className="text-left">

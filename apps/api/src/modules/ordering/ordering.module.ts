@@ -12,6 +12,7 @@ import { PauseModule } from "../pauses/pause.module";
 import { MarketingModule } from "../marketing/marketing.module";
 import { DeliveryZonesModule } from "../delivery-zones/delivery-zones.module";
 import { EmailMarketingModule } from "../email-marketing/email-marketing.module";
+import { GeocodingService } from "../dispatch/geocoding.service";
 
 @Module({
   // Phase AP-8 — PaymentsModule provides Stripe Checkout Session creation
@@ -42,7 +43,8 @@ import { EmailMarketingModule } from "../email-marketing/email-marketing.module"
     EmailMarketingModule,
   ],
   controllers: [OrderingController],
-  providers: [OrderingService,
+  // GeocodingService: places a delivery address on the app's live map.
+  providers: [OrderingService, GeocodingService,
     OrderConfirmationEmailService,
   ],
   // Group orders place through OrderingService.checkout (server pricing).

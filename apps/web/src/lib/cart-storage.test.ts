@@ -4,7 +4,9 @@ import {
   cartIsStale,
   clearCart,
   loadCart,
+  loadFulfillment,
   saveCart,
+  saveFulfillment,
 } from "./cart-storage";
 
 // A basket that outlives the customer's appetite is the bug this file fixes:
@@ -135,5 +137,47 @@ describe("cartIsStale — for the tab somebody left open", () => {
     // storage "is the entry still there?" would wipe a private-mode
     // customer's basket every time they switched tabs.
     expect(cartIsStale(null, NOON + 10 * 24 * 3600_000)).toBe(false);
+  });
+});
+
+// Delivery picked, then a reload (the app's sign-in does one): the basket
+// came back but the choice reset to collection, and the customer paid for a
+// collection order.
+describe("loadFulfillment / saveFulfillment", () => {
+  it("brings the choice back after a reload", () => {
+    saveFulfillment(KEY, "DELIVERY", NOON);
+    expect(loadFulfillment(KEY, NOON + 60_000)).toBe("DELIVERY");
+  });
+
+  it("keeps its own key, so the basket entry is untouched", () => {
+    saveCart(KEY, LINES, NOON);
+    saveFulfillment(KEY, "DELIVERY", NOON);
+    expect(loadCart(KEY, NOON).lines).toEqual(LINES);
+  });
+
+  it("expires with the basket", () => {
+    saveFulfillment(KEY, "DELIVERY", NOON);
+    expect(loadFulfillment(KEY, NOON + CART_TTL_MS + 1)).toBeNull();
+    expect(raw.has(`${KEY}.fulfillment`)).toBe(false);
+  });
+
+  it("ignores a corrupt or unknown value", () => {
+    raw.set(`${KEY}.fulfillment`, "{nope");
+    expect(loadFulfillment(KEY, NOON)).toBeNull();
+    raw.set(`${KEY}.fulfillment`, JSON.stringify({ v: 1, savedAt: NOON, type: "DINE_IN" }));
+    expect(loadFulfillment(KEY, NOON)).toBeNull();
+  });
+
+  it("survives blocked storage", () => {
+    stubStorage({
+      getItem: () => {
+        throw new Error("blocked");
+      },
+      setItem: () => {
+        throw new Error("blocked");
+      },
+    });
+    expect(() => saveFulfillment(KEY, "DELIVERY", NOON)).not.toThrow();
+    expect(loadFulfillment(KEY, NOON)).toBeNull();
   });
 });

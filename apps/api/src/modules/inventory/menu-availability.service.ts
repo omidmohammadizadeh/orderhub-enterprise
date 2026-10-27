@@ -42,6 +42,7 @@ export type SupportedChannel =
   | "GLOVO"
   | "KEETA"
   | "TALABAT"
+  | "EAT_FOR_LESS"
   | "ALL";
 
 // Operator presets from the spec. Translated to an `expiresAt` Date

@@ -122,6 +122,15 @@ export const appConfig = registerAs("app", () => ({
       orderApiKey: process.env.JET_ORDER_API_KEY ?? "",
       menuKeysByCountry: process.env.JET_MENU_KEYS ?? "",
       orderKeysByCountry: process.env.JET_ORDER_KEYS ?? "",
+      // A key JET issued to a BRAND that trades from many shops (their
+      // >6-locations rule). Every shop is its own Brand row here, so without
+      // this the one key has to be pasted onto each of that brand's
+      // connections by hand — and pasted again on every rotation. Same
+      // "name:key" list shape as the country tier, keyed by a group name the
+      // connection opts into:
+      //   JET_BRAND_MENU_KEYS="monster-burgerz:abc,greek-gyros:def"
+      brandMenuKeys: process.env.JET_BRAND_MENU_KEYS ?? "",
+      brandOrderKeys: process.env.JET_BRAND_ORDER_KEYS ?? "",
       defaultCountry: process.env.JET_DEFAULT_COUNTRY ?? "GB",
       // Where an order that failed to inject is reported. Unset = no ops
       // email; the shop is still notified and the Logs page still records it.

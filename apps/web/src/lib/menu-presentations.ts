@@ -16,7 +16,10 @@ export interface PresentationBrand {
   lines: string[];
   tagline: string;
   icon: PresentationIcon;
+  /** The menu the deck is drawn from when the location has no copy of its own. */
   menuId: string;
+  /** Menu / brand names that ARE this brand — the same test as the supplier lists. */
+  match: RegExp;
 }
 
 export const PRESENTATIONS: PresentationBrand[] = [
@@ -27,6 +30,7 @@ export const PRESENTATIONS: PresentationBrand[] = [
     tagline: "Smashed burgers • Chicken • Fries",
     icon: "burger",
     menuId: "cmrz24wi801zi3inm9xvx294d", // MONSTER BURGERZ-dunraven (Pizza Plannet)
+    match: /monster\s*burger/i,
   },
   {
     slug: "greek-gyros",
@@ -35,6 +39,7 @@ export const PRESENTATIONS: PresentationBrand[] = [
     tagline: "Wraps • Platters • Bowls",
     icon: "gyro",
     menuId: "cmrz24lid01r83inmtudznn6c", // GREEK GYROS-dunraven (Pizza Plannet)
+    match: /greek\s*gyros/i,
   },
   {
     slug: "korean-fried-chicken",
@@ -43,6 +48,7 @@ export const PRESENTATIONS: PresentationBrand[] = [
     tagline: "Buckets • Burgers • Wings",
     icon: "drumstick",
     menuId: "cmv30a8ga00puk3s7c1hhayu2", // Korean Fried Chicken — Crunch Menu
+    match: /korean\s*fried|\bkfc\b/i,
   },
   {
     slug: "chicago-pizzeria",
@@ -51,6 +57,7 @@ export const PRESENTATIONS: PresentationBrand[] = [
     tagline: "Pizza • Grill • Burgers",
     icon: "pizza",
     menuId: "cmuv2obkq01sy3fr337fjw65e", // CHICAGO PIZZERIA-AYLESBURY
+    match: /chicago/i,
   },
   {
     slug: "fiesta-mexica",
@@ -59,8 +66,25 @@ export const PRESENTATIONS: PresentationBrand[] = [
     tagline: "Tacos • Burritos • Bowls",
     icon: "chilli",
     menuId: "cmuvn70g7069inoenki3i4h5o", // FIESTA MEXA (Pizza Uno)
+    match: /fiesta\s*mex/i,
   },
 ];
+
+/**
+ * The decks a location shows, each drawn from that location's OWN copy of the
+ * brand's menu (its prices, photos and specials) — a shop isn't shown decks
+ * for brands it doesn't cook. `menus` = the location's menus.
+ */
+export function presentationsForMenus(
+  menus: Array<{ id: string; name?: string | null; brand?: { name?: string | null } | null }>,
+): Array<PresentationBrand & { menuId: string }> {
+  const out: Array<PresentationBrand & { menuId: string }> = [];
+  for (const p of PRESENTATIONS) {
+    const own = menus.find((m) => p.match.test(`${m.name ?? ""} ${m.brand?.name ?? ""}`));
+    if (own) out.push({ ...p, menuId: own.id });
+  }
+  return out;
+}
 
 export const presentationBySlug = (slug: string | null) => PRESENTATIONS.find((p) => p.slug === slug) ?? null;
 

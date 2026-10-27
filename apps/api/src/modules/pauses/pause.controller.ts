@@ -41,6 +41,7 @@ const CHANNELS: SupportedChannel[] = [
   "GLOVO",
   "KEETA",
   "TALABAT",
+  "EAT_FOR_LESS",
 ];
 const DURATIONS: DurationPreset[] = [
   "1h",

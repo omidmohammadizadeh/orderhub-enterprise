@@ -1,0 +1,25 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "bjsplaice",
+  "name": "BJ's Plaice",
+  "brandId": "cmvqph1q501i8d7a6vpp798nn",
+  "locationId": "cmvqph0vk01hyd7a6kthciscb",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmvqph0vk01hyd7a6kthciscb?brand=cmvqph1q501i8d7a6vpp798nn",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#0B4F8A",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/bjsplaice/icon.png",
+  "adaptiveIcon": "brands/bjsplaice/adaptive-icon.png",
+  "splash": "brands/bjsplaice/splash.png",
+  "notificationIcon": "brands/bjsplaice/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.bjsplaice",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.bjsplaice"
+  },
+  "easProjectId": "0ea6af3b-e5e6-4602-aa80-203e45d036de"
+}

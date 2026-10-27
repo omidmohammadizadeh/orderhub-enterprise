@@ -1,12 +1,12 @@
 "use client";
 
-// Welcome + win-back emails that send themselves. One card each per shop:
+// Welcome, win-back and birthday emails that send themselves. One card each per shop:
 // what it does, whether it's on, and what it has earned.
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowRight, Gift, HeartHandshake, Loader2, Store } from "lucide-react";
+import { AlertTriangle, ArrowRight, Cake, Gift, HeartHandshake, Loader2, Store } from "lucide-react";
 import type { EmailAutomationType } from "@orderhub/shared";
 import {
   apiErrorMessage,
@@ -16,7 +16,7 @@ import {
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { cn } from "@/lib/utils";
 
-const ICON: Record<EmailAutomationType, any> = { WELCOME: Gift, WIN_BACK: HeartHandshake };
+const ICON: Record<EmailAutomationType, any> = { WELCOME: Gift, WIN_BACK: HeartHandshake, BIRTHDAY: Cake };
 
 export function AutomationsTab() {
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
@@ -148,7 +148,9 @@ function AutomationCard({ card, locationId }: { card: EmailAutomationCard; locat
           <div className="mt-3 text-xs text-zinc-500">
             {card.type === "WIN_BACK"
               ? `Sends after ${a.settings.days ?? 45} days without an order.`
-              : `Sends ${a.settings.delayHours ? `${a.settings.delayHours}h` : "soon"} after someone subscribes.`}
+              : card.type === "BIRTHDAY"
+                ? `Sends at 10am on their birthday; the offer lasts ${a.settings.validDays ?? 7} days.`
+                : `Sends ${a.settings.delayHours ? `${a.settings.delayHours}h` : "soon"} after someone subscribes.`}
           </div>
           <Link
             href={`/dashboard/marketing/email/automations/${a.id}`}

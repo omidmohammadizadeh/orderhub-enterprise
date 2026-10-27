@@ -1,0 +1,28 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "pizzapizza",
+  "name": "Pizza Pizza",
+  "brandId": "cmvlcl2xp04q944ycld6x5136",
+  "locationId": "cmvlcl2ga04q744yc3trnem4p",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmvlcl2ga04q744yc3trnem4p?brand=cmvlcl2xp04q944ycld6x5136",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#B93727",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/pizzapizza/icon.png",
+  "adaptiveIcon": "brands/pizzapizza/adaptive-icon.png",
+  "splash": "brands/pizzapizza/splash.png",
+  "notificationIcon": "brands/pizzapizza/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.pizzapizza",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.pizzapizza"
+  },
+  "google": {
+    "iosClientId": "331572609147-4nua9048sk20if8e0a60urvq90ihqh81.apps.googleusercontent.com"
+  },
+  "easProjectId": "26613faf-10f3-4f86-9c28-01880e7123c9"
+}

@@ -14,7 +14,12 @@ import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { withDeliverooModifierType } from "./deliveroo-modifier-type";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { carryGuideOnRename, copyGuideToName, copyGuidesToBrand } from "../build-guides/build-guide-carry";
+import {
+  carryGuideOnRename,
+  copyGuideToName,
+  copyGuidesToBrand,
+  fillGuidesFromTwinBrand,
+} from "../build-guides/build-guide-carry";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PluService, randomPlu } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
@@ -565,8 +570,13 @@ export class MenusService {
       data: { brandId, brandIds: [brandId] },
     });
     const carry = { items: before, toBrandId: brandId };
-    const chartsCopied = await copyGuidesToBrand(this.prisma as any, carry, "assemblyChart");
-    const guidesCopied = await copyGuidesToBrand(this.prisma as any, carry, "buildGuide");
+    let chartsCopied = await copyGuidesToBrand(this.prisma as any, carry, "assemblyChart");
+    let guidesCopied = await copyGuidesToBrand(this.prisma as any, carry, "buildGuide");
+    // The old brand may never have had them (FIESTA MEXA sells as PAPI TACO,
+    // its charts live under another brand) — take them from the twin brand.
+    const fill = { tenantId, items: before.map((i) => ({ brandId, name: i.name })) };
+    chartsCopied += await fillGuidesFromTwinBrand(this.prisma as any, fill, "assemblyChart");
+    guidesCopied += await fillGuidesFromTwinBrand(this.prisma as any, fill, "buildGuide");
     return { updated: itemIds.length, menuRebranded: true, chartsCopied, guidesCopied };
   }
 
@@ -603,7 +613,7 @@ export class MenusService {
     const usedPlus = new Set<string>();
     await this.seedUsedPlus(tenantId, usedPlus);
 
-    return this.prisma.$transaction(
+    const cloned = await this.prisma.$transaction(
       async (tx) => {
       const cloned = await tx.menu.create({
         // Inherit the source's home location so the clone shows up on the
@@ -619,6 +629,36 @@ export class MenusService {
           ...((source as any).menuType && {
             menuType: (source as any).menuType,
           }),
+          // Everything that makes the copy LOOK like the original. These were
+          // dropped, so a cloned menu lost its storefront banner and had to
+          // have it set again by hand.
+          ...((source as any).description != null && {
+            description: (source as any).description,
+          }),
+          ...((source as any).bannerImage != null && {
+            bannerImage: (source as any).bannerImage,
+          }),
+          ...((source as any).heroImage != null && {
+            heroImage: (source as any).heroImage,
+          }),
+          ...((source as any).logoImage != null && {
+            logoImage: (source as any).logoImage,
+          }),
+          // The deep-copied products bring their platformPricingOverrides with
+          // them, and those are keyed by variant ref. Without the menu's own
+          // variant list the clone held channel prices nothing could name: the
+          // pricing modal showed none of them, and buildPriceMap resolved
+          // `variants.find(v => v.ref === ref)?.brandId` to null — silently
+          // dropping a variant's brand RESTRICTION, so a publish could include
+          // items it was meant to leave out.
+          ...(Array.isArray((source as any).pricingVariants) &&
+            (source as any).pricingVariants.length > 0 && {
+              pricingVariants: (source as any).pricingVariants,
+            }),
+          // NOT copied, deliberately: status stays DRAFT, and publishedTo /
+          // lastPublishedAt / autoSchedule* are all about having been
+          // published. A copy that inherited the schedule would publish itself
+          // on the original's timetable.
         },
       });
 
@@ -697,6 +737,16 @@ export class MenusService {
       // budget is not enough for large menus.
       { timeout: 120_000, maxWait: 20_000 },
     );
+
+    // A copied menu must arrive with its kitchen charts and guides. The copy
+    // keeps brand + name, so it shares whatever its brand already has; fill in
+    // any product whose brand never had one from the brand that does.
+    // Best-effort, after the transaction — a chart must never fail a clone.
+    const items = source.categories.flatMap((c: any) => c.items.map((l: any) => l.item).filter(Boolean));
+    const fill = { tenantId, items: items.map((i: any) => ({ brandId: i.brandId, name: i.name })) };
+    await fillGuidesFromTwinBrand(this.prisma as any, fill, "assemblyChart");
+    await fillGuidesFromTwinBrand(this.prisma as any, fill, "buildGuide");
+    return cloned;
   }
 
   /**
@@ -3592,6 +3642,17 @@ export class MenusService {
             if (ref in overrides) { delete overrides[ref]; touched = true; }
             continue;
           }
+          // An unpriced row uplifts to 0, and that 0 then OUTRANKS the real
+          // base price for ever after — an override always wins, so filling
+          // the price in later changes nothing on that channel. Imported
+          // menus are unpriced until someone types the prices, so this is the
+          // normal order of events, not a corner case: it put four pizzas on
+          // Just Eat at £0.00 (order 977004437). Clear the key instead, which
+          // means "same as base" and keeps following the base price.
+          if (base <= 0) {
+            if (ref in overrides) { delete overrides[ref]; touched = true; }
+            continue;
+          }
           overrides[ref] = uplift(base, ch.percent);
           touched = true;
         }
@@ -3610,6 +3671,11 @@ export class MenusService {
           for (const b of itemBrands) {
             const ref = brandChannelRef(b, ch.channelKey);
             if (ch.percent === 0) {
+              if (ref in po) { delete po[ref]; skusTouched = true; }
+              continue;
+            }
+            // Same trap per size — see the item branch above.
+            if ((Number(sku.price) || 0) <= 0) {
               if (ref in po) { delete po[ref]; skusTouched = true; }
               continue;
             }

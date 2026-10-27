@@ -12,6 +12,7 @@ import {
 } from "@orderhub/shared";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PaymentsService } from "./payments.service";
+import { publicApiBase } from "../../common/public-api-url";
 
 // Tap Payments — the Gulf money path.
 //
@@ -153,6 +154,16 @@ export function commissionDestinations(input: {
   const fee = roundToCurrency(Math.max(0, input.platformFee), input.currency);
   if (!(fee > 0) || fee >= total) return [];
   return [{ id: input.walletId, amount: fee, currency: input.currency }];
+}
+
+/** Our public API root incl. the "/api" prefix — see common/public-api-url. */
+export function publicApiRoot(env: NodeJS.ProcessEnv = process.env): string {
+  return publicApiBase(env);
+}
+
+/** Where Tap posts charge/refund results. */
+export function tapChargeWebhookUrl(env: NodeJS.ProcessEnv = process.env): string {
+  return `${publicApiRoot(env)}/v1/payments/tap/webhook`;
 }
 
 export type TapPlatformKind = "COMMERCE" | "BILLING" | "APP";
@@ -689,8 +700,7 @@ export class TapService {
   onboardingWebhookUrl(brandId: string): string {
     const secret = this.onboardingSecret;
     if (!secret) throw new BadRequestException("Tap isn't configured.");
-    const api = (process.env.API_URL ?? "").replace(/\/+$/, "");
-    return `${api}/v1/payments/tap/onboarding/${encodeURIComponent(brandId)}/${onboardingSignature(brandId, secret)}`;
+    return `${publicApiRoot()}/v1/payments/tap/onboarding/${encodeURIComponent(brandId)}/${onboardingSignature(brandId, secret)}`;
   }
 
   verifyOnboardingSignature(brandId: string, sig: string): boolean {

@@ -3,6 +3,7 @@ import { PrismaService } from "../../../infrastructure/database/prisma.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import { JetClientService } from "./jet-client.service";
 import { JetMenuPublishService } from "./jet-menu-publish.service";
+import { splitOvernight } from "./jet-menu.transformer";
 
 // Phase JE-5 — restaurant availability on Just Eat.
 //
@@ -50,17 +51,37 @@ export interface JetOpeningTimes {
  * is what location and brand rows actually hold: day-keyed slot arrays,
  * day-keyed {enabled, slots}, and the legacy [{day, open, close}] array.
  *
- * A closed day is OMITTED rather than sent as an empty array. Unlike the menu
- * availability schema, service times have no all-days-required rule, and an
- * empty array is ambiguous between "closed" and "unset".
+ * EVERY day is emitted; a closed day is an EMPTY ARRAY.
+ *
+ * This used to omit closed days, on the theory that an empty array was
+ * ambiguous between "closed" and "unset". It is omission that is ambiguous:
+ * Korean Fried Chicken Corby is shut on Mondays, we sent six days on 23 Oct
+ * 2026, and Just Eat went on taking Monday orders. A day that is not in the
+ * payload is a day JET is told nothing about.
+ *
+ * The menu cannot close it either — JET rejects an empty availability array,
+ * so buildMenus backfills a dayless day as ALL DAY — and real trading hours
+ * are the intersection of the two. Menu says all day, service times say
+ * nothing, so the day stays open. Stating the empty day is the only place
+ * left to say it.
  */
 export function toJetOpeningTimes(hours: unknown): JetOpeningTimes {
   const out: JetOpeningTimes = {};
+  // Start every day shut, so a day the editor never wrote is still stated.
+  for (const day of DAYS) out[day] = [];
   const push = (day: string, from: unknown, to: unknown) => {
     const openingTime = String(from ?? "").trim();
     const closingTime = String(to ?? "").trim();
     if (!openingTime || !closingTime) return;
-    (out[day] ??= []).push({ openingTime, closingTime });
+    // Split past-midnight windows the SAME way the menu availability does.
+    // The real trading window is the intersection of the two, so if these
+    // disagree the narrower one silently wins and the hours look wrong again.
+    for (const part of splitOvernight(day, openingTime, closingTime)) {
+      (out[part.day] ??= []).push({
+        openingTime: part.from,
+        closingTime: part.to,
+      });
+    }
   };
 
   if (Array.isArray(hours)) {
@@ -207,17 +228,21 @@ export class JetStoreStatusService {
         : Promise.resolve(null),
     ]);
 
+    // Every day is present now, so "did we find hours" is about OPEN days.
+    const openDaysOf = (t: JetOpeningTimes) =>
+      DAYS.filter((d) => (t[d]?.length ?? 0) > 0);
+
     let openingTimes: JetOpeningTimes = {};
     for (const raw of [location?.openingHours, brand?.openingHours]) {
       if (!raw) continue;
       const candidate = toJetOpeningTimes(raw);
-      if (Object.keys(candidate).length > 0) {
+      if (openDaysOf(candidate).length > 0) {
         openingTimes = candidate;
         break;
       }
     }
 
-    if (Object.keys(openingTimes).length === 0) {
+    if (openDaysOf(openingTimes).length === 0) {
       // Sending an empty set would read as "closed every day" and take the
       // shop off Just Eat. Refusing is the safe failure.
       throw new BadRequestException(
@@ -226,28 +251,50 @@ export class JetStoreStatusService {
       );
     }
 
-    const body = {
+    const bodyFor = (times: JetOpeningTimes) => ({
       timezone: target.timezone,
       serviceTimes: SERVICE_TYPES.map((serviceType) => ({
         serviceType,
-        openingTimes,
+        openingTimes: times,
       })),
-    };
+    });
 
-    await this.client.request(
-      "PUT",
-      `/restaurants/${encodeURIComponent(target.restaurantReference)}/servicetimes`,
-      {
-        keyType: "menu",
-        brandId: target.brandId,
-        locationId: target.locationId,
-        country: target.country,
-        body,
-        retries: 2,
-      },
-    );
+    const send = (times: JetOpeningTimes) =>
+      this.client.request(
+        "PUT",
+        `/restaurants/${encodeURIComponent(target.restaurantReference)}/servicetimes`,
+        {
+          keyType: "menu",
+          brandId: target.brandId,
+          locationId: target.locationId,
+          country: target.country,
+          body: bodyFor(times),
+          retries: 2,
+        },
+      );
 
-    const days = Object.keys(openingTimes);
+    // Closed days go as empty arrays. We have no copy of JET's schema to check
+    // that against, and this call is what keeps a shop's hours current across
+    // every store — so if they reject the empty day, fall back to the old
+    // omit-it shape rather than leave the whole estate unable to publish
+    // hours at all. The outcome is recorded either way, so we find out which
+    // shape they actually accept from the logs instead of guessing again.
+    let closedDaysSent = true;
+    try {
+      await send(openingTimes);
+    } catch (err) {
+      const openOnly: JetOpeningTimes = {};
+      for (const d of openDaysOf(openingTimes)) openOnly[d] = openingTimes[d]!;
+      this.logger.warn(
+        `JET servicetimes ${target.restaurantReference}: rejected with closed days stated ` +
+          `(${String((err as Error)?.message ?? err).slice(0, 200)}); retrying without them — ` +
+          `closed days will NOT close on Just Eat`,
+      );
+      await send(openOnly);
+      closedDaysSent = false;
+    }
+
+    const days = openDaysOf(openingTimes);
     this.activity?.record({
       tenantId,
       brandId: target.brandId,
@@ -256,8 +303,16 @@ export class JetStoreStatusService {
       channel: "JUST_EAT",
       action: "store.publish_hours",
       status: "SUCCESS",
-      message: `Service times pushed to Just Eat restaurant ${target.restaurantReference} (${days.length} open days)`,
-      details: { days, timezone: target.timezone },
+      message:
+        `Service times pushed to Just Eat restaurant ${target.restaurantReference} ` +
+        `(${days.length} open days)` +
+        (closedDaysSent ? "" : " — closed days could NOT be sent"),
+      details: {
+        days,
+        timezone: target.timezone,
+        closedDays: DAYS.filter((d) => !days.includes(d)),
+        closedDaysSent,
+      },
     });
 
     this.logger.log(
@@ -267,6 +322,7 @@ export class JetStoreStatusService {
     return {
       ok: true,
       days,
+      closedDaysSent,
       timezone: target.timezone,
       menuRepublished: menu.republished,
       note: menu.note,

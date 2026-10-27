@@ -4,9 +4,11 @@
 // endpoint uses CustomerJwtGuard to identify the caller.
 
 import {
+  Delete,
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Query,
   Req,
@@ -26,6 +28,8 @@ import {
 } from "./customer-auth.service";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
+import { CustomerNativeSignInDto } from "./dto/native-sign-in.dto";
+import { UpdateCustomerProfileDto } from "./dto/update-profile.dto";
 import { CustomerJwtGuard, CurrentCustomer } from "./customer.decorator";
 import type { CustomerGoogleProfile } from "./customer-google.strategy";
 
@@ -94,6 +98,20 @@ export class CustomerAuthController {
     return out;
   }
 
+  // Native Google / Apple sign-in from a restaurant's own app. Returns the
+  // same session as email login; the app hands it to the storefront WebView.
+  @Public()
+  @Post("native")
+  @ApiOperation({ summary: "Customer sign-in with a native Google or Apple ID token" })
+  async native(
+    @Body() dto: CustomerNativeSignInDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const out = await this.customerAuth.nativeSignIn(dto);
+    if (out?.accessToken) this.setSessionCookie(res, out.accessToken);
+    return out;
+  }
+
   // @Public() bypasses the global staff JwtAuthGuard registered in
   // AppModule. Without it the staff strategy fires first, fails the
   // customer token's missing `type: "access"` claim, and 401s with
@@ -120,12 +138,40 @@ export class CustomerAuthController {
   }
 
   @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Patch("me")
+  @ApiOperation({ summary: "Update the current customer's phone, saved address and date of birth" })
+  updateMe(
+    @CurrentCustomer() customer: any,
+    @Body() dto: UpdateCustomerProfileDto,
+  ) {
+    return this.customerAuth.updateProfile(customer.id, dto);
+  }
+
+  @Public()
   @Post("logout")
   @ApiOperation({ summary: "Clear the customer session cookie" })
   logout(@Res({ passthrough: true }) res: Response) {
     // Deliberately public and unauthenticated: signing out must work even
     // when the token is already expired or malformed, which is exactly when
     // someone is most likely to be trying.
+    this.clearSessionCookie(res);
+    return { ok: true };
+  }
+
+  // App Store guideline 5.1.1(v): an app that lets people create an account
+  // must let them delete it from inside the app. The storefront is what the
+  // restaurant apps show, so this is that button's endpoint.
+  @Public()
+  @UseGuards(CustomerJwtGuard)
+  @Delete("me")
+  @ApiOperation({ summary: "Permanently delete the signed-in customer's account" })
+  async deleteMe(
+    @CurrentCustomer() customer: any,
+    @Body() body: { confirm?: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.customerAuth.deleteAccount(customer.id, body?.confirm);
     this.clearSessionCookie(res);
     return { ok: true };
   }
@@ -199,18 +245,14 @@ export class CustomerAuthController {
     const candidateOrigin = decodeURIComponent(rawOrigin).trim();
     const brandId = decodeURIComponent(rawBrand).trim();
 
-    // Tight allow-list — only accept origins we recognise to avoid
-    // turning this into an open redirect.
-    const ALLOWED_ORIGINS = new Set([
-      "https://www.orderhubsolutions.com",
-      "https://orderhubsolutions.com",
-      "https://orderhub-web.onrender.com",
-      "http://localhost:3000",
-    ]);
-    const safeOrigin = ALLOWED_ORIGINS.has(candidateOrigin)
-      ? candidateOrigin
-      : (this.config.get<string>("WEB_URL") ??
-          "https://www.orderhubsolutions.com");
+    // Only origins we serve — ours or a brand's own domain — or this is an
+    // open redirect. A brand domain used to fall through to WEB_URL, which
+    // signed the customer in on orderhubsolutions.com and left their basket
+    // behind on the shop's domain.
+    const safeOrigin =
+      (await this.customerAuth.trustedStorefrontOrigin(candidateOrigin)) ??
+      this.config.get<string>("WEB_URL") ??
+      "https://www.orderhubsolutions.com";
 
     const brandSuffix = brandId
       ? `&brand=${encodeURIComponent(brandId)}`

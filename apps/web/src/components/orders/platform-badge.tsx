@@ -4,7 +4,7 @@
 // tile so order cards, menu publish targets, and integration rows all
 // share one consistent visual identity.
 
-import { Utensils } from "lucide-react";
+import { Smartphone, Utensils } from "lucide-react";
 import { PlatformLogo, platformLabel } from "@/components/ui/platform-logo";
 
 const FULFILLMENT_CONFIG: Record<string, { label: string; color: string }> = {
@@ -21,6 +21,31 @@ const FULFILLMENT_CONFIG: Record<string, { label: string; color: string }> = {
 
 // Pill-style badge with the brand logo tile on the left and the
 // platform name on the right. Compact enough for order card headers.
+/**
+ * "App · Android" / "App · iPhone" — the order came from one of our
+ * restaurant apps rather than the website. Checkout stamps
+ * metadata.appClient from the app's WebView user agent; nothing renders for
+ * any other order.
+ */
+export function appBadgeLabel(metadata: unknown): string | null {
+  const client = (metadata as { appClient?: { platform?: string } } | null | undefined)?.appClient;
+  if (!client) return null;
+  if (client.platform === "android") return "App · Android";
+  if (client.platform === "ios") return "App · iPhone";
+  return "App";
+}
+
+export function AppBadge({ metadata }: { metadata: unknown }) {
+  const label = appBadgeLabel(metadata);
+  if (!label) return null;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-1 text-[11px] font-semibold text-indigo-700">
+      <Smartphone className="h-3 w-3" />
+      {label}
+    </span>
+  );
+}
+
 export function PlatformBadge({ platform }: { platform: string }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-md bg-white border border-zinc-200 pr-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-700">

@@ -79,6 +79,7 @@ import { LogsModule } from "./modules/logs/logs.module";
 import { PrintersModule } from "./modules/printers/printers.module";
 import { AdminModule } from "./modules/admin/admin.module";
 import { OrderingModule } from "./modules/ordering/ordering.module";
+import { EflModule } from "./modules/eat-for-less/efl.module";
 import { StoreStatusModule } from "./modules/store-status/store-status.module";
 import { CustomersModule } from "./modules/customers/customers.module";
 import { DriversModule } from "./modules/drivers/drivers.module";
@@ -292,6 +293,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     LogsModule,
     PrintersModule,
     OrderingModule,
+    EflModule,
     StoreStatusModule,
     CustomersModule,
     DriversModule,

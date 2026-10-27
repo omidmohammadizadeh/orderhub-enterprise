@@ -14,7 +14,7 @@ import { formatMoney } from "@orderhub/shared";
 // polls the same /v1/ordering/orders/:orderId/status endpoint the
 // inline tracker uses and renders the same step-timeline pattern.
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -24,11 +24,12 @@ import {
   XCircle,
   ChevronLeft,
   ShoppingBag,
-  Phone,
+  Star,
 } from "lucide-react";
-import { DeliveryTrackingMap } from "@/components/order/delivery-tracking-map";
-import { CustomerDriverChat } from "@/components/order/customer-driver-chat";
+import { LiveDeliveryPanel } from "@/components/order/live-delivery-panel";
 import { OrderNotifications } from "@/components/order/order-notifications";
+import { LeaveReviewModal } from "@/components/storefront/leave-review-modal";
+import { reviewsClient } from "@/lib/api/reviews.client";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL ??
@@ -109,6 +110,32 @@ export default function OrderStatusPage() {
 
   // Nothing left to be notified about once the food has landed.
   const isComplete = data?.status === "COMPLETED";
+
+  // The "How was your food?" push lands here with ?review=1. Read off
+  // window rather than useSearchParams, which would need a Suspense boundary
+  // around the whole page. Already-reviewed orders never show the ask.
+  const [reviewState, setReviewState] = useState<"unknown" | "open" | "offer" | "done">("unknown");
+  // A ref, not state: the modal closes itself from a timer set at submit
+  // time, so its onClose is the one from before the submit re-render.
+  const reviewSubmitted = useRef(false);
+  useEffect(() => {
+    if (!isComplete || reviewState !== "unknown") return;
+    let cancelled = false;
+    reviewsClient
+      .reviewed([params.orderId])
+      .then((ids) => {
+        if (cancelled) return;
+        if (ids.includes(params.orderId)) return setReviewState("done");
+        const asked = new URLSearchParams(window.location.search).get("review") === "1";
+        setReviewState(asked ? "open" : "offer");
+      })
+      .catch(() => {
+        if (!cancelled) setReviewState("offer");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isComplete, params.orderId, reviewState]);
 
   const isDelivery = data?.fulfillmentType === "DELIVERY";
   // Retail R3 — a shop picks an order; it doesn't cook it.
@@ -219,41 +246,35 @@ export default function OrderStatusPage() {
               </div>
             )}
 
+            {isComplete && reviewState === "offer" && (
+              <div className="mx-auto mt-6 max-w-sm">
+                <button
+                  type="button"
+                  onClick={() => setReviewState("open")}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-4 py-3 text-sm font-semibold text-white hover:bg-zinc-800"
+                >
+                  <Star className="h-4 w-4" /> Rate your order
+                </button>
+              </div>
+            )}
+            {reviewState === "open" && (
+              <LeaveReviewModal
+                orderId={params.orderId}
+                merchantName={data.location?.name ?? "the restaurant"}
+                // The modal shows its own thank-you, then closes itself; only
+                // then does the page drop the ask.
+                onClose={() => setReviewState(reviewSubmitted.current ? "done" : "offer")}
+                onSubmitted={() => {
+                  reviewSubmitted.current = true;
+                }}
+              />
+            )}
+
             {/* Live delivery tracking — shown front-and-centre the moment the
                 driver starts the job (status → out for delivery). */}
             {!isCancelled && data.driver && (
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <div>
-                    <p className="text-xs font-medium text-emerald-700">Your driver</p>
-                    <p className="text-sm font-bold text-zinc-900">{data.driver.name ?? "On the way"}</p>
-                  </div>
-                  {data.driver.phone && (
-                    <a
-                      href={`tel:${data.driver.phone}`}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-600"
-                    >
-                      <Phone className="h-4 w-4" /> Call
-                    </a>
-                  )}
-                </div>
-
-                {(data.driver.lat != null && data.driver.lng != null) || data.destination ? (
-                  <DeliveryTrackingMap
-                    driver={
-                      data.driver.lat != null && data.driver.lng != null
-                        ? { lat: data.driver.lat, lng: data.driver.lng }
-                        : null
-                    }
-                    destination={data.destination ?? null}
-                  />
-                ) : (
-                  <p className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 text-center text-xs text-zinc-500">
-                    Waiting for your driver&apos;s location…
-                  </p>
-                )}
-
-                <CustomerDriverChat orderId={params.orderId} driverName={data.driver.name} />
+              <div className="mt-6">
+                <LiveDeliveryPanel order={data as any} orderId={params.orderId} />
               </div>
             )}
 

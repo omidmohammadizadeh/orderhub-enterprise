@@ -168,6 +168,9 @@ export interface RenderEmailContext {
   footerAddress?: string | null;
   unsubscribeUrl: string;
   firstName?: string | null;
+  /** "23 October" — what {{offer_expires}} reads as. Set per recipient by a
+   *  birthday email whose offer is valid N days from the day it lands. */
+  offerExpires?: string | null;
   preheader?: string | null;
   /** Rewrites each link (click tracking). Called once per link, in order. */
   trackLink?: (link: EmailLink, index: number) => string;
@@ -235,7 +238,7 @@ const NAME_TAG = "\\{\\{\\s*(?:first_?name|name)\\s*\\}\\}";
  *  greeting ("Hi {{first_name}}") falls back to "there". */
 export function personalise(
   text: string,
-  vars: { firstName?: string | null; brandName?: string | null },
+  vars: { firstName?: string | null; brandName?: string | null; offerExpires?: string | null },
 ): string {
   const first = String(vars.firstName ?? "").trim();
   let out = String(text ?? "");
@@ -247,6 +250,7 @@ export function personalise(
   return out
     .replace(new RegExp(NAME_TAG, "gi"), first || "there")
     .replace(/\{\{\s*brand(_?name)?\s*\}\}/gi, String(vars.brandName ?? ""))
+    .replace(/\{\{\s*offer_?expires\s*\}\}/gi, String(vars.offerExpires ?? ""))
     .replace(/\{\{\s*(?!storefront\s*\}\})[^}]*\}\}/g, "");
 }
 
@@ -283,7 +287,7 @@ export function renderEmail(design: EmailDesign, ctx: RenderEmailContext): Rende
   };
   const links: EmailLink[] = [];
   const text: string[] = [];
-  const vars = { firstName: ctx.firstName, brandName: ctx.brandName };
+  const vars = { firstName: ctx.firstName, brandName: ctx.brandName, offerExpires: ctx.offerExpires };
   const p = (s: string) => personalise(s, vars);
   const base = String(ctx.assetBaseUrl ?? "").replace(/\/+$/, "");
   const src = (u: string | null | undefined): string => {
@@ -717,7 +721,7 @@ export const EMAIL_TEMPLATES: EmailTemplate[] = [
 
 // ── Automations ──────────────────────────────────────────────────────────────
 
-export type EmailAutomationType = "WELCOME" | "WIN_BACK";
+export type EmailAutomationType = "WELCOME" | "WIN_BACK" | "BIRTHDAY";
 
 export interface EmailAutomationSettings {
   /** WELCOME: hours after joining before the welcome goes out. */
@@ -726,11 +730,15 @@ export interface EmailAutomationSettings {
   days?: number;
   /** WIN_BACK: never send the same person a win-back more often than this. */
   cooldownDays?: number;
+  /** BIRTHDAY: the offer is good for this many days from the birthday —
+   *  what {{offer_expires}} in the email counts from. */
+  validDays?: number;
 }
 
 export const AUTOMATION_DEFAULTS: Record<EmailAutomationType, EmailAutomationSettings> = {
   WELCOME: { delayHours: 1 },
   WIN_BACK: { days: 45, cooldownDays: 90 },
+  BIRTHDAY: { validDays: 7 },
 };
 
 export const AUTOMATION_INFO: Record<EmailAutomationType, { name: string; description: string }> = {
@@ -741,6 +749,10 @@ export const AUTOMATION_INFO: Record<EmailAutomationType, { name: string; descri
   WIN_BACK: {
     name: "Win-back email",
     description: "Brings back customers who haven't ordered for a while, with a one-use discount.",
+  },
+  BIRTHDAY: {
+    name: "Birthday email",
+    description: "A treat on the morning of a customer's birthday, if they've told us the date. Once a year.",
   },
 };
 
@@ -802,6 +814,34 @@ export const AUTOMATION_TEMPLATES: Record<
           url: STOREFRONT_LINK,
         },
         ...products(ctx, "Still on the menu"),
+      ],
+    }),
+  },
+  BIRTHDAY: {
+    subject: "Happy birthday, {{first_name}} 🎂",
+    preheader: "A little birthday treat from all of us.",
+    build: (ctx) => ({
+      theme: theme(ctx),
+      blocks: [
+        { id: bid("header"), type: "header", showName: true },
+        ...hero(ctx),
+        { id: bid("heading"), type: "heading", text: "Happy birthday, {{first_name}}!" },
+        {
+          id: bid("text"),
+          type: "text",
+          text: "Everyone at {{brand_name}} hopes you have a brilliant day. Here's a birthday treat, on us.",
+        },
+        {
+          id: bid("offer"),
+          type: "offer",
+          title: "20% OFF",
+          subtitle: "Your birthday treat",
+          code: "",
+          terms: "Valid until {{offer_expires}} when ordering online. One use per customer.",
+          buttonLabel: "Treat myself",
+          url: STOREFRONT_LINK,
+        },
+        ...products(ctx, "Birthday favourites"),
       ],
     }),
   },

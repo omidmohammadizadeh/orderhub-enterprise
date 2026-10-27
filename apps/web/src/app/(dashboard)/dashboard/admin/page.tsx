@@ -9,13 +9,16 @@
 
 import Link from "next/link";
 import {
+  Smartphone,
   ArrowRight,
   ClipboardCheck,
   Globe,
+  KeyRound,
   LayoutList,
   Lock,
   Rocket,
   ShieldCheck,
+  Star,
   Wallet,
   Zap,
 } from "lucide-react";
@@ -58,11 +61,32 @@ const TOOLS: AdminTool[] = [
     icon: Zap,
   },
   {
+    href: "/dashboard/admin/food-hygiene",
+    title: "Food hygiene",
+    blurb:
+      "Show each shop\u2019s FSA food hygiene rating on its storefront and app. One switch per location; ratings refresh from the FSA every night.",
+    icon: Star,
+  },
+  {
     href: "/dashboard/admin/website-showcase",
     title: "Website showcase",
     blurb:
       "Pick the brands shown with their logo in the \u201cTrusted by\u201d section of the homepage.",
     icon: Globe,
+  },
+  {
+    href: "/dashboard/admin/restaurant-apps",
+    title: "Restaurant apps",
+    blurb:
+      "Store links and promotion for each restaurant's own app, and the step-by-step for getting its iPhone app live on the restaurant's Apple account.",
+    icon: Smartphone,
+  },
+  {
+    href: "/dashboard/admin/social-login",
+    title: "Social login",
+    blurb:
+      "Choose whether each restaurant app shows Sign in with Apple and Google on iOS, and Google on Android — decide per app before you submit it.",
+    icon: KeyRound,
   },
   {
     href: "/dashboard/admin/release-readiness",

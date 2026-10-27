@@ -64,6 +64,11 @@ export class JetConnectionService {
       /** Brand-issued keys, for brands JET gives their own (>6 locations). */
       menuKey?: string;
       orderKey?: string;
+      /**
+       * Use the shared key configured in Render for this brand group instead
+       * of pasting the brand's key onto every one of its shops. "" clears it.
+       */
+      brandKeyGroup?: string | null;
     },
   ) {
     const restaurantReference = (body.restaurantReference ?? "").trim();
@@ -109,6 +114,26 @@ export class JetConnectionService {
     // stored. The manage panel never renders a saved key back (it is a
     // secret), so treating blank as "clear it" would wipe a brand's keys every
     // time someone corrected a typo in the Restaurant ID.
+    // Opt into (or out of) a shared brand key. Only written when the caller
+    // says something about it, so an existing connection that never mentions
+    // it keeps whatever it had — the same rule the pasted keys follow.
+    if (body.brandKeyGroup !== undefined) {
+      const group = String(body.brandKeyGroup ?? "").trim();
+      if (group) metadata.brandKeyGroup = group;
+      else delete metadata.brandKeyGroup;
+    } else {
+      const existing = await this.prisma.brandPlatformConnection.findFirst({
+        where: {
+          brandId: body.brandId,
+          locationId: body.locationId,
+          platform: "JUST_EAT",
+        },
+        select: { metadata: true },
+      });
+      const kept = ((existing?.metadata as any) ?? {}).brandKeyGroup;
+      if (kept) metadata.brandKeyGroup = kept;
+    }
+
     if (body.menuKey?.trim() || body.orderKey?.trim()) {
       metadata.credentials = this.credentials.encryptForStorage({
         menuKey: body.menuKey,
@@ -300,6 +325,7 @@ export class JetConnectionService {
       brandSlug: conn.externalBrandId,
       country: metadata.country ?? null,
       hasBrandKeys: !!metadata.credentials,
+      brandKeyGroup: metadata.brandKeyGroup ?? null,
       lastWebhookAt: conn.lastWebhookAt,
       lastError: conn.lastError,
       updatedAt: conn.updatedAt,

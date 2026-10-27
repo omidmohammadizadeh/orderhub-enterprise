@@ -1,0 +1,28 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "kingstonpizza",
+  "name": "Kingston Pizza",
+  "brandId": "cmsah6rur02h5fu1watj6z3r3",
+  "locationId": "cmsah60yz02h3fu1wlrdt5iwo",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmsah60yz02h3fu1wlrdt5iwo?brand=cmsah6rur02h5fu1watj6z3r3",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#1C1C1C",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/kingstonpizza/icon.png",
+  "adaptiveIcon": "brands/kingstonpizza/adaptive-icon.png",
+  "splash": "brands/kingstonpizza/splash.png",
+  "notificationIcon": "brands/kingstonpizza/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.kingstonpizza",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.kingstonpizza"
+  },
+  "google": {
+    "iosClientId": "331572609147-m5s7r1dvl1kiksng10b5po9j98hda31r.apps.googleusercontent.com"
+  },
+  "easProjectId": "8712b2a4-fd3e-4bfe-8a45-2fb38bd83869"
+}

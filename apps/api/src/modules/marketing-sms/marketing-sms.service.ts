@@ -53,6 +53,7 @@ export class MarketingSmsService {
     "GLOVO",
     "KEETA",
     "DIRECT",
+    "EAT_FOR_LESS",
   ];
 
   constructor(

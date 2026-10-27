@@ -58,6 +58,10 @@ export interface TillMember {
     rewardItemId: string | null;
     rewardItemName: string | null;
     amountOff: number | null;
+    /** % off the order (percent card). With amountOff, the reward is money off, not an item. */
+    percentOff: number | null;
+    maxDiscount: number | null;
+    minOrder: number | null;
     expiresAt: string | null;
   }>;
 }

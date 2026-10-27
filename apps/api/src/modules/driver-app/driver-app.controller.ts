@@ -78,9 +78,9 @@ export class DriverAppController {
   @ApiOperation({ summary: "Register the Expo push token for job alerts" })
   pushToken(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { token: string },
+    @Body() body: { token: string; format?: string },
   ) {
-    return this.driverApp.registerPushToken(user, body.token);
+    return this.driverApp.registerPushToken(user, body.token, body.format);
   }
 
   // ── Chat ─────────────────────────────────────────────────────────────────
@@ -129,7 +129,9 @@ export class DriverAppController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("orderId") orderId: string,
     @Param("action") action: JobAction,
+    // Eat For Less handovers send the customer's PIN with "delivered".
+    @Body() body?: { pin?: string },
   ) {
-    return this.driverApp.jobAction(user, orderId, action);
+    return this.driverApp.jobAction(user, orderId, action, { pin: body?.pin ?? null });
   }
 }

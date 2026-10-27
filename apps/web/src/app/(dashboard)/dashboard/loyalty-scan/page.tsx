@@ -36,6 +36,7 @@ import { StampRow } from "@/components/loyalty/wallet-card";
 import { CameraScanModal, isCameraScanSupported } from "@/components/pos/camera-scan-modal";
 import { walkInTill, type TillMember } from "@/lib/api/loyalty-walk-in.client";
 import { useBarcodeScanner } from "@/lib/pos/barcode-scanner";
+import { loyaltyRewardKind } from "@orderhub/shared";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -210,7 +211,11 @@ export default function LoyaltyScanPage() {
       const res = await walkInTill.redeem({ locationId, memberId: member.id, rewardId: reward.id });
       setMember(res.member);
       setLast({ kind: "reward", memberId: member.id, rewardId: reward.id, label: reward.label, at: Date.now() });
-      setSuccess(`${reward.label} handed over to ${member.firstName ?? "the customer"}.`);
+      setSuccess(
+        loyaltyRewardKind(reward) === "FREE_ITEM"
+          ? `${reward.label} handed over to ${member.firstName ?? "the customer"}.`
+          : `${reward.label} marked as used for ${member.firstName ?? "the customer"}.`,
+      );
     } catch (err) {
       setError(errorText(err));
     } finally {
@@ -652,7 +657,10 @@ export default function LoyaltyScanPage() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-zinc-900">{r.rewardItemName ?? r.label}</p>
                     <p className="text-[11px] text-zinc-500">
-                      Reward ready{r.expiresAt ? ` · use by ${new Date(r.expiresAt).toLocaleDateString()}` : ""}
+                      {loyaltyRewardKind(r) === "FREE_ITEM"
+                        ? "Reward ready"
+                        : "Take it off their bill on your till, then mark it used"}
+                      {r.expiresAt ? ` · use by ${new Date(r.expiresAt).toLocaleDateString()}` : ""}
                     </p>
                   </div>
                   <button
@@ -661,7 +669,7 @@ export default function LoyaltyScanPage() {
                     disabled={busy === "reward"}
                     className="shrink-0 rounded-lg bg-zinc-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
                   >
-                    Hand over
+                    {loyaltyRewardKind(r) === "FREE_ITEM" ? "Hand over" : "Mark as used"}
                   </button>
                 </div>
               ))}

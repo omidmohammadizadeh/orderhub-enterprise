@@ -18,6 +18,7 @@ Orders board badges, Locations → Brands → platform cards.
 | `stripe.png`      | Stripe                         |
 | `online.png`      | Generic "online ordering" tile |
 | `keeta.png`       | Keeta                          |
+| `eatforless.png`  | Eat For Less                   |
 
 Note: the Order Hub POS badge lives at `/orderhub-logo.png` (one
 folder up), not here — that's already wired in.

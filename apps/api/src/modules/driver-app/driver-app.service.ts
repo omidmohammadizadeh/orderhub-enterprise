@@ -13,8 +13,11 @@ import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-sync.service";
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
-import { coercePostcodeFees, matchPostcodeFee } from "../dispatch/driver-earnings.service";
+import { CustomerPushService } from "../customer-push/customer-push.service";
+import { coercePostcodeFees, isCashPayment, matchPostcodeFee } from "../dispatch/driver-earnings.service";
 import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
+import { ensureCallLine, eflCallNumber } from "../eat-for-less/efl-calls.service";
+import { MAX_PIN_ATTEMPTS, callLineOpen, checkDeliveryPin } from "../eat-for-less/efl-rules";
 import {
   coordsFromDeliveryAddress,
   resolveDeliveryAddress,
@@ -57,6 +60,7 @@ export class DriverAppService {
     private readonly hubriseSync: HubRiseOrderSyncService,
     private readonly chat: ChatService,
     private readonly socket: SocketService,
+    private readonly customerPush: CustomerPushService,
   ) {}
 
   // ── Chat ────────────────────────────────────────────────────────────────────
@@ -111,6 +115,14 @@ export class DriverAppService {
     delivered: OrderStatus.COMPLETED,
     skip: OrderStatus.FAILED,
     cancel: OrderStatus.READY,
+  };
+
+  // Driver action → the stage the customer's phone hears about. Only the
+  // moments they care about: accept/skip/cancel are between us and the driver.
+  private static readonly CUSTOMER_PUSH_BY_ACTION: Partial<Record<JobAction, OrderStatus>> = {
+    start: OrderStatus.OUT_FOR_DELIVERY,
+    arrived: OrderStatus.RIDER_ARRIVED,
+    delivered: OrderStatus.COMPLETED,
   };
 
   // Resolve the current user to a Driver. If none is linked yet, auto-provision
@@ -264,9 +276,14 @@ export class DriverAppService {
     });
   }
 
-  async registerPushToken(user: AuthenticatedUser, token: string) {
+  async registerPushToken(user: AuthenticatedUser, token: string, format?: string) {
     const driver = await this.resolveDriver(user);
-    await this.upsertPresence(driver, { pushToken: token });
+    // The format travels with the token: whichever phone registered last is
+    // the one that gets the push, so it is also the one whose format counts.
+    await this.upsertPresence(driver, {
+      pushToken: token,
+      pushJobFormat: format === "data" ? "data" : null,
+    });
     return { ok: true };
   }
 
@@ -317,6 +334,13 @@ export class DriverAppService {
             deliveryLng: true,
             specialInstructions: true,
             platform: true,
+            orderSource: true,
+            deliveredAt: true,
+            updatedAt: true,
+            // Read to say whether a PIN is needed — never sent to the driver.
+            deliveryPin: true,
+            deliveryPinVerifiedAt: true,
+            deliveryPinAttempts: true,
             courierPhone: true,
             courierPhoneAccessCode: true,
             scheduledFor: true,
@@ -335,15 +359,33 @@ export class DriverAppService {
     ];
     // Attach a computed deadlineAt to every order (drops the raw prep fields the
     // app doesn't need), so the job card can render a minutes-to-deadline pill.
-    const withDeadline = assignments.map((a) => {
+    const callNumber = eflCallNumber();
+    const withDeadline = await Promise.all(assignments.map(async (a) => {
       const {
         scheduledFor,
         estimatedReadyAt,
         preparationMinutes,
         createdAt,
         customerInfo,
+        deliveryPin,
+        deliveryPinVerifiedAt,
+        deliveryPinAttempts,
+        deliveredAt: _deliveredAt,
+        updatedAt: _updatedAt,
         ...orderRest
       } = a.order as typeof a.order & { customerInfo?: any };
+      // Eat For Less: the driver rings the customer through our private line.
+      // The app already dials "number, pause, code" for marketplaces, so the
+      // builds on drivers' phones do this without an update.
+      let maskedPhone: { phone: string; code: string } | null = null;
+      if (
+        orderRest.orderSource === "EAT_FOR_LESS" &&
+        callNumber &&
+        callLineOpen(a.order as any, new Date())
+      ) {
+        const line = await ensureCallLine(this.prisma, a.order.id);
+        maskedPhone = { phone: callNumber, code: line.driverCode };
+      }
       // Fill the address columns from the deliveryAddress blob when they are
       // empty, which is EVERY marketplace and online order: ingestCanonical
       // writes only the blob. The app reads these columns to show the address
@@ -373,10 +415,15 @@ export class DriverAppService {
           // the app can dial it after a pause instead of the driver reading
           // it off a ticket and keying it in on a doorstep. Adapters have
           // used two homes for it, so check both.
+          customerPhone: maskedPhone?.phone ?? orderRest.customerPhone,
           customerPhoneAccessCode:
+            maskedPhone?.code ??
             (customerInfo as any)?.phoneAccessCode ??
             (orderRest as any).courierPhoneAccessCode ??
             null,
+          // The PIN itself stays on the server; the app only learns to ask.
+          deliveryPinRequired: !!deliveryPin && !deliveryPinVerifiedAt,
+          deliveryPinAttemptsLeft: Math.max(0, MAX_PIN_ATTEMPTS - (deliveryPinAttempts ?? 0)),
           deadlineAt: deadlineFor({
             scheduledFor,
             estimatedReadyAt,
@@ -385,7 +432,7 @@ export class DriverAppService {
           })?.toISOString() ?? null,
         },
       };
-    });
+    }));
 
     const active = withDeadline.filter((a) => ACTIVE.includes(a.status));
     const history = withDeadline.filter((a) => !ACTIVE.includes(a.status));
@@ -403,8 +450,7 @@ export class DriverAppService {
     const rules = coercePostcodeFees((driver as any).postcodeFees);
     for (const a of deliveredToday) {
       const total = Number(a.order.total);
-      const method = (a.order.paymentMethod ?? "").toUpperCase();
-      if (method.includes("CASH")) cashTotal += total;
+      if (isCashPayment(a.order.paymentMethod)) cashTotal += total;
       else cardTotal += total;
       deliveryFees += matchPostcodeFee(rules, a.order.postcode);
     }
@@ -459,8 +505,7 @@ export class DriverAppService {
     const workedDays = new Set<string>();
     for (const a of delivered) {
       const t = Number(a.order.total);
-      const method = (a.order.paymentMethod ?? "").toUpperCase();
-      if (method.includes("CASH")) {
+      if (isCashPayment(a.order.paymentMethod)) {
         cashCount += 1;
         cashTotal += t;
       } else {
@@ -491,7 +536,12 @@ export class DriverAppService {
     };
   }
 
-  async jobAction(user: AuthenticatedUser, orderId: string, action: JobAction) {
+  async jobAction(
+    user: AuthenticatedUser,
+    orderId: string,
+    action: JobAction,
+    opts: { pin?: string | null } = {},
+  ) {
     const driver = await this.resolveDriver(user);
     const assignment = await this.prisma.driverAssignment.findFirst({
       where: { orderId, driverId: driver.id },
@@ -523,6 +573,13 @@ export class DriverAppService {
     }
 
     const now = new Date();
+
+    // Eat For Less: the food only changes hands with the customer's PIN.
+    // Checked here, not in the app, so no build — old or tampered — can
+    // skip it. A closed order is left alone: the shop finished it.
+    if (action === "delivered" && !orderIsClosed) {
+      await this.checkHandoverPin(orderId, opts.pin, now);
+    }
 
     switch (action) {
       case "accept":
@@ -645,7 +702,80 @@ export class DriverAppService {
       void this.hubriseSync.pushStatus({ orderId, newStatus: pushStatus });
     }
 
+    // The customer's app/browser too. The driver app writes the status
+    // straight to the database, so OrdersService.updateStatus (which sends
+    // the staff-side pushes) never runs: "on its way", "at your door" and
+    // "delivered" reached nobody when our own driver did the delivery.
+    const customerStatus = DriverAppService.CUSTOMER_PUSH_BY_ACTION[action];
+    if (customerStatus && !orderIsClosed) {
+      void this.notifyCustomer(orderId, customerStatus);
+    }
+
     return { ok: true, action };
+  }
+
+  private async checkHandoverPin(orderId: string, pin: string | null | undefined, now: Date) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { deliveryPin: true, deliveryPinVerifiedAt: true, deliveryPinAttempts: true },
+    });
+    if (!order?.deliveryPin) return;
+    const result = checkDeliveryPin({
+      expected: order.deliveryPin,
+      given: pin,
+      attempts: order.deliveryPinAttempts,
+      verified: !!order.deliveryPinVerifiedAt,
+    });
+    if (result.ok) {
+      if (!order.deliveryPinVerifiedAt) {
+        await this.prisma.order.update({ where: { id: orderId }, data: { deliveryPinVerifiedAt: now } });
+      }
+      return;
+    }
+    // An empty PIN is a question, not a guess: it doesn't use up a try.
+    if (String(pin ?? "").replace(/\D/g, "") && !result.locked) {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { deliveryPinAttempts: { increment: 1 } },
+      });
+    } else if (result.locked && order.deliveryPinAttempts < MAX_PIN_ATTEMPTS) {
+      // The guess that locked it still counts, so the lock survives a retry.
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { deliveryPinAttempts: MAX_PIN_ATTEMPTS },
+      });
+    }
+    throw new BadRequestException({
+      message: result.message,
+      code: result.locked ? "PIN_LOCKED" : "PIN_REQUIRED",
+      attemptsLeft: result.attemptsLeft,
+    });
+  }
+
+  /** Best-effort, like the board emit: never fails the driver's action. */
+  private async notifyCustomer(orderId: string, status: OrderStatus): Promise<void> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          orderNumber: true,
+          displayId: true,
+          fulfillmentType: true,
+          location: { select: { onlineOrderingSlug: true, slug: true } },
+        },
+      });
+      if (!order) return;
+      await this.customerPush.notifyOrderStatus({
+        orderId,
+        status,
+        orderNumber: order.orderNumber,
+        displayId: order.displayId,
+        fulfillmentType: order.fulfillmentType,
+        storefrontSlug: order.location?.onlineOrderingSlug ?? order.location?.slug ?? null,
+      });
+    } catch {
+      /* notifyOrderStatus logs its own failures */
+    }
   }
 
   /**

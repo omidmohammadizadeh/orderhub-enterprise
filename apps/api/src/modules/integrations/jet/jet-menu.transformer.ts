@@ -215,6 +215,33 @@ function buildItem(product: JetSrcProduct, warnings: string[]): any {
 }
 
 /**
+ * Split a window that runs past midnight into one window per day it covers.
+ *
+ * CHICKEN COTTAGE trades 12:00–02:00 on a Friday. Sent verbatim, that is a
+ * closing time BEFORE its opening time, and a JET day window runs 00:00–23:59
+ * — which is why ALL_DAY_WINDOW stops at 23:59 rather than 24:00. Just Eat
+ * accepts the payload and the day simply contains no open minutes, so the
+ * hours never move and the shop can drop off the platform on its best night.
+ *
+ * Friday 12:00–02:00 is really Friday 12:00–23:59 plus Saturday 00:00–02:00,
+ * and a Sunday night wraps round to Monday. Only `to < from` splits; equal
+ * times are left alone rather than being guessed at as a 24-hour day.
+ */
+export function splitOvernight(
+  day: string,
+  from: string,
+  to: string,
+): Array<{ day: string; from: string; to: string }> {
+  const i = (JET_DAYS as readonly string[]).indexOf(day);
+  if (i === -1 || to >= from) return [{ day, from, to }];
+  const next = JET_DAYS[(i + 1) % JET_DAYS.length]!;
+  return [
+    { day, from, to: "23:59" },
+    { day: next, from: "00:00", to },
+  ];
+}
+
+/**
  * Normalise our stored opening hours into JET's availability map.
  *
  * All seven days are REQUIRED by the schema — a missing key is a validation
@@ -231,7 +258,11 @@ export function toJetAvailability(hours: unknown): JetAvailability {
   const push = (day: string, from: unknown, to: unknown) => {
     const f = String(from ?? "").trim();
     const t = String(to ?? "").trim();
-    if (f && t) out[day]!.push(`${f} - ${t}`);
+    if (!f || !t) return;
+    // A night that ends after midnight belongs to two days.
+    for (const part of splitOvernight(day, f, t)) {
+      out[part.day]!.push(`${part.from} - ${part.to}`);
+    }
   };
 
   if (Array.isArray(hours)) {

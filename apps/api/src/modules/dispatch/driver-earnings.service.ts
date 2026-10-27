@@ -41,11 +41,48 @@ export interface EarningsBreakdown {
 
 const CASH_METHODS = ["CASH", "CASH_ON_DELIVERY", "COD"];
 
+/**
+ * Did the driver collect this order's money at the door? One rule for every
+ * cash-up — the settlement here, the operator dashboard and the driver's own
+ * app — so the figure a driver sees is the figure they are settled on. An
+ * order with no payment method recorded counts as cash: the driver may be
+ * holding it, and the settlement has always treated it that way.
+ */
+export function isCashPayment(paymentMethod: string | null | undefined): boolean {
+  const method = (paymentMethod ?? "").toUpperCase();
+  return method === "" || CASH_METHODS.some((m) => method.includes(m));
+}
+
 export function normalizePostcode(pc: unknown): string {
   return String(pc ?? "").toUpperCase().replace(/\s+/g, "");
 }
 
-/** Longest-prefix match of an order postcode against the driver's rules. */
+// Split a postcode into outward (district) and inward parts. A UK inward code
+// is always digit + two letters, so with the space missing it is the last
+// three characters: "B12HF" → ["B1", "2HF"], "B129QR" → ["B12", "9QR"].
+function splitPostcode(raw: unknown): [string, string] {
+  const parts = String(raw ?? "").toUpperCase().trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return [parts[0] ?? "", parts.slice(1).join("")];
+  const n = parts[0] ?? "";
+  return /^[A-Z0-9]+\d[A-Z]{2}$/.test(n) && n.length >= 5 ? [n.slice(0, -3), n.slice(-3)] : [n, ""];
+}
+
+/**
+ * Does a fee rule cover this postcode? Rules are an area ("B"), a district
+ * ("B1", "B12") or a sector ("B12 9"). Comparing space-stripped strings by
+ * prefix is wrong: "B1 2HF" → "B12HF" starts with "B12", so a B1 order was
+ * paid at the B12 rate. Compare district to district instead.
+ */
+function ruleCovers(rule: unknown, orderPostcode: unknown): boolean {
+  const [rOut, rIn] = splitPostcode(rule);
+  const [oOut, oIn] = splitPostcode(orderPostcode);
+  if (!rOut || !oOut) return false;
+  if (rIn) return oOut === rOut && oIn.startsWith(rIn);
+  if (/^[A-Z]+$/.test(rOut)) return new RegExp(`^${rOut}\\d`).test(oOut);
+  return oOut === rOut;
+}
+
+/** Most specific matching rule for an order postcode (0 when none match). */
 export function matchPostcodeFee(rules: PostcodeFee[], orderPostcode: unknown): number {
   const n = normalizePostcode(orderPostcode);
   if (!n) return 0;
@@ -54,7 +91,7 @@ export function matchPostcodeFee(rules: PostcodeFee[], orderPostcode: unknown): 
   for (const r of rules) {
     const p = normalizePostcode(r.postcode);
     if (!p) continue;
-    if (n.startsWith(p) && p.length > bestLen) {
+    if (ruleCovers(r.postcode, orderPostcode) && p.length > bestLen) {
       best = Number(r.fee) || 0;
       bestLen = p.length;
     }
@@ -168,8 +205,7 @@ export class DriverEarningsService {
 
     for (const a of assignments) {
       const total = Number(a.order.total) || 0;
-      const method = (a.order.paymentMethod ?? "").toUpperCase();
-      const isCash = CASH_METHODS.some((m) => method.includes(m)) || method === "";
+      const isCash = isCashPayment(a.order.paymentMethod);
       if (isCash) {
         cashOrders += 1;
         cashCollected += total;

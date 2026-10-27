@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Camera, Check, Gift, Loader2, MessageSquare, QrCode, Search, UserPlus, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { StampRow } from "@/components/loyalty/wallet-card";
+import { loyaltyRewardKind } from "@orderhub/shared";
 import { CameraScanModal, isCameraScanSupported } from "@/components/pos/camera-scan-modal";
 import { walkInTill, type TillMember } from "@/lib/api/loyalty-walk-in.client";
 
@@ -377,8 +378,10 @@ export function LoyaltyTillModal({
                             <span className="inline-flex items-center gap-1">
                               <Check className="h-3.5 w-3.5" /> Added
                             </span>
-                          ) : (
+                          ) : loyaltyRewardKind(r) === "FREE_ITEM" ? (
                             "Add free"
+                          ) : (
+                            "Use on this order"
                           )}
                         </button>
                       </div>

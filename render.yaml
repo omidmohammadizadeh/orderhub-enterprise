@@ -230,6 +230,10 @@ services:
       # against. Must equal the app's bundle id.
       - key: APPLE_BUNDLE_ID
         value: com.orderhubsolutions.pos
+      # The restaurant apps (apps/customer): every brand's bundle id, for
+      # customer Sign in with Apple at POST /v1/customer-auth/native.
+      - key: CUSTOMER_APP_APPLE_BUNDLE_IDS
+        value: com.orderhubsolutions.kingstonpizza,com.orderhubsolutions.pizzaunopelton,com.orderhubsolutions.bestkebabs,com.orderhubsolutions.pizzauno
       # ── Logging ──
       - key: LOG_LEVEL
         value: info

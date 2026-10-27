@@ -4,6 +4,7 @@ import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { formatMoney, renderPoweredBy } from "@orderhub/shared";
 import { EmailService } from "../../infrastructure/email/email.service";
+import { customerAppLinks } from "../admin/restaurant-apps";
 
 // The confirmation email a customer gets after ordering online.
 //
@@ -60,7 +61,8 @@ export class OrderConfirmationEmailService {
       const since = new Date(Date.now() - LOOKBACK_HOURS * 3600 * 1000);
       const orders = await this.prisma.order.findMany({
         where: {
-          platform: "ONLINE" as any,
+          // Storefront orders, and Eat For Less orders (sent as Eat For Less).
+          OR: [{ platform: "ONLINE" as any }, { orderSource: "EAT_FOR_LESS" as any }],
           createdAt: { gte: since },
           // Only orders that actually happened. A card order sits PENDING
           // until its webhook lands; a cancelled one must never be confirmed.
@@ -95,7 +97,8 @@ export class OrderConfirmationEmailService {
               timezone: true,
             },
           },
-          brand: { select: { name: true, logoUrl: true } },
+          // settings: the brand's own app, if we're promoting it (customerApp).
+          brand: { select: { name: true, logoUrl: true, settings: true } },
           // Both address sources. Without these the fallbacks below read
           // undefined for ever, which is how the first live order reached
           // the kitchen with no email sent.
@@ -130,10 +133,18 @@ export class OrderConfirmationEmailService {
         }
 
         try {
+          const efl = order.orderSource === "EAT_FOR_LESS";
           await this.email?.send({
             to,
-            subject: `Order ${this.reference(order)} confirmed — ${this.shopName(order)}`,
-            fromName: this.shopName(order),
+            subject: efl
+              ? `Your Eat For Less order ${this.reference(order)} — ${this.shopName(order)}`
+              : `Order ${this.reference(order)} confirmed — ${this.shopName(order)}`,
+            ...(efl
+              ? {
+                  fromAddress: process.env.EFL_EMAIL_FROM || "Eat For Less <hello@eatforless.co.uk>",
+                  replyTo: "hello@eatforless.co.uk",
+                }
+              : { fromName: this.shopName(order) }),
             html: this.body(order),
           });
         } catch (e: any) {
@@ -327,6 +338,33 @@ export class OrderConfirmationEmailService {
     return raw.split(/\s+/)[0] ?? "";
   }
 
+  /**
+   * "Order faster in our app" with store buttons, when the brand's own app is
+   * being promoted (Admin → Restaurant apps) — and not to someone who just
+   * ordered from it. Plain bulletproof buttons: email clients block SVG and
+   * strip most images until the reader allows them.
+   */
+  private appBlock(order: any, ink: string, muted: string, font: string): string {
+    if ((order.metadata as any)?.appClient) return "";
+    const links = customerAppLinks(order.brand?.settings);
+    if (!links) return "";
+    const name = this.esc(this.shopName(order));
+    const btn = (href: string, label: string) =>
+      `<td bgcolor="${ink}" style="border-radius:10px;background:${ink};"><a href="${href}" target="_blank" style="display:inline-block;padding:10px 18px;font-family:${font};font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">${label}</a></td>`;
+    const buttons = [
+      links.ios ? btn(links.ios, "Download on the App Store") : "",
+      links.ios && links.android ? `<td width="8"></td>` : "",
+      links.android ? btn(links.android, "Get it on Google Play") : "",
+    ].join("");
+    return `<tr><td style="padding:0 32px 24px 32px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5;border-radius:14px;">
+    <tr><td align="center" style="padding:18px 16px 6px 16px;font-family:${font};font-size:16px;font-weight:800;color:${ink};">Order faster with the ${name} app</td></tr>
+    <tr><td align="center" style="padding:0 16px 14px 16px;font-family:${font};font-size:13px;color:${muted};">Live driver tracking, order updates and offers, all in one place.</td></tr>
+    <tr><td align="center" style="padding:0 16px 18px 16px;"><table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>${buttons}</tr></table></td></tr>
+  </table>
+</td></tr>`;
+  }
+
   private body(order: any): string {
     const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
     const ink = "#18181b";
@@ -373,10 +411,15 @@ export class OrderConfirmationEmailService {
       ? [order.location?.addressLine1, order.location?.city, order.location?.postcode].filter(Boolean).map((x: any) => this.esc(x)).join(", ")
       : "";
 
-    const powered = renderPoweredBy({
-      url: `${this.webBase()}/?utm_source=email&utm_medium=powered_by&utm_campaign=order_confirmation`,
-      logoUrl: `${this.webBase()}/email/orderhub-logo.png`,
-    });
+    // Eat For Less customers are the app's: tracked in the app, and the
+    // footer is ours, not "powered by".
+    const efl = order.orderSource === "EAT_FOR_LESS";
+    const powered = efl
+      ? `<div style="font-family:${FONT};font-size:12px;color:${muted};text-align:center;">Ordered on <a href="https://eatforless.co.uk" style="color:${ink};font-weight:700;text-decoration:none;">Eat For Less</a> · Eat For Less Ltd, company no. 17543774</div>`
+      : renderPoweredBy({
+          url: `${this.webBase()}/?utm_source=email&utm_medium=powered_by&utm_campaign=order_confirmation`,
+          logoUrl: `${this.webBase()}/email/orderhub-logo.png`,
+        });
 
     return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Order confirmed</title></head>
@@ -410,11 +453,12 @@ export class OrderConfirmationEmailService {
 <tr><td align="center" style="padding:20px 32px 28px 32px;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
     <td bgcolor="${ink}" style="border-radius:10px;background:${ink};">
-      <a href="${this.trackingUrl(order)}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${FONT};font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">Track your order</a>
+      <a href="${efl ? "https://eatforless.co.uk" : this.trackingUrl(order)}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${FONT};font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">${efl ? "Track it in the Eat For Less app" : "Track your order"}</a>
     </td>
   </tr></table>
 </td></tr>
 
+${efl ? "" : this.appBlock(order, ink, muted, FONT)}
 <tr><td style="padding:0 32px;">
   <div style="font-family:${FONT};font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${muted};padding-bottom:4px;border-bottom:1px solid #e4e4e7;">Your order</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>

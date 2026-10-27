@@ -73,6 +73,7 @@ export const CHANNEL_VARIANT_PRESETS: ReadonlyArray<ChannelPreset> = [
   // three marketplace presets above.
   { channelKey: "ONLINE", name: "Online ordering" },
   { channelKey: "WHATSAPP", name: "WhatsApp" },
+  { channelKey: "EAT_FOR_LESS", name: "Eat For Less" },
   // The till. Almost always priced at base — a marketplace uplift exists to
   // cover that marketplace's commission and there is none here — but it's
   // offered so "everywhere we sell" is a complete list rather than a list

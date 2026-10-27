@@ -24,6 +24,21 @@ const config: Config = {
           600: "#ea580c",
           700: "#c2410c",
         },
+        // Customer storefront surfaces — CSS variables set on .sf-root
+        // (globals.css) so light/dark and the brand accent need no JS. The
+        // fallbacks keep shared pieces (tab bar) light on pages without it.
+        sf: {
+          bg: "var(--sf-bg, #f7f7f8)",
+          surface: "var(--sf-surface, #ffffff)",
+          raised: "var(--sf-raised, #f1f1f3)",
+          text: "var(--sf-text, #18181b)",
+          muted: "var(--sf-muted, #5f5f68)",
+          border: "var(--sf-border, #e6e6e9)",
+          "border-strong": "var(--sf-border-strong, #d0d0d6)",
+          accent: "var(--sf-accent, #f97316)",
+          cta: "var(--sf-cta, #c2410c)",
+          promo: "var(--sf-promo, #dc2626)",
+        },
         // Sidebar palette
         sidebar: {
           bg: "#0a0a0b",

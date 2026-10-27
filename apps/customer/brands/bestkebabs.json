@@ -1,0 +1,28 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "bestkebabs",
+  "name": "Best Kebabs",
+  "brandId": "cmt2ub5oa0007aqum9gjl0b94",
+  "locationId": "cmt2uabsm0005aqumbfcan248",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmt2uabsm0005aqumbfcan248?brand=cmt2ub5oa0007aqum9gjl0b94",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#D7141A",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/bestkebabs/icon.png",
+  "adaptiveIcon": "brands/bestkebabs/adaptive-icon.png",
+  "splash": "brands/bestkebabs/splash.png",
+  "notificationIcon": "brands/bestkebabs/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.bestkebabs",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.bestkebabs"
+  },
+  "google": {
+    "iosClientId": "331572609147-3leu06vca9bvoig6o5skp1adm08avk77.apps.googleusercontent.com"
+  },
+  "easProjectId": "5b31f2e5-1363-4be1-8252-fb98e1ddf17f"
+}

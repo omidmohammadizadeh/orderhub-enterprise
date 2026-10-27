@@ -255,11 +255,30 @@ model CustomerAccount {
   firstName              String
   lastName               String
   phone                  String?
+  /// Saved delivery address, prefilled at checkout on every storefront.
+  /// addressLine2 is the flat / house number; addressArea is the Gulf
+  /// community that prices delivery where there is no postcode.
+  addressLine1           String?
+  addressLine2           String?
+  addressCity            String?
+  addressPostcode        String?
+  addressArea            String?
+  /// Date only — for birthday offers. Asked, never required.
+  dateOfBirth            DateTime? @db.Date
   googleId               String?   @unique
+  /// Sign in with Apple's stable per-team user id (`sub`), from the native
+  /// restaurant apps. Apple sends the name only on the first sign-in.
+  appleId                String?   @unique
   avatarUrl              String?
   isVerified             Boolean   @default(false)
   emailVerificationToken String? // set during signup, cleared on verify
   marketingOptIn         Boolean   @default(false)
+  /// When the customer last proved, by text code, that `phone` is theirs.
+  /// Eat For Less requires it before the first order.
+  phoneVerifiedAt        DateTime?
+  /// Eat For Less offers by push and email. Separate from marketingOptIn:
+  /// Eat For Less is its own sender, and consent is per sender.
+  eflMarketingOptIn      Boolean   @default(false)
   lastLoginAt            DateTime?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
@@ -393,16 +412,20 @@ model AuditLog {
 
 // ── Brand ─────────────────────────────────────────────────────────────────────
 model Brand {
-  id        String    @id @default(cuid())
-  tenantId  String
-  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  name      String
-  slug      String
-  logoUrl   String?
-  settings  Json      @default("{}")
-  metadata  Json      @default("{}")
-  isActive  Boolean   @default(true)
-  deletedAt DateTime?
+  id           String    @id @default(cuid())
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name         String
+  slug         String
+  logoUrl      String?
+  // The storefront's accent colour (`#rrggbb`). Per brand, not per tenant:
+  // one kitchen trades as several virtual brands and each storefront wears
+  // its own colour. Null = the storefront's default.
+  primaryColor String?
+  settings     Json      @default("{}")
+  metadata     Json      @default("{}")
+  isActive     Boolean   @default(true)
+  deletedAt    DateTime?
 
   // Phase AN — descriptive fields + "virtual brand" scoping. When
   // primaryLocationId is set, this brand lives at exactly that location
@@ -732,6 +755,7 @@ model Location {
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  eflListing      EflListing?
   loyaltyCard     LoyaltyCard?
   referralProgram ReferralProgram?
   loyaltyRewards  LoyaltyReward[]
@@ -1737,7 +1761,10 @@ model PromoCode {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([tenantId, code])
+  // Not unique per tenant: each shop may run its own "20OFF". Two codes with
+  // the same text at the SAME shop are refused by PromoCodesService (under an
+  // advisory lock) — a shop list can't be expressed as a unique key.
+  @@index([tenantId, code])
   @@index([tenantId])
   @@index([tenantId, isActive])
   @@map("promo_codes")
@@ -2181,6 +2208,19 @@ model Order {
   metadata       Json @default("{}")
   sourceMetadata Json @default("{}")
 
+  /// Eat For Less: the 4-digit code the customer gives the driver at the
+  /// door. Null when the order doesn't need one. Never sent to a driver.
+  deliveryPin           String?
+  deliveryPinVerifiedAt DateTime?
+  /// Wrong PINs keyed at the door. Three locks the handover.
+  deliveryPinAttempts   Int       @default(0)
+  /// Eat For Less: the commission rate this order was placed at, kept so a
+  /// later rate change can't rewrite an old statement.
+  eflCommissionPercent  Decimal?  @db.Decimal(5, 2)
+  /// Eat For Less: sponsored-listing spend recovered on this order, added to
+  /// our Stripe application fee. Null/0 = none.
+  eflAdRecovered        Decimal?  @db.Decimal(10, 2)
+
   items            OrderItem[]
   statusHistory    OrderStatusHistory[]
   kdsTickets       KdsTicket[]
@@ -2505,7 +2545,7 @@ model TableReservation {
   @@map("table_reservations")
 }
 
-// ── Salon (barbers, hair, nails) ─────────────────────────────────────────────
+// ── Salon (barbers, hair, nails) ───────────���─────────────────────────────────
 //
 // A restaurant sells items; a salon sells a person's TIME. These tables are
 // the salon's own (services with a length, the people who do them, and the
@@ -3176,7 +3216,7 @@ model DriverCashUp {
   @@map("driver_cash_ups")
 }
 
-// ── DriverPresence (Phase AX — Dispatch) ──────────────────────────────���───────
+// ── DriverPresence (Phase AX — Dispatch) ──────────────────────────────────────
 // One row per driver holding live operational state for the dispatch map and
 // the Order Hub Driver app: online/offline, last-known GPS, which location they
 // are clocked into, and the socket/push handles used to reach them. ON_JOB locks
@@ -3197,6 +3237,10 @@ model DriverPresence {
   activeAssignmentId String? // set while ON_JOB — drives the "locked" state
   socketId           String?
   pushToken          String? // Expo push token for dispatch notifications
+  // "data" = this install presents job alerts itself from a data-only push, so
+  // Android shows the Accept/Reject buttons even when the app is closed (driver
+  // app 1.0.4+ on Android). Null = send the ordinary alert push.
+  pushJobFormat      String?
   lastPingAt         DateTime?
 
   createdAt DateTime @default(now())
@@ -3347,6 +3391,53 @@ model StripeConnectAccount {
   @@index([tenantId])
   @@index([brandId])
   @@map("stripe_connect_accounts")
+}
+
+/// One brand's Mollie account, connected to our platform through Mollie
+/// Connect (OAuth). Mollie is opt-in per brand and sits alongside Stripe: a
+/// brand whose row has `enabled` true takes its online card payments through
+/// Mollie, everyone else stays on Stripe (or Tap in the Gulf). No relations on
+/// purpose — the brand/tenant ids are enough, and keeping Brand untouched
+/// keeps this a pure add.
+model MollieConnection {
+  id                     String    @id @default(cuid())
+  tenantId               String
+  brandId                String    @unique
+  /// org_… of the restaurant's Mollie organisation, once connected.
+  organizationId         String?
+  organizationName       String?
+  /// pfl_… — the website profile payments are taken on. Required by Mollie
+  /// for every OAuth-created payment.
+  profileId              String?
+  /// OAuth tokens, encrypted with CredentialEncryptionService.
+  accessTokenEnc         Json?
+  refreshTokenEnc        Json?
+  accessTokenExpiresAt   DateTime?
+  scope                  String?
+  /// not_started | link_sent | connected | needs-data | in-review | completed | revoked
+  status                 String    @default("not_started")
+  canReceivePayments     Boolean   @default(false)
+  canReceiveSettlements  Boolean   @default(false)
+  /// Mollie's deep link into the restaurant's own onboarding wizard.
+  onboardingDashboardUrl String?
+  /// The last client link (co-branded sign-up) we generated, so it can be re-sent.
+  clientLinkId           String?
+  clientLinkUrl          String?
+  /// What Mollie said when we asked it to switch on card / Apple Pay on the
+  /// restaurant's profile, e.g. { creditcard: "pending-review" }.
+  methodStatuses         Json?
+  /// tr_… of the last dashboard "Test payment" (test mode, no order).
+  lastTestPaymentId      String?
+  /// Take this brand's online payments through Mollie instead of Stripe.
+  enabled                Boolean   @default(false)
+  connectedAt            DateTime?
+  lastError              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("mollie_connections")
 }
 
 // Immutable payment record — one per payment attempt
@@ -4215,7 +4306,7 @@ model WebPushSubscription {
   @@map("web_push_subscriptions")
 }
 
-// ════════════════��═════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE AP — SYSTEM SECRETS VAULT (platform-admin only)
 // ══════════════════════════════════════════════════════════════════════════════
@@ -4387,6 +4478,9 @@ enum OrderPlatform {
   // not a member of this enum — so Prisma rejected every completed call and
   // the caller was told their order could not be saved AFTER confirming it.
   VOICE
+  // Our own marketplace app. Orders arrive like a platform's, but the
+  // checkout, payment and customer are ours.
+  EAT_FOR_LESS
 }
 
 enum OrderSource {
@@ -4406,6 +4500,322 @@ enum OrderSource {
   WHATSAPP
   // Taken over the phone by the AI voice line. Shown as "AI Voice".
   VOICE
+  // The Eat For Less marketplace app. Shown as "Eat For Less".
+  EAT_FOR_LESS
+}
+
+/// Whether the Eat For Less platform has let a shop trade. The shop's own
+/// on/off switch is EflListing.listed; this is ours.
+enum EflListingStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+/// Who carries a shop's Eat For Less deliveries.
+enum EflDeliveryMode {
+  OWN_DRIVERS
+  COURIER
+  OWN_THEN_COURIER
+}
+
+/// A shop's listing in the Eat For Less app, one per location.
+///
+/// The app is ours but the shop is the seller: card payments are direct
+/// charges on the shop's own Stripe account and our commission rides
+/// application_fee_amount, the same way the storefront's platform fee does.
+model EflListing {
+  id         String   @id @default(cuid())
+  locationId String   @unique
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  /// The brand the app shows and orders are filed under. Null = the
+  /// location's own brand.
+  brandId    String?
+
+  /// The shop's own switch, in OrderHub → Platforms.
+  listed       Boolean          @default(false)
+  /// Ours, from the Console. A shop shows in the app only when it is
+  /// listed AND approved AND nothing has hidden it.
+  status       EflListingStatus @default(PENDING)
+  /// Set when an automatic rule hid it (e.g. "HYGIENE"). Null = not hidden.
+  hiddenReason String?
+
+  /// Commission on the food (subtotal after discounts), in percent. Null =
+  /// EflConfig.defaultCommissionPercent.
+  commissionPercent Decimal? @db.Decimal(5, 2)
+
+  deliveryMode      EflDeliveryMode @default(OWN_DRIVERS)
+  acceptsDelivery   Boolean         @default(true)
+  acceptsCollection Boolean         @default(true)
+
+  description  String?
+  heroImageUrl String?
+  logoUrl      String?
+  cuisines     String[] @default([])
+
+  /// The shop's record on the Food Standards Agency ratings site, checked
+  /// every night. Null = not matched yet, so not checked.
+  fsaEstablishmentId String?
+  /// What the FSA last said: "0"–"5", "Pass", "Improvement Required", …
+  hygieneRating      String?
+  hygieneCheckedAt   DateTime?
+
+  /// When one of the shop's own OrderHub devices was last connected. A shop
+  /// with none for 2 minutes is hidden ("OFFLINE") until one comes back.
+  lastDeviceSeenAt DateTime?
+  /// When the current offline spell started. Null while online.
+  offlineSince     DateTime?
+
+  /// Where the Monday statement goes. Null = the account's own email.
+  statementEmail String?
+
+  approvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  adCampaign EflAdCampaign?
+
+  @@index([status, listed])
+  @@map("efl_listings")
+}
+
+/// A shop's sponsored-listing settings: one per listing.
+model EflAdCampaign {
+  id            String     @id @default(cuid())
+  listingId     String     @unique
+  listing       EflListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  active        Boolean    @default(false)
+  /// Most spent in one week (Mon–Sun, UK time), in pounds.
+  weeklyBudget  Decimal    @db.Decimal(10, 2)
+  /// Most paid for one tap, in pounds. The auction usually charges less.
+  maxBid        Decimal    @db.Decimal(10, 2)
+  /// Set by the Console; a paused campaign can't be switched back on by the shop.
+  pausedByAdmin Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("efl_ad_campaigns")
+}
+
+/// One charged tap on a sponsored shop.
+model EflAdTap {
+  id        String   @id @default(cuid())
+  listingId String
+  /// The customer account, or a hash of the device when signed out.
+  viewerKey String
+  /// What the auction charged for this tap, in pounds.
+  cost      Decimal  @db.Decimal(10, 2)
+  /// Set when an order from the same viewer followed within a day.
+  orderId   String?
+  createdAt DateTime @default(now())
+
+  @@index([listingId, createdAt])
+  @@index([viewerKey, listingId, createdAt])
+  @@map("efl_ad_taps")
+}
+
+/// Sponsored shows per shop, per viewer, per UK day — for the daily cap and
+/// the shop's "shown" count.
+model EflAdShow {
+  id        String @id @default(cuid())
+  listingId String
+  viewerKey String
+  /// "2026-10-27" (UK calendar day).
+  day       String
+  count     Int    @default(0)
+
+  @@unique([listingId, viewerKey, day])
+  @@index([listingId, day])
+  @@map("efl_ad_shows")
+}
+
+/// A marketing message from the Eat For Less Console: a push to app installs
+/// that said yes to offers, or an email to customers who did.
+model EflCampaign {
+  id        String    @id @default(cuid())
+  /// "PUSH" | "EMAIL"
+  channel   String
+  /// Push title, or email subject.
+  title     String
+  body      String
+  /// Optional button: where it goes (web link, or a shop in the app).
+  ctaLabel  String?
+  ctaUrl    String?
+  /// "DRAFT" | "SENDING" | "SENT" | "FAILED"
+  status    String    @default("DRAFT")
+  targeted  Int       @default(0)
+  delivered Int       @default(0)
+  createdBy String?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([createdAt])
+  @@map("efl_campaigns")
+}
+
+/// A weekly statement that has been emailed, so Monday's run sends it once.
+model EflStatementSend {
+  id        String   @id @default(cuid())
+  listingId String
+  /// Monday 00:00 UK time.
+  weekStart DateTime
+  sentTo    String
+  sentAt    DateTime @default(now())
+
+  @@unique([listingId, weekStart])
+  @@map("efl_statement_sends")
+}
+
+/// Where a "Partner with Eat For Less" application stands.
+enum EflApplicationStatus {
+  NEW
+  WAITING_INFO
+  APPROVED
+  DECLINED
+}
+
+/// A shop asking to join Eat For Less, from the public partner form.
+///
+/// The ID and bank documents are paths in the PRIVATE storage bucket, never
+/// public URLs; the Console reads them through short-lived signed links.
+model EflApplication {
+  id     String               @id @default(cuid())
+  status EflApplicationStatus @default(NEW)
+
+  businessName  String
+  companyNumber String?
+  cuisine       String?
+  addressLine1  String
+  city          String
+  postcode      String
+  firstName     String
+  lastName      String
+  phone         String
+  email         String
+  menuUrl       String?
+  hygieneUrl    String?
+
+  idDocPath   String?
+  bankDocPath String?
+
+  /// What the automatic checks found: { companiesHouse, hygiene }.
+  checks Json @default("{}")
+
+  decisionNote String?
+  decidedAt    DateTime?
+  decidedBy    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@map("efl_applications")
+}
+
+/// An Eat For Less app install that gets push notifications. Keyed to the
+/// customer's account, not a brand: an Eat For Less customer orders from many
+/// shops, and every order update comes from Eat For Less.
+model EflPushDevice {
+  id                String    @id @default(cuid())
+  customerAccountId String
+  /// The ExponentPushToken[…] for this install.
+  token             String    @unique
+  platform          String?
+  /// Offers by push. Order updates need no separate yes.
+  marketingOptIn    Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  revokedAt         DateTime?
+  lastSentAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([customerAccountId])
+  @@map("efl_push_devices")
+}
+
+/// A delivery address an Eat For Less customer saved.
+model EflSavedAddress {
+  id                String   @id @default(cuid())
+  customerAccountId String
+  label             String?
+  line1             String
+  line2             String?
+  city              String
+  postcode          String
+  latitude          Float?
+  longitude         Float?
+  /// "Ring the bell, flat 3" — shown to the driver.
+  instructions      String?
+  isDefault         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([customerAccountId])
+  @@map("efl_saved_addresses")
+}
+
+/// Eat For Less private line for one order: one number, two codes. The
+/// customer keys theirs to reach the driver (or the shop, before a driver
+/// has it); the driver keys theirs to reach the customer. Neither sees the
+/// other's number.
+model EflCallLine {
+  id           String   @id @default(cuid())
+  orderId      String   @unique
+  /// Codes repeat over time; only a line that is still open answers one.
+  customerCode String
+  driverCode   String
+  createdAt    DateTime @default(now())
+
+  @@index([customerCode])
+  @@index([driverCode])
+  @@map("efl_call_lines")
+}
+
+/// A shop an Eat For Less customer hearted.
+model EflFavourite {
+  id                String   @id @default(cuid())
+  customerAccountId String
+  listingId         String
+  createdAt         DateTime @default(now())
+
+  @@unique([customerAccountId, listingId])
+  @@map("efl_favourites")
+}
+
+/// Eat For Less platform settings. One row, id "default".
+model EflConfig {
+  id                       String   @id @default("default")
+  defaultCommissionPercent Decimal  @default(8) @db.Decimal(5, 2)
+  /// Delivery PIN on every order whose total is at least this…
+  pinMinOrderTotal         Decimal  @default(25) @db.Decimal(10, 2)
+  /// …and on every order from a customer with no earlier Eat For Less order.
+  pinForNewCustomers       Boolean  @default(true)
+  /// A new account's first order can't be larger than this.
+  firstOrderMaxTotal       Decimal  @default(60) @db.Decimal(10, 2)
+  /// Orders one account may place in a rolling hour.
+  maxOrdersPerHour         Int      @default(3)
+  /// Lowest FSA food hygiene rating a shop may have and stay listed.
+  minHygieneRating         Int      @default(2)
+  updatedAt                DateTime @updatedAt
+
+  @@map("efl_config")
+}
+
+/// A text-message code sent to prove a customer owns their phone number.
+/// Only a hash of the code is kept.
+model EflPhoneVerification {
+  id                String    @id @default(cuid())
+  customerAccountId String
+  phone             String
+  codeHash          String
+  attempts          Int       @default(0)
+  expiresAt         DateTime
+  consumedAt        DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([customerAccountId, createdAt])
+  @@map("efl_phone_verifications")
 }
 
 enum IntegrationSource {
@@ -5429,12 +5839,23 @@ model CustomerPushSubscription {
   locationId String?
   brandId    String?
 
+  // WEB = a browser (endpoint + keys, sent with web-push). EXPO = a restaurant's
+  // own iOS/Android app, where endpoint holds the ExponentPushToken[…] and the
+  // keys are null.
+  kind     String  @default("WEB")
+  platform String? // ios | android | web
+  appId    String? // bundle id of the native app that registered, e.g. com.orderhubsolutions.saleems
+
   // Issued by the browser's push service. Unique because re-subscribing the
   // same install must update the row, not accumulate duplicates that would
   // each fire a separate buzz for one order.
-  endpoint String @unique
-  p256dh   String
-  auth     String
+  endpoint String  @unique
+  p256dh   String?
+  auth     String?
+
+  // Order updates are what the customer asked for when they tapped "notify
+  // me"; offers are a separate yes. Campaigns only go to rows with this set.
+  marketingOptIn Boolean @default(false)
 
   // Set when the customer happens to be signed in — then every future order of
   // theirs is covered without re-subscribing.
@@ -5487,6 +5908,98 @@ model CustomerPushOrder {
   @@unique([subscriptionId, orderId])
   @@index([orderId])
   @@map("customer_push_orders")
+}
+
+// A restaurant's own wording for an order-stage push, or the stage switched
+// off. No row means the built-in message, on — which is how every tenant
+// behaved before this table existed. REVIEW_REQUEST is the one exception: it
+// is new behaviour, so it is off until a row turns it on.
+model PushAutomation {
+  id           String  @id @default(cuid())
+  tenantId     String
+  // ACCEPTED | PREPARING | READY | OUT_FOR_DELIVERY | RIDER_ARRIVED |
+  // COMPLETED | CANCELLED | REVIEW_REQUEST
+  trigger      String
+  enabled      Boolean @default(true)
+  // Null falls back to the built-in text. {order} and {shop} are filled in.
+  title        String?
+  body         String?
+  // REVIEW_REQUEST only: minutes after COMPLETED before asking.
+  delayMinutes Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, trigger])
+  @@map("push_automations")
+}
+
+// One location's own "How was your food?" settings, overriding the business
+// row in push_automations (trigger REVIEW_REQUEST). No row = follow the
+// business setting. Text left null falls back to the business text, then the
+// built-in default.
+model PushLocationReview {
+  id            String  @id @default(cuid())
+  tenantId      String
+  locationId    String  @unique
+  enabled       Boolean @default(true)
+  // Minutes after the order completes.
+  delayMinutes  Int?
+  title         String?
+  body          String?
+  // Local hours (0–23, the location's timezone) an ask may go out in; one
+  // due outside them waits for sendFromHour. Both null = any time.
+  sendFromHour  Int?
+  sendUntilHour Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("push_location_reviews")
+}
+
+// "How was your food?" — queued when an order completes, sent by a cron once
+// the delay has passed. orderId is unique so a COMPLETED that fires twice
+// (two tills, a retry) can only ever queue one ask.
+model PushReviewRequest {
+  id        String    @id @default(cuid())
+  tenantId  String
+  orderId   String    @unique
+  dueAt     DateTime
+  // PENDING → SENDING (claimed) → SENT | SKIPPED
+  status    String    @default("PENDING")
+  claimedAt DateTime?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([status, dueAt])
+  @@map("push_review_requests")
+}
+
+// A one-off push to every opted-in customer of a tenant, a brand or a shop.
+model PushCampaign {
+  id           String    @id @default(cuid())
+  tenantId     String
+  locationId   String?
+  brandId      String?
+  title        String
+  body         String
+  // DRAFT | SCHEDULED | SENDING | SENT | FAILED | CANCELLED
+  status       String    @default("DRAFT")
+  scheduledFor DateTime?
+  startedAt    DateTime?
+  sentAt       DateTime?
+  targeted     Int       @default(0)
+  delivered    Int       @default(0)
+  failed       Int       @default(0)
+  createdBy    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([tenantId, createdAt])
+  @@index([status, scheduledFor])
+  @@map("push_campaigns")
 }
 
 // ── Contracts (e-signature) ───────────────────────────────────────────────────
@@ -5671,19 +6184,26 @@ model LoyaltyCard {
   locationId String   @unique
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
-  isActive         Boolean   @default(false)
+  isActive          Boolean   @default(false)
   /// Stamps needed for one reward. Six by default — the number people expect.
-  stampsRequired   Int       @default(6)
+  stampsRequired    Int       @default(6)
   /// Order subtotal needed to earn a stamp. Null = any order counts.
   /// Without one, six £2 chip orders earn a free main.
-  minimumSpend     Decimal?  @db.Decimal(10, 2)
+  minimumSpend      Decimal?  @db.Decimal(10, 2)
   /// What they get. The item is what staff hand over; the label is what the
   /// customer reads, and it stands alone if the item is later deleted.
-  rewardItemId     String?
-  rewardItem       MenuItem? @relation("LoyaltyRewardItem", fields: [rewardItemId], references: [id], onDelete: SetNull)
-  rewardLabel      String    @default("Free item")
+  rewardItemId      String?
+  rewardItem        MenuItem? @relation("LoyaltyRewardItem", fields: [rewardItemId], references: [id], onDelete: SetNull)
+  rewardLabel       String    @default("Free item")
+  /// FREE_ITEM (rewardItemId / rewardLabel) | PERCENT_OFF (rewardPercent off
+  /// the whole order). Money-off rewards may need a minimum order and can be
+  /// capped. All four are frozen onto each reward when it is earned.
+  rewardType        String    @default("FREE_ITEM")
+  rewardPercent     Int?
+  rewardMaxDiscount Decimal?  @db.Decimal(10, 2)
+  rewardMinOrder    Decimal?  @db.Decimal(10, 2)
   /// Days a reward stays claimable once earned. Null = forever.
-  rewardExpiryDays Int?
+  rewardExpiryDays  Int?
 
   /// Walk-in card: a card a customer joins at the counter (QR poster or the
   /// till), keeps in Apple/Google Wallet and has scanned at the till. Same
@@ -5752,21 +6272,26 @@ model LoyaltyStamp {
 
 /// An earned reward, before and after it is spent.
 model LoyaltyReward {
-  id         String       @id @default(cuid())
-  tenantId   String
+  id          String       @id @default(cuid())
+  tenantId    String
   /// Null for a referral reward — it comes from no card.
-  cardId     String?
-  card       LoyaltyCard? @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId      String?
+  card        LoyaltyCard? @relation(fields: [cardId], references: [id], onDelete: Cascade)
   /// Where this reward can be spent. Always set, including for card rewards,
   /// because a reward has to know its own shop once cardId can be null.
-  locationId String
-  location   Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  locationId  String
+  location    Location     @relation(fields: [locationId], references: [id], onDelete: Cascade)
   /// LOYALTY | REFERRAL. What earned it — it changes the wording, not the
   /// mechanics: both are one-time, both expire, both spend the same way.
-  source     String       @default("LOYALTY")
+  source      String       @default("LOYALTY")
   /// Money off, for referral rewards. Free-item rewards leave this null and
   /// carry rewardItemId instead.
-  amountOff  Decimal?     @db.Decimal(10, 2)
+  amountOff   Decimal?     @db.Decimal(10, 2)
+  /// Percentage off the order (PERCENT_OFF loyalty card). Frozen when earned,
+  /// with its cap and minimum order, like the label.
+  percentOff  Int?
+  maxDiscount Decimal?     @db.Decimal(10, 2)
+  minOrder    Decimal?     @db.Decimal(10, 2)
 
   /// Same pair as LoyaltyStamp: an online account or a walk-in member.
   customerAccountId String?
@@ -6139,6 +6664,9 @@ model EmailCampaign {
 //   WELCOME  — a new subscriber, once per person, shortly after they join.
 //   WIN_BACK — a customer who hasn't ordered from this shop in N days; at most
 //              once per cooldown per person.
+//   BIRTHDAY — the morning of a customer's birthday (CustomerAccount.dateOfBirth,
+//              shop-local date), if they have ordered here; once a year
+//              (EmailBirthdaySend).
 // Each run queues recipients on a ledger EmailCampaign (automationId set), so
 // sending, tracking, unsubscribes and order attribution are the campaign code.
 model EmailAutomation {
@@ -6146,7 +6674,7 @@ model EmailAutomation {
   tenantId   String
   locationId String
   brandId    String?
-  type       String // WELCOME | WIN_BACK
+  type       String // WELCOME | WIN_BACK | BIRTHDAY
 
   enabled   Boolean   @default(false)
   // When it was last switched on. WELCOME only greets people who joined after
@@ -6158,7 +6686,7 @@ model EmailAutomation {
   fromName  String?
   replyTo   String?
   design    Json    @default("{}")
-  // WELCOME { delayHours } · WIN_BACK { days, cooldownDays }
+  // WELCOME { delayHours } · WIN_BACK { days, cooldownDays } · BIRTHDAY { validDays }
   settings  Json    @default("{}")
 
   lastRunAt DateTime?
@@ -6172,6 +6700,26 @@ model EmailAutomation {
   @@unique([tenantId, locationId, type])
   @@index([enabled])
   @@map("email_automations")
+}
+
+// The birthday automation's claim: one row per (automation, address, year),
+// written BEFORE the email is queued. The unique key is what makes "at most
+// once a year" true across overlapping ticks, a crash and retry, and an edit
+// to the email (which starts a new ledger campaign the recipient check can't
+// see past). `year` is the shop-local year of the birthday being celebrated.
+model EmailBirthdaySend {
+  id           String   @id @default(cuid())
+  tenantId     String
+  automationId String
+  locationId   String
+  contactId    String
+  email        String
+  year         Int
+  createdAt    DateTime @default(now())
+
+  @@unique([automationId, email, year])
+  @@index([tenantId, createdAt])
+  @@map("email_birthday_sends")
 }
 
 // One row per address a campaign goes to. Unique (campaignId, email) is what

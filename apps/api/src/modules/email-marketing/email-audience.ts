@@ -132,6 +132,12 @@ export function emailCostMinor(billable: number, pricePer1000Minor: number): num
  *              `days` ago but within a year (beyond that the email is spam,
  *              not a nudge), and no win-back from this automation within
  *              `cooldownDays`.
+ *   BIRTHDAY — the customer's account says today (`birthdayKeys`, shop-local)
+ *              is their birthday, they have a real order AT THIS SHOP (and
+ *              brand, when set), and this automation hasn't claimed them for
+ *              `birthdayYear` yet. Consent is the contact's SUBSCRIBED status
+ *              for THIS tenant — never CustomerAccount.marketingOptIn, which is
+ *              one flag shared by every restaurant the customer has used.
  *
  * "Already sent" is checked across every ledger campaign of the automation,
  * so editing the email (which starts a new ledger) can't send it twice.
@@ -139,13 +145,17 @@ export function emailCostMinor(billable: number, pricePer1000Minor: number): num
 export function buildAutomationQuery(args: {
   tenantId: string;
   automationId: string;
-  type: "WELCOME" | "WIN_BACK";
+  type: "WELCOME" | "WIN_BACK" | "BIRTHDAY";
   locationId: string;
   brandId?: string | null;
   enabledAt: Date;
   delayHours?: number;
   days?: number;
   cooldownDays?: number;
+  /** BIRTHDAY: "MM-DD" keys that count as today (see birthday.ts). */
+  birthdayKeys?: string[];
+  /** BIRTHDAY: the shop-local year being celebrated. */
+  birthdayYear?: number;
   limit: number;
   now?: Date;
 }): AudienceQuery {
@@ -172,6 +182,19 @@ export function buildAutomationQuery(args: {
     where.push(`NOT EXISTS (
       SELECT 1 FROM email_campaign_recipients r JOIN email_campaigns c ON c.id = r."campaignId"
       WHERE c."automationId" = $3 AND r.email = ec.email)`);
+  } else if (args.type === "BIRTHDAY") {
+    if (!args.birthdayKeys?.length || !args.birthdayYear) throw new Error("A birthday run needs today's date.");
+    // Ordered here: a birthday treat from a shop you've never bought from is
+    // a stranger who knows your birthday.
+    where.push(`s.email IS NOT NULL`);
+    where.push(`EXISTS (
+      SELECT 1 FROM customer_accounts ca
+      WHERE (ca.id = ec."customerAccountId" OR ca.email = ec.email)
+        AND ca."dateOfBirth" IS NOT NULL
+        AND to_char(ca."dateOfBirth", 'MM-DD') = ANY(${p(args.birthdayKeys)}::text[]))`);
+    where.push(`NOT EXISTS (
+      SELECT 1 FROM email_birthday_sends b
+      WHERE b."automationId" = $3 AND b.email = ec.email AND b.year = ${p(args.birthdayYear)})`);
   } else {
     const days = clampInt(args.days, 7, 365, 45);
     const cooldown = clampInt(args.cooldownDays, 14, 365, 90);

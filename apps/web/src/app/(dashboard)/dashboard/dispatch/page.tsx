@@ -402,7 +402,7 @@ function FleetTab({
             const status = d.presence?.status ?? "OFFLINE";
             const isOnline = status === "ONLINE" || status === "ON_JOB";
             const label = status === "ON_JOB" ? "On a job" : status === "ONLINE" ? "Online" : "Offline";
-            const dot = status === "ON_JOB" ? "#dc2626" : status === "ONLINE" ? "#16a34a" : "#94a3b8";
+            const dot = status === "ON_JOB" ? "#111827" : status === "ONLINE" ? "#16a34a" : "#94a3b8";
             return (
               <tr key={d.id} className="border-t">
                 <td className="px-4 py-2">{d.name ?? `${d.firstName ?? ""} ${d.lastName ?? ""}`.trim()}</td>

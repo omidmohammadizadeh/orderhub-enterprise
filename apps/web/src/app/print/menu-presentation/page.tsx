@@ -9,7 +9,8 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Printer } from "lucide-react";
 import { useAuthHydrated } from "@/stores/auth.store";
-import { assemblyChartsClient } from "@/lib/api/assembly-charts.client";
+import { assemblyChartsClient, type PresentationMenu } from "@/lib/api/assembly-charts.client";
+import { printLinksClient } from "@/lib/print-links";
 import { presentationBySlug } from "@/lib/menu-presentations";
 import { Deck, PRESENTATION_FONTS, PresentationStyles } from "@/components/menu-presentation/presentation";
 
@@ -29,15 +30,19 @@ function MenuPresentation() {
   const params = useSearchParams();
   const brand = presentationBySlug(params.get("brand"));
   const download = params.get("download") === "1";
+  // ?menu= draws the deck from a location's own copy of the brand's menu.
+  const menuId = params.get("menu") || brand?.menuId;
+  // ?pt= is a signed print link (opened from the tablet app) — no session needed.
+  const pt = params.get("pt");
 
   // Outside the dashboard tree: wait for the persisted session before calling
   // the API, or the first request goes out without a token and bounces to /login.
   const hydrated = useAuthHydrated();
   const q = useQuery({
-    queryKey: ["menu-presentation", brand?.menuId],
-    enabled: hydrated && !!brand,
+    queryKey: ["menu-presentation", menuId, pt],
+    enabled: (!!pt || hydrated) && !!brand && !!menuId,
     retry: false,
-    queryFn: () => assemblyChartsClient.presentation(brand!.menuId),
+    queryFn: () => (pt ? printLinksClient.read<PresentationMenu>(pt) : assemblyChartsClient.presentation(menuId!)),
   });
 
   // Fit 1920px pages to the window on screen; print is always 1:1.
@@ -69,14 +74,20 @@ function MenuPresentation() {
   }, [download, q.data]);
 
   if (!brand) return <Centered>Unknown menu presentation — open it from Kitchen training.</Centered>;
-  if (!hydrated || q.isPending)
+  if ((!pt && !hydrated) || q.isPending)
     return (
       <Centered>
         <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading the {brand.name} menu…
       </Centered>
     );
   if (q.isError || !q.data)
-    return <Centered>Could not load the {brand.name} menu. Make sure you are signed in to the dashboard in this browser.</Centered>;
+    return (
+      <Centered>
+        {pt
+          ? "This link has expired — tap Download again in Kitchen training."
+          : `Could not load the ${brand.name} menu. Make sure you are signed in to the dashboard in this browser.`}
+      </Centered>
+    );
 
   return (
     <div className={`min-h-screen bg-zinc-300 print:bg-white ${PRESENTATION_FONTS}`}>
