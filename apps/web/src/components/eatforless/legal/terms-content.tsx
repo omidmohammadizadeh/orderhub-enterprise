@@ -1,4 +1,4 @@
-import { EFL_CONTACT_EMAIL } from "@/lib/efl-site";
+import { EFL_COMPANY_NUMBER, EFL_CONTACT_EMAIL, EFL_REGISTERED_OFFICE } from "@/lib/efl-site";
 import { A, H2, P, UL } from "./legal-page";
 
 const MAIL = `mailto:${EFL_CONTACT_EMAIL}`;
@@ -9,7 +9,7 @@ export function TermsContent() {
       <H2>About these terms</H2>
       <P>
         These terms cover your use of the Eat For Less website and app. Eat For Less is run by Eat For Less Ltd, registered in
-        England and Wales (company number [Company number]), registered office [Registered address]. By using Eat For Less you
+        England and Wales (company number {EFL_COMPANY_NUMBER}), registered office {EFL_REGISTERED_OFFICE}. By using Eat For Less you
         agree to these terms.
       </P>
 

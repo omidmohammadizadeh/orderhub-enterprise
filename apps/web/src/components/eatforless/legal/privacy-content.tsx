@@ -1,4 +1,4 @@
-import { EFL_CONTACT_EMAIL } from "@/lib/efl-site";
+import { EFL_COMPANY_NUMBER, EFL_CONTACT_EMAIL, EFL_REGISTERED_OFFICE } from "@/lib/efl-site";
 import { A, H2, P, UL } from "./legal-page";
 
 const MAIL = `mailto:${EFL_CONTACT_EMAIL}`;
@@ -8,8 +8,8 @@ export function PrivacyContent() {
     <>
       <H2>Who we are</H2>
       <P>
-        Eat For Less is run by Eat For Less Ltd, a company registered in England and Wales (company number [Company number]),
-        registered office [Registered address]. For the personal data described here, we are the data controller. You can reach
+        Eat For Less is run by Eat For Less Ltd, a company registered in England and Wales (company number {EFL_COMPANY_NUMBER}),
+        registered office {EFL_REGISTERED_OFFICE}. For the personal data described here, we are the data controller. You can reach
         us at <A href={MAIL}>{EFL_CONTACT_EMAIL}</A>.
       </P>
       <P>

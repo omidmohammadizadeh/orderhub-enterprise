@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { EFL_CONTACT_EMAIL, EFL_LAUNCH_TOWNS, eflHref, type EflBase } from "@/lib/efl-site";
+import {
+  EFL_COMPANY_NAME,
+  EFL_COMPANY_NUMBER,
+  EFL_CONTACT_EMAIL,
+  EFL_LAUNCH_TOWNS,
+  EFL_REGISTERED_OFFICE,
+  eflHref,
+  type EflBase,
+} from "@/lib/efl-site";
 import { EflWordmark } from "./efl-logo";
 import { FOCUS_ON_DARK } from "./efl-styles";
 
@@ -70,6 +78,10 @@ export function SiteFooter({ base }: { base: EflBase }) {
           <p className="m-0">© 2026 Eat For Less</p>
           <p className="m-0">Restaurants are the sellers of the food you order.</p>
         </div>
+        <p className="m-0 -mt-8 text-xs leading-relaxed text-[#8C8C8C]">
+          {EFL_COMPANY_NAME}, registered in England and Wales, company number {EFL_COMPANY_NUMBER}. Registered office:{" "}
+          {EFL_REGISTERED_OFFICE}.
+        </p>
       </div>
     </footer>
   );

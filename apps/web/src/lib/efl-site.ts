@@ -28,6 +28,12 @@ export const EFL_ORIGIN = "https://eatforless.co.uk";
 
 export const EFL_CONTACT_EMAIL = "hello@eatforless.co.uk";
 
+// Companies House: a company's website must show its name, number and
+// registered office.
+export const EFL_COMPANY_NAME = "Eat For Less Ltd";
+export const EFL_COMPANY_NUMBER = "17543774";
+export const EFL_REGISTERED_OFFICE = "5 Sunningdale Drive, Washington, NE37 2LL";
+
 /** Tyne and Wear first. */
 export const EFL_LAUNCH_TOWNS = [
   "Newcastle",
