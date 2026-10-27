@@ -28,6 +28,7 @@ import type { BusinessType } from '@/lib/api/locations.client';
 import { BusinessTypePicker } from './business-type-picker';
 import { OpeningHoursEditor } from './opening-hours-editor';
 import { WhatsAppConnectionSection } from './whatsapp-connection-section';
+import { HygieneRatingSection } from './hygiene-rating-section';
 import { StuartConnectionSection } from './stuart-connection-section';
 import { UberDirectConnectionSection } from './uber-direct-connection-section';
 import { JetGoConnectionSection } from './jet-go-connection-section';
@@ -734,6 +735,9 @@ function GeneralTab({
           </div>
         </details>
       </div>
+
+      {/* FSA food hygiene rating — the storefront badge, refreshed nightly. */}
+      {location?.id && <HygieneRatingSection locationId={location.id} />}
 
       {/* Phase AY (P6) — per-location WhatsApp activation. */}
       {location?.id && <WhatsAppConnectionSection locationId={location.id} />}

@@ -3,6 +3,7 @@ import { LocationsController } from './locations.controller';
 import { LocationsService } from './locations.service';
 import { IntegrationsModule } from '../integrations/integrations.module';
 import { UploadsModule } from "../uploads/uploads.module";
+import { LocationHygieneService } from "../hygiene/location-hygiene.service";
 
 @Module({
   // Phase AU — IntegrationsModule exports CredentialEncryptionService
@@ -10,7 +11,8 @@ import { UploadsModule } from "../uploads/uploads.module";
   // token before it hits the database.
   imports: [IntegrationsModule, UploadsModule],
   controllers: [LocationsController],
-  providers: [LocationsService],
+  // LocationHygieneService — the storefront's FSA badge + its nightly refresh.
+  providers: [LocationsService, LocationHygieneService],
   exports: [LocationsService],
 })
 export class LocationsModule {}

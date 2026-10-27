@@ -6,6 +6,7 @@ import {
   Optional,
 } from "@nestjs/common";
 import { activeSplash } from "./storefront-splash";
+import { publicHygiene } from "../hygiene/hygiene-settings";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
   currencyForCountry,
@@ -1316,6 +1317,11 @@ export class OrderingService {
         channel === "ONLINE"
           ? activeSplash((location as any).settings, location.timezone)
           : null,
+      // The shop's FSA food hygiene rating for the storefront badge — kept
+      // fresh nightly by LocationHygieneService; null when hidden or unlinked.
+      // { rating, ratingDate, url }. Per LOCATION: the kitchen is inspected,
+      // not the brand on the sign.
+      hygiene: publicHygiene((location as any).settings),
       location: dedupeLogo(locationView, brandView),
       brand: brandView,
       // Phase BS — facts the storefront's server-rendered <head> needs, and

@@ -24,6 +24,7 @@
 //     methods the operator turned off
 
 import { WelcomeSplash, type WelcomeSplashData } from "@/components/storefront/welcome-splash";
+import { HygieneBadge, type StorefrontHygiene } from "@/components/storefront/hygiene-badge";
 import {
   Suspense,
   useCallback,
@@ -255,6 +256,8 @@ interface Storefront {
   } | null;
   /** Today's phone welcome screen for this location, if one is scheduled. */
   splash?: WelcomeSplashData | null;
+  /** FSA food hygiene rating; null when unlinked or hidden by the shop. */
+  hygiene?: StorefrontHygiene | null;
 }
 
 interface CartLine {
@@ -2121,6 +2124,13 @@ function OrderPage() {
                   <Info className="h-4 w-4" aria-hidden /> Info
                 </button>
               </div>
+
+              {/* FSA food hygiene rating — refreshed nightly by the API. */}
+              {storefront.hygiene && (
+                <div className="mt-3">
+                  <HygieneBadge hygiene={storefront.hygiene} />
+                </div>
+              )}
 
               {/* How, when and who. */}
               <div className="mt-4 flex flex-wrap items-center gap-2">
