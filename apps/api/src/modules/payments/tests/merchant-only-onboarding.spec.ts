@@ -1,11 +1,11 @@
 import { PaymentsService } from "../payments.service";
 
-// New Connect accounts are MERCHANT-ONLY (Stripe "standard": Stripe carries
-// the losses, the shop pays Stripe's fees). Stripe gave the two accounts made
-// that way by hand — Pizza Uno Pelton and ali shaverdi — a 3-day payout hold
-// from day one, while every Express account we created got 7 (2026-10-27).
-// Stripe's sandbox confirmed: v1 refuses card_payments without transfers, so
-// the merchant-only create must request NO capabilities; a standard account
+// New Connect accounts are EXPRESS by default. STRIPE_CONNECT_NEW_ACCOUNT_TYPE
+// =standard makes them merchant-only (Stripe "standard"): tried as the default
+// on 2026-10-27 for a 3-day payout hold, dropped on 2026-10-28 when a new
+// standard account got 7 days like Express. Stripe's sandbox confirmed v1
+// refuses card_payments without transfers, so the standard create requests NO
+// capabilities, and a standard account (made here or pasted, like Pelton)
 // onboards through a hosted account link.
 
 function build(opts: {
@@ -58,8 +58,8 @@ function build(opts: {
 }
 
 describe("merchant-only Connect onboarding", () => {
-  it("creates a standard-style account with no capabilities and no prefilled login email", async () => {
-    const { svc, created, rows } = build({});
+  it("STRIPE_CONNECT_NEW_ACCOUNT_TYPE=standard creates a merchant-only account with no capabilities and no prefilled login email", async () => {
+    const { svc, created, rows } = build({ env: { STRIPE_CONNECT_NEW_ACCOUNT_TYPE: "standard" } });
     await svc.createBrandOnboardingSession("t1", "b1", "u-admin");
     expect(created).toHaveLength(1);
     expect(created[0].type).toBeUndefined();
@@ -98,11 +98,8 @@ describe("merchant-only Connect onboarding", () => {
     expect(res.clientSecret).toBe("cs_embedded");
   });
 
-  it("STRIPE_CONNECT_NEW_ACCOUNT_TYPE=express restores the old Express setup", async () => {
-    const { svc, created, rows } = build({
-      env: { STRIPE_CONNECT_NEW_ACCOUNT_TYPE: "express" },
-      retrieved: { type: "express" },
-    });
+  it("creates an Express account by default, as before", async () => {
+    const { svc, created, rows } = build({ retrieved: { type: "express" } });
     await svc.createBrandOnboardingSession("t1", "b1", "u-admin");
     expect(created[0].type).toBe("express");
     expect(created[0].capabilities).toEqual({

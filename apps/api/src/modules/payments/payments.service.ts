@@ -2940,17 +2940,19 @@ export class PaymentsService {
   /**
    * What a NEW Connect account looks like. Existing accounts are never touched.
    *
-   * MERCHANT-ONLY (default) — what Stripe's dashboard creates when only
-   * "Merchant" is ticked: a STANDARD account. Stripe carries the losses and
-   * the shop pays Stripe's fees, so Stripe sets the payout hold from its own
-   * risk view: 3 days from day one (Pizza Uno Pelton, ali shaverdi). Express
-   * accounts make US liable for losses, and Stripe holds a young platform's
-   * accounts for 7 days. No capabilities are requested: v1 refuses
-   * card_payments without transfers, and a standard account is given card
-   * payments by Stripe once onboarded. Every live charge is a DIRECT charge
-   * (checkout, wallets, Terminal), so transfers is never needed.
+   * EXPRESS (default) — card_payments + transfers, OrderHub carries the losses
+   * and controls the account: shops can't disconnect, the onboarding and
+   * payout panels are embedded, and any pricing OrderHub negotiates with
+   * Stripe covers them.
    *
-   * STRIPE_CONNECT_NEW_ACCOUNT_TYPE=express restores the old Express setup.
+   * STRIPE_CONNECT_NEW_ACCOUNT_TYPE=standard creates a merchant-only
+   * (STANDARD) account instead: Stripe carries the losses and the shop has
+   * its own Stripe login. Tried as the default on 2026-10-27 because the two
+   * hand-made standard accounts (Pizza Uno Pelton, ali shaverdi) had a 3-day
+   * payout hold — but a NEW standard account (pizza uno-newcastle,
+   * 2026-10-28) got 7 days like Express, so the type does not set the hold.
+   * No capabilities are requested for it: v1 refuses card_payments without
+   * transfers, and Stripe grants card payments once the shop onboards.
    */
   private newConnectAccountKind(): {
     accountType: "STANDARD" | "EXPRESS";
@@ -2959,26 +2961,26 @@ export class PaymentsService {
     const wanted = (
       this.config.get<string>("STRIPE_CONNECT_NEW_ACCOUNT_TYPE") ?? ""
     ).toLowerCase();
-    if (wanted === "express") {
+    if (wanted === "standard") {
       return {
-        accountType: "EXPRESS",
+        accountType: "STANDARD",
         params: {
-          type: "express",
-          capabilities: {
-            card_payments: { requested: true },
-            transfers: { requested: true },
+          controller: {
+            stripe_dashboard: { type: "full" },
+            fees: { payer: "account" },
+            losses: { payments: "stripe" },
+            requirement_collection: "stripe",
           },
         },
       };
     }
     return {
-      accountType: "STANDARD",
+      accountType: "EXPRESS",
       params: {
-        controller: {
-          stripe_dashboard: { type: "full" },
-          fees: { payer: "account" },
-          losses: { payments: "stripe" },
-          requirement_collection: "stripe",
+        type: "express",
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
         },
       },
     };
