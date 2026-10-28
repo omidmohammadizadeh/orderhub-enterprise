@@ -1,0 +1,25 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "grillstop",
+  "name": "The Grill Stop",
+  "brandId": "cmssnn7ay04gmqiggaihcwktx",
+  "locationId": "cmssni4mh04fkqigg35v9d1fh",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmssni4mh04fkqigg35v9d1fh?brand=cmssnn7ay04gmqiggaihcwktx",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#1D1118",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/grillstop/icon.png",
+  "adaptiveIcon": "brands/grillstop/adaptive-icon.png",
+  "splash": "brands/grillstop/splash.png",
+  "notificationIcon": "brands/grillstop/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.grillstop",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.grillstop"
+  },
+  "easProjectId": "491a429a-b0a1-440e-8476-716b25558a62"
+}
