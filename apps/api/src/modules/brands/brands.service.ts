@@ -23,6 +23,7 @@ import { normalizePricingVariants } from "@orderhub/shared";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
 import { PaymentsService } from "../payments/payments.service";
+import { BRAND_MONEY_FIELDS, guardMoneyFields } from "../../common/access/money-fields";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -351,8 +352,21 @@ export class BrandsService {
     });
   }
 
-  async update(brandId: string, tenantId: string, dto: UpdateBrandDto) {
+  async update(
+    brandId: string,
+    tenantId: string,
+    dto: UpdateBrandDto,
+    /** Caller's role — payout account + fee fields are OrderHub-only. */
+    role?: string,
+  ) {
     await this.assertAccess(brandId, tenantId);
+    if (BRAND_MONEY_FIELDS.some((f) => (dto as any)[f] !== undefined)) {
+      const stored = await (this.prisma as any).brand.findUnique({
+        where: { id: brandId },
+        select: Object.fromEntries(BRAND_MONEY_FIELDS.map((f) => [f, true])),
+      });
+      guardMoneyFields(dto as any, stored, BRAND_MONEY_FIELDS, role);
+    }
     // A logo pasted in as base64 becomes a hosted file here, before it can
     // reach a column and start riding along on every storefront response.
     const logoUrl = await rehostImageIfInline(this.storage, dto.logoUrl, "logos");

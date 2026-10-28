@@ -87,6 +87,9 @@ export function BrandSettingsDrawer({
   const gulf = usesTap(country);
   const user = useAuthStore((s) => s.user);
   const isAdmin = !!user && ADMIN_ROLES.has(user.role as string);
+  // Payout account + fees are OrderHub's to set, not the tenant owner's —
+  // the API refuses anyone else (common/access/money-fields.ts).
+  const isPlatformAdmin = user?.role === "PLATFORM_ADMIN";
   const canEdit = !!user && STOREFRONT_EDIT_ROLES.has(user.role as string);
   const qc = useQueryClient();
 
@@ -318,10 +321,14 @@ export function BrandSettingsDrawer({
           city: city || null,
           postcode: postcode || null,
           about: about || null,
-          stripeConnectedAccountId: stripeAccountId || null,
-          applicationFeeMode: appFeeMode,
-          applicationFeeFixedAmount: appFeeFixed ? Number(appFeeFixed) : null,
-          applicationFeePercentage: appFeePct ? Number(appFeePct) : null,
+          ...(isPlatformAdmin
+            ? {
+                stripeConnectedAccountId: stripeAccountId || null,
+                applicationFeeMode: appFeeMode,
+                applicationFeeFixedAmount: appFeeFixed ? Number(appFeeFixed) : null,
+                applicationFeePercentage: appFeePct ? Number(appFeePct) : null,
+              }
+            : {}),
           openingHours,
           prepTime: prepTime ? Number(prepTime) : null,
           busyExtraPrepTime: busyExtraPrepTime
@@ -555,9 +562,9 @@ export function BrandSettingsDrawer({
             </Field>
           </Section>
 
-          {/* ── Stripe Connect — admin only (payouts). Hidden from
-              owners entirely. ─────────────────────────────────────── */}
-          {isAdmin && (
+          {/* ── Stripe Connect — OrderHub only (payouts + fees). Hidden
+              from every shop role, tenant owners included. ─────────── */}
+          {isPlatformAdmin && (
           <Section title={gulf ? "Payouts (Tap)" : "Stripe Connect (payouts)"}>
             {gulf ? (
               <BrandTapPayoutsPanel brand={brand} canEdit={canEdit} />

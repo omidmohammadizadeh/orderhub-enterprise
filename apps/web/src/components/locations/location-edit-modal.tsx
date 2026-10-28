@@ -15,6 +15,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SUPPORTED_COUNTRIES, dialCodeForCountry } from '@orderhub/shared';
 import { useCurrency } from '@/hooks/use-currency';
+import { useAuthStore } from '@/stores/auth.store';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Wand2, X } from 'lucide-react';
@@ -152,6 +153,8 @@ function GeneralTab({
   isCreate: boolean;
   onSaved: () => void;
 }) {
+  // Payout account + fees are OrderHub's to set — the API refuses anyone else.
+  const isPlatformAdmin = useAuthStore((st) => st.user?.role) === 'PLATFORM_ADMIN';
   const qc = useQueryClient();
   // The fee labels read in the currency of the shop being EDITED, which need
   // not be the one selected in the sidebar. A new shop has no id yet, so it
@@ -402,20 +405,25 @@ function GeneralTab({
         hubriseLocationId: hubriseLocationId || null,
         // Payment link Stripe settings (DB columns keep their historical
         // pos* names — see the section comment in the form below).
-        posStripeAccountId: posStripeAccountId.trim() || null,
-        posApplicationFeePercent: posFeePercent.trim() ? Number(posFeePercent) : null,
-        posApplicationFeeFixedMinor: posFeeFixed.trim()
-          ? Math.round(Number(posFeeFixed) * 100)
-          : null,
-        // Card-reader fee. Blank sends null (inherit the brand's
-        // online-ordering fee); "0" sends 0 (charge nothing). Number("")
-        // is 0, so the trim() check is what keeps those two apart.
-        posTerminalApplicationFeePercent: posTerminalFeePercent.trim()
-          ? Number(posTerminalFeePercent)
-          : null,
-        posTerminalApplicationFeeFixedMinor: posTerminalFeeFixed.trim()
-          ? Math.round(Number(posTerminalFeeFixed) * 100)
-          : null,
+        // Only OrderHub sends these; the API refuses a change from anyone else.
+        ...(isPlatformAdmin
+          ? {
+              posStripeAccountId: posStripeAccountId.trim() || null,
+              posApplicationFeePercent: posFeePercent.trim() ? Number(posFeePercent) : null,
+              posApplicationFeeFixedMinor: posFeeFixed.trim()
+                ? Math.round(Number(posFeeFixed) * 100)
+                : null,
+              // Card-reader fee. Blank sends null (inherit the brand's
+              // online-ordering fee); "0" sends 0 (charge nothing). Number("")
+              // is 0, so the trim() check is what keeps those two apart.
+              posTerminalApplicationFeePercent: posTerminalFeePercent.trim()
+                ? Number(posTerminalFeePercent)
+                : null,
+              posTerminalApplicationFeeFixedMinor: posTerminalFeeFixed.trim()
+                ? Math.round(Number(posTerminalFeeFixed) * 100)
+                : null,
+            }
+          : {}),
         // POS display name + per-location SMS/caller-ID identity — shallow-
         // merged into Location.settings.
         settings: {
@@ -818,103 +826,108 @@ function GeneralTab({
         )}
       </div>
 
-      {/* Payment link settings — the Connect account + platform fee that
-          payment-link charges use for THIS location. Overrides the brand
-          account so a shop's card links always land on its own Stripe.
-          Historically labelled "POS Stripe settings", which read as though it
-          covered card readers too; it never has. The DB columns keep their
-          pos* names deliberately — this row is written by raw SQL to survive
-          a stale Prisma client, and a rename is the last thing to put in
-          front of that. */}
-      <div className="space-y-3 rounded-md border border-zinc-200 p-3">
-        <div>
-          <h3 className="text-sm font-semibold text-zinc-900">Payment link settings</h3>
-          <p className="text-[11px] text-zinc-500">
-            Used only for <strong>payment link</strong> charges at this location — not card readers.
-            Leave the account blank to use the brand&apos;s Stripe account.
+      {/* Payout account + fees: OrderHub only — the API refuses anyone else. */}
+      {isPlatformAdmin && (
+      <>
+        {/* Payment link settings — the Connect account + platform fee that
+            payment-link charges use for THIS location. Overrides the brand
+            account so a shop's card links always land on its own Stripe.
+            Historically labelled "POS Stripe settings", which read as though it
+            covered card readers too; it never has. The DB columns keep their
+            pos* names deliberately — this row is written by raw SQL to survive
+            a stale Prisma client, and a rename is the last thing to put in
+            front of that. */}
+        <div className="space-y-3 rounded-md border border-zinc-200 p-3">
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-900">Payment link settings</h3>
+            <p className="text-[11px] text-zinc-500">
+              Used only for <strong>payment link</strong> charges at this location — not card readers.
+              Leave the account blank to use the brand&apos;s Stripe account.
+            </p>
+          </div>
+          <Field label="Stripe connected account ID">
+            <input
+              value={posStripeAccountId}
+              onChange={(e) => setPosStripeAccountId(e.target.value)}
+              placeholder="acct_..."
+              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Application fee (%)">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={posFeePercent}
+                onChange={(e) => setPosFeePercent(e.target.value)}
+                placeholder="e.g. 2.5"
+                className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </Field>
+            <Field label={`Fixed fee per order (${symbol.trim()})`}>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={posFeeFixed}
+                onChange={(e) => setPosFeeFixed(e.target.value)}
+                placeholder="e.g. 0.20"
+                className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </Field>
+          </div>
+          <p className="text-[11px] text-zinc-400">
+            Platform fee per payment-link charge. Both parts come out of the restaurant&apos;s payout
+            &mdash; nothing is added to the customer&apos;s bill, so a payment link costs the customer
+            exactly the same as any other way of paying. Both optional.
           </p>
         </div>
-        <Field label="Stripe connected account ID">
-          <input
-            value={posStripeAccountId}
-            onChange={(e) => setPosStripeAccountId(e.target.value)}
-            placeholder="acct_..."
-            className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-          />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Application fee (%)">
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={posFeePercent}
-              onChange={(e) => setPosFeePercent(e.target.value)}
-              placeholder="e.g. 2.5"
-              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-            />
-          </Field>
-          <Field label={`Fixed fee per order (${symbol.trim()})`}>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={posFeeFixed}
-              onChange={(e) => setPosFeeFixed(e.target.value)}
-              placeholder="e.g. 0.20"
-              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-            />
-          </Field>
-        </div>
-        <p className="text-[11px] text-zinc-400">
-          Platform fee per payment-link charge. Both parts come out of the restaurant&apos;s payout
-          &mdash; nothing is added to the customer&apos;s bill, so a payment link costs the customer
-          exactly the same as any other way of paying. Both optional.
-        </p>
-      </div>
 
-      {/* Card-reader fee — previously shared with online ordering via the
-          brand's applicationFee*, so a shop couldn't price a counter tap
-          differently from a delivery order. Per-location by design: these are
-          the shop's card-present takings, and a brand can span several shops. */}
-      <div className="space-y-3 rounded-md border border-zinc-200 p-3">
-        <div>
-          <h3 className="text-sm font-semibold text-zinc-900">Card reader fee (POS terminal)</h3>
-          <p className="text-[11px] text-zinc-500">
-            Platform fee on payments taken through a card reader at this shop — S700, WisePad 3, and
-            Tap to Pay on iPhone or Android.
+        {/* Card-reader fee — previously shared with online ordering via the
+            brand's applicationFee*, so a shop couldn't price a counter tap
+            differently from a delivery order. Per-location by design: these are
+            the shop's card-present takings, and a brand can span several shops. */}
+        <div className="space-y-3 rounded-md border border-zinc-200 p-3">
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-900">Card reader fee (POS terminal)</h3>
+            <p className="text-[11px] text-zinc-500">
+              Platform fee on payments taken through a card reader at this shop — S700, WisePad 3, and
+              Tap to Pay on iPhone or Android.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Application fee (%)">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={posTerminalFeePercent}
+                onChange={(e) => setPosTerminalFeePercent(e.target.value)}
+                placeholder="e.g. 1.5"
+                className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </Field>
+            <Field label={`Fixed fee per order (${symbol.trim()})`}>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={posTerminalFeeFixed}
+                onChange={(e) => setPosTerminalFeeFixed(e.target.value)}
+                placeholder="e.g. 0.10"
+                className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
+              />
+            </Field>
+          </div>
+          <p className="text-[11px] text-zinc-400">
+            Leave both blank to keep using the brand&apos;s online-ordering fee for card readers.
+            Enter <strong>0</strong> to charge nothing on terminal payments — that&apos;s different
+            from leaving it blank.
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Application fee (%)">
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={posTerminalFeePercent}
-              onChange={(e) => setPosTerminalFeePercent(e.target.value)}
-              placeholder="e.g. 1.5"
-              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-            />
-          </Field>
-          <Field label={`Fixed fee per order (${symbol.trim()})`}>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={posTerminalFeeFixed}
-              onChange={(e) => setPosTerminalFeeFixed(e.target.value)}
-              placeholder="e.g. 0.10"
-              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-sm focus:border-zinc-900 focus:outline-none"
-            />
-          </Field>
-        </div>
-        <p className="text-[11px] text-zinc-400">
-          Leave both blank to keep using the brand&apos;s online-ordering fee for card readers.
-          Enter <strong>0</strong> to charge nothing on terminal payments — that&apos;s different
-          from leaving it blank.
-        </p>
-      </div>
+      </>
+      )}
 
       {/* Kitchen-language tickets. Off unless a shop actually needs it. */}
       <div className="space-y-3 rounded-md border border-zinc-200 p-3">
