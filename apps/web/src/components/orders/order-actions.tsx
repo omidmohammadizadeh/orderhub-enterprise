@@ -213,13 +213,15 @@ function buttonsForStatus(
   }
 }
 
+// The dark: halves only apply inside the live orders board, which is the one
+// place that sets `dark` on an ancestor. Everywhere else these read as before.
 const VARIANT_CLASSES: Record<ButtonSpec["variant"], string> = {
   primary:
-    "bg-zinc-900 text-white hover:bg-zinc-800 disabled:bg-zinc-400 disabled:cursor-not-allowed",
+    "bg-zinc-900 text-white hover:bg-zinc-800 disabled:bg-zinc-400 disabled:cursor-not-allowed dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500 dark:disabled:bg-zinc-700",
   secondary:
-    "bg-white text-zinc-700 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50",
+    "bg-white text-zinc-700 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/[0.08]",
   danger:
-    "bg-white text-red-600 border border-red-200 hover:border-red-300 hover:bg-red-50",
+    "bg-white text-red-600 border border-red-200 hover:border-red-300 hover:bg-red-50 dark:border-red-500/30 dark:bg-transparent dark:text-red-400 dark:hover:border-red-500/50 dark:hover:bg-red-500/10",
 };
 
 export function OrderActions({

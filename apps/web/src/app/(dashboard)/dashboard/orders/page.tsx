@@ -70,6 +70,22 @@ const SIM_MARKETPLACES = new Set<SimPlatform>([
 // READY → OUT_FOR_DELIVERY → COMPLETED (with "Out for delivery" then
 // "Mark delivered" buttons).
 
+/** HH:MM, ticking — a wall-mounted board should say what time it is. */
+function LiveClock() {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const t = setInterval(() => setNow(new Date()), 15_000);
+    return () => clearInterval(t);
+  }, []);
+  if (!now) return null;
+  return (
+    <span className="tabular-nums text-zinc-400">
+      {now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+    </span>
+  );
+}
+
 export default function OrdersPage() {
   const selectedLocationId = useSelectedLocationStore(
     (s) => s.selectedLocationId,
@@ -158,12 +174,21 @@ export default function OrdersPage() {
   const disabled = simulateOrder.isPending || !selectedLocationId;
 
   return (
-    <div>
+    // Operator console: the board runs dark edge to edge, like the dispatch
+    // map, cancelling the dashboard's own page padding (p-6) so there's no
+    // light frame around it.
+    <div className="-m-6 min-h-[calc(100dvh-3.5rem)] bg-[#0b0b0d] p-4 text-zinc-100 md:p-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900">Live Orders</h1>
-          <p className="text-sm text-zinc-500">
-            Real-time order board — updates automatically via WebSocket.
+          <h1 className="text-xl font-semibold tracking-tight text-white">Live orders</h1>
+          <p className="mt-0.5 flex items-center gap-2 text-xs text-zinc-400">
+            <span className="relative flex h-2 w-2" aria-hidden="true">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+            <span className="font-medium text-emerald-400">Live</span>
+            <span className="text-zinc-600">·</span>
+            <LiveClock />
           </p>
         </div>
         {/* One toolbar, right-aligned. Every button used to be its own flex
@@ -186,7 +211,7 @@ export default function OrdersPage() {
                   ? "Pause or busy-mode this location"
                   : "Select a location first"
               }
-              className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:border-red-300 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 px-3 text-sm font-medium text-red-300 hover:border-red-500/50 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <PauseCircle className="h-4 w-4" />
               Stop taking orders
@@ -203,7 +228,7 @@ export default function OrdersPage() {
                 ? "Mark orders preparing and ready on a timer"
                 : "Select a location first"
             }
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-zinc-200 hover:border-white/20 hover:bg-white/[0.08] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Timer className="h-4 w-4" />
             Auto ready
@@ -211,7 +236,7 @@ export default function OrdersPage() {
           <button
             type="button"
             onClick={() => setHistoryOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm font-medium text-zinc-200 hover:border-white/20 hover:bg-white/[0.08]"
           >
             <History className="h-4 w-4" />
             Order history
@@ -229,7 +254,7 @@ export default function OrdersPage() {
                     ? "Create a fake marketplace order on this shop's board — visible to everyone at this location"
                     : "Select a specific location to simulate an order"
                 }
-                className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 hover:border-violet-300 hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 text-sm font-medium text-violet-300 hover:border-violet-500/50 hover:bg-violet-500/20 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {simulateOrder.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -243,9 +268,9 @@ export default function OrdersPage() {
                 <div
                   role="menu"
                   aria-label="Simulate an order"
-                  className={`absolute ${simMenuAlign === "right" ? "right-0" : "left-0"} top-full z-40 mt-1 w-60 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl`}
+                  className={`absolute ${simMenuAlign === "right" ? "right-0" : "left-0"} top-full z-40 mt-1 w-60 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-white/10 bg-[#17171a] shadow-2xl shadow-black/50`}
                 >
-                  <div className="border-b border-zinc-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-violet-500">
+                  <div className="border-b border-white/[0.06] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-violet-400">
                     Simulate an order
                   </div>
                   <div className="max-h-80 overflow-y-auto py-1">
@@ -258,7 +283,7 @@ export default function OrdersPage() {
                           setSimMenuOpen(false);
                           setSimChoice(platform);
                         }}
-                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-zinc-800 hover:bg-violet-50"
+                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-zinc-200 hover:bg-white/[0.05]"
                       >
                         <PlatformLogo platform={platform} size={22} />
                         {SIM_LABEL[platform]}
@@ -282,7 +307,7 @@ export default function OrdersPage() {
         locationId={selectedLocationId ?? undefined}
       />
       {feedback && (
-        <div className="mb-3 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-700">
+        <div className="mb-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-zinc-300">
           {feedback}
         </div>
       )}
