@@ -17,7 +17,7 @@ export type Brand = {
   /** Native sign-in this build offers (app.config.ts → brands/<slug>.json). */
   signIn?: {
     apple: boolean;
-    google: { iosClientId: string; webClientId: string; android: boolean } | null;
+    google: { iosClientId: string | null; webClientId: string; android: boolean } | null;
   };
 };
 

@@ -21,5 +21,6 @@
   "android": {
     "package": "com.orderhubsolutions.donatellos"
   },
+  "google": {},
   "easProjectId": "76c5b55b-ad8b-4b5e-9971-7f9c605a3c94"
 }

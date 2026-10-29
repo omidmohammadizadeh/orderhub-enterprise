@@ -98,7 +98,7 @@ const config: ExpoConfig = {
       : []),
     // Only with a client id: the iOS SDK throws (and the app dies) if asked to
     // sign in without its URL scheme registered.
-    ...(brand.google
+    ...(brand.google?.iosUrlScheme
       ? [["@react-native-google-signin/google-signin", { iosUrlScheme: brand.google.iosUrlScheme }] as [string, object]]
       : []),
     [
