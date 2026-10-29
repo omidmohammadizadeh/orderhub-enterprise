@@ -50,3 +50,9 @@ export function restaurantAppReturnUrl(): string | null {
   url.searchParams.delete("appReturn");
   return `${scheme}://payment-return?to=${encodeURIComponent(url.toString())}`;
 }
+
+/** The app build can be taken back automatically after paying (newer builds
+ *  add "OHPayReturn/1" to their user agent; see apps/customer OrderScreen). */
+export function restaurantAppAutoReturn(): boolean {
+  return typeof navigator !== "undefined" && navigator.userAgent.includes("OHPayReturn/1");
+}

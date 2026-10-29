@@ -38,6 +38,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { readEmailRef, rememberEmailRef } from "@/lib/email-marketing/attribution";
 import {
   bounceBackToRestaurantApp,
+  restaurantAppAutoReturn,
   restaurantAppScheme,
   useInRestaurantApp,
 } from "@/lib/in-restaurant-app";
@@ -1545,6 +1546,7 @@ function OrderPage() {
         // Inside a restaurant app: lets the payment return pages hand the
         // customer back to the app from the Chrome tab it pays in (Android).
         appScheme: restaurantAppScheme() ?? undefined,
+        appAutoReturn: restaurantAppAutoReturn() || undefined,
         // Phase AP fix #1 — applied promo discount lands on the order
         // so it shows in operator + accounting reports.
         discount: orderDiscount,

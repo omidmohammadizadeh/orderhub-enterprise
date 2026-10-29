@@ -75,6 +75,13 @@ export function PaymentSheet({
 
   const onShouldStartLoadWithRequest = useCallback(
     (req: { url: string; isTopFrame?: boolean }) => {
+      // Our API's app-return redirect: <scheme>://payment-return?to=<page>.
+      const back = req.url.match(/^orderhub-[a-z0-9]+:\/\/payment-return\?(?:.*&)?to=([^&#]+)/i)?.[1];
+      if (back) {
+        const to = decodeURIComponent(back);
+        if (/^https:\/\//i.test(to)) onReturn(to);
+        return false;
+      }
       if (req.isTopFrame !== false && isStorefrontPage(req.url)) {
         onReturn(req.url);
         return false;

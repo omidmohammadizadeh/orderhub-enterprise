@@ -294,7 +294,9 @@ export function OrderScreen() {
         onLoadStart={() => setLoading(true)}
         onLoadEnd={() => setLoading(false)}
         onError={() => setFailed(true)}
-        applicationNameForUserAgent={`OrderHubApp/${brand.slug}`}
+        // OHPayReturn/1: this build handles <scheme>://payment-return, so
+        // checkout may send payment returns straight back into the app.
+        applicationNameForUserAgent={`OrderHubApp/${brand.slug} OHPayReturn/1`}
         allowsBackForwardNavigationGestures
         setSupportMultipleWindows={false}
         sharedCookiesEnabled
