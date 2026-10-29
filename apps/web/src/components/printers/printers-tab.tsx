@@ -886,7 +886,15 @@ function PrinterWizard({
           </button>
           {step < 3 ? (
             <button
-              disabled={step === 1 ? !locationId || !name : false}
+              disabled={
+                step === 1
+                  ? !locationId || !name
+                  : // A USB printer with no ids can never be reached — the
+                    // tablet has nothing to match. Saved blank once already.
+                    step === 2 &&
+                    connectionType === "USB" &&
+                    !(parseInt(usbVendor, 10) && parseInt(usbProduct, 10))
+              }
               onClick={() => setStep((s) => s + 1)}
               className="rounded-md bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
             >
