@@ -152,6 +152,14 @@ export interface CheckoutDto {
    * unaffected.
    */
   embedded?: boolean;
+  /**
+   * Set by the storefront when it runs inside a restaurant app
+   * ("orderhub-<brand>", the app's URL scheme). On Android the app opens a
+   * hosted payment page in a Chrome tab (Google Pay can't run in its
+   * WebView without per-app Google approval), and the return pages carry
+   * `appReturn=<scheme>` so they can hand the customer back to the app.
+   */
+  appScheme?: string;
   // Phase AP-5 — when the storefront customer is signed in, the
   // CustomerAccount id is threaded through here so the Order can be
   // attributed to them for the "My Orders" page. Null/undefined
@@ -2398,7 +2406,12 @@ export class OrderingService {
       );
     } else if (dto.paymentMethod === "CARD") {
       const origin0 = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
-      const brandQs0 = pinnedBrandId ? `&brand=${encodeURIComponent(pinnedBrandId)}` : "";
+      // Only a well-formed app scheme is echoed into a URL a browser will
+      // follow — never arbitrary client input.
+      const appQs = /^orderhub-[a-z0-9]{1,40}$/.test(String(dto.appScheme ?? ""))
+        ? `&appReturn=${dto.appScheme}`
+        : "";
+      const brandQs0 = (pinnedBrandId ? `&brand=${encodeURIComponent(pinnedBrandId)}` : "") + appQs;
       if (usesTap(location.country)) {
         // Tap is hosted-only here, including when the storefront asked for
         // the embedded flow. `src_all` renders Tap's own page with every
@@ -2467,9 +2480,8 @@ export class OrderingService {
       // post-payment storefront still renders the brand identity. The
       // confirmation page reads `?brand=<id>` and forwards it onto the
       // /order/<slug>?brand=… target it bounces to.
-      const brandQs = pinnedBrandId
-        ? `&brand=${encodeURIComponent(pinnedBrandId)}`
-        : "";
+      const brandQs =
+        (pinnedBrandId ? `&brand=${encodeURIComponent(pinnedBrandId)}` : "") + appQs;
       const successUrl = `${origin}/order/${slug}/confirmation?orderId=${order.id}&session_id={CHECKOUT_SESSION_ID}${brandQs}`;
       const cancelUrl = `${origin}/order/${slug}?canceledOrderId=${order.id}${brandQs}`;
 

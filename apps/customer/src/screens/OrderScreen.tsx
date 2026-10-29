@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, type RouteProp, useRoute } from "@react-navigation/native";
 import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, BackHandler, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, BackHandler, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from "react-native-webview";
 import {
@@ -184,18 +185,58 @@ export function OrderScreen() {
     [onUrl],
   );
 
+  // Back from a payment (or a cancel): show that storefront page in the
+  // storefront WebView with its scripts, so the order is followed and the
+  // native tracker opens as before.
+  const showReturnPage = useCallback(
+    (url: string) => {
+      setPayUrl(null);
+      lastUrl.current = url;
+      setSource(url);
+      setWebKey((k) => k + 1);
+      onUrl(url);
+    },
+    [onUrl],
+  );
+
+  // Android pays in a Chrome tab over the app. Google Pay won't run inside
+  // an app's WebView unless Google approves that app for it (OR_BIBED_11),
+  // and every restaurant is its own app; real Chrome needs no approval. The
+  // return page (carrying appReturn=<scheme>, set at checkout) sends
+  // <scheme>://payment-return?to=<page>, which closes the tab here.
+  const payInChromeTab = useCallback(
+    async (url: string) => {
+      const scheme = `orderhub-${brand.slug}`;
+      try {
+        const res = await WebBrowser.openAuthSessionAsync(url, `${scheme}://payment-return`, {
+          showTitle: true,
+          toolbarColor: colors.card,
+          enableBarCollapsing: false,
+        });
+        if (res.type !== "success") return; // closed by the customer: stay put
+        const to = decodeURIComponent(res.url.match(/[?&]to=([^&#]+)/)?.[1] ?? "");
+        if (/^https:\/\//i.test(to)) showReturnPage(to);
+      } catch {
+        // No browser able to open it: fall back to the in-app sheet.
+        setPayUrl(url);
+      }
+    },
+    [showReturnPage],
+  );
+
   const onShouldStartLoadWithRequest = useCallback((req: { url: string; isTopFrame?: boolean }) => {
     // The storefront leaving for a hosted payment page: open it in the
     // payment sheet instead, where Apple Pay / Google Pay work.
     if (req.isTopFrame !== false && isPaymentPage(req.url)) {
-      setPayUrl(req.url);
+      if (Platform.OS === "android") payInChromeTab(req.url);
+      else setPayUrl(req.url);
       return false;
     }
     if (/^https?:/i.test(req.url) || req.url.startsWith("about:")) return true;
     // tel:, mailto:, maps, wallet links — hand them to the OS.
     Linking.openURL(req.url).catch(() => {});
     return false;
-  }, []);
+  }, [payInChromeTab]);
 
   const pageScript = sessionScript(auth, providers) + INJECTED_JS;
 
@@ -263,16 +304,7 @@ export function OrderScreen() {
       />
       <PaymentSheet
         url={payUrl}
-        onReturn={(url) => {
-          // Back from the provider (paid, or cancelled to the menu): show
-          // that page in the storefront WebView with its scripts, so the
-          // order is followed and the tracker opens as before.
-          setPayUrl(null);
-          lastUrl.current = url;
-          setSource(url);
-          setWebKey((k) => k + 1);
-          onUrl(url);
-        }}
+        onReturn={showReturnPage}
         onClose={() => setPayUrl(null)}
       />
       {loading && !failed ? (

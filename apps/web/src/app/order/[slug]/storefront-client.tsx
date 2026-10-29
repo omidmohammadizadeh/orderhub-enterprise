@@ -36,7 +36,11 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { readEmailRef, rememberEmailRef } from "@/lib/email-marketing/attribution";
-import { useInRestaurantApp } from "@/lib/in-restaurant-app";
+import {
+  bounceBackToRestaurantApp,
+  restaurantAppScheme,
+  useInRestaurantApp,
+} from "@/lib/in-restaurant-app";
 import { AppInstallBanner, AppInstallCard, type CustomerAppLinks } from "@/components/storefront/app-install";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -608,6 +612,9 @@ function OrderPage() {
   // shows automatically instead of the empty cart.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Cancelled on a payment page a restaurant app opened in a Chrome tab
+    // (Android): back to the app rather than a menu in the browser.
+    if (bounceBackToRestaurantApp()) return;
     const sp = new URLSearchParams(window.location.search);
     const id = sp.get("confirmedOrderId");
     // Phase AW — preserve the ?brand=<id> pin across the
@@ -1535,6 +1542,9 @@ function OrderPage() {
         // rather than on Stripe's hosted page, so ask for a PaymentIntent
         // secret instead of a redirect URL. Ignored for cash.
         embedded: paymentMethod === "CARD",
+        // Inside a restaurant app: lets the payment return pages hand the
+        // customer back to the app from the Chrome tab it pays in (Android).
+        appScheme: restaurantAppScheme() ?? undefined,
         // Phase AP fix #1 — applied promo discount lands on the order
         // so it shows in operator + accounting reports.
         discount: orderDiscount,
