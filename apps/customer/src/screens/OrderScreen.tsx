@@ -16,6 +16,7 @@ import {
   useAuth,
 } from "../auth";
 import { Button } from "../components/Button";
+import { isPaymentPage, PaymentSheet } from "../components/PaymentSheet";
 import { brand } from "../brand";
 import { openOrder, type TabParams } from "../navigation";
 import { saveOrder } from "../orders";
@@ -42,6 +43,9 @@ export function OrderScreen() {
   const [webKey, setWebKey] = useState(0);
   const lastUrl = useRef<string | null>(null);
   const shownVersion = useRef(auth.version);
+  // A hosted payment page (Mollie, Stripe Checkout, Dojo, Tap) open in the
+  // wallet-capable sheet over the menu. See PaymentSheet for why.
+  const [payUrl, setPayUrl] = useState<string | null>(null);
 
   useEffect(() => {
     availableProviders().then(setProviders);
@@ -180,7 +184,13 @@ export function OrderScreen() {
     [onUrl],
   );
 
-  const onShouldStartLoadWithRequest = useCallback((req: { url: string }) => {
+  const onShouldStartLoadWithRequest = useCallback((req: { url: string; isTopFrame?: boolean }) => {
+    // The storefront leaving for a hosted payment page: open it in the
+    // payment sheet instead, where Apple Pay / Google Pay work.
+    if (req.isTopFrame !== false && isPaymentPage(req.url)) {
+      setPayUrl(req.url);
+      return false;
+    }
     if (/^https?:/i.test(req.url) || req.url.startsWith("about:")) return true;
     // tel:, mailto:, maps, wallet links — hand them to the OS.
     Linking.openURL(req.url).catch(() => {});
@@ -250,6 +260,20 @@ export function OrderScreen() {
         pullToRefreshEnabled
         // No decelerationRate: Android passes "normal" straight to a numeric
         // native prop and the ClassCastException blanks the whole app.
+      />
+      <PaymentSheet
+        url={payUrl}
+        onReturn={(url) => {
+          // Back from the provider (paid, or cancelled to the menu): show
+          // that page in the storefront WebView with its scripts, so the
+          // order is followed and the tracker opens as before.
+          setPayUrl(null);
+          lastUrl.current = url;
+          setSource(url);
+          setWebKey((k) => k + 1);
+          onUrl(url);
+        }}
+        onClose={() => setPayUrl(null)}
       />
       {loading && !failed ? (
         <View style={styles.loading} pointerEvents="none">

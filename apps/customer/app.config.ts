@@ -81,6 +81,8 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
+    // Google Pay on hosted checkout pages inside the app (PaymentSheet).
+    "./plugins/with-google-pay-webview",
     ...(brand.appleSignIn ? ["expo-apple-authentication"] : []),
     // Nearest-shop picker. Only a multi-shop app asks for location; the rest
     // block the permissions below so Play's Data safety form stays simple.
