@@ -55,6 +55,9 @@ export function stopCometReader() {
   stopped = true;
 }
 
+const COMET_VENDOR_ID = 0x0403; // FTDI
+const COMET_PRODUCT_ID = 0x8e08; // Crucible Technologies' custom id
+
 export async function startCometReader(onNumber: OnNumber, onLog: OnLog = () => {}) {
   if (Platform.OS !== "android") return; // hub role is Android-only
 
@@ -80,7 +83,12 @@ export async function startCometReader(onNumber: OnNumber, onLog: OnLog = () => 
         await sleep(10_000);
         continue;
       }
-      const device = devices[0];
+      // Prefer the Comet's own ids. With a USB printer on the same hub, the
+      // first serial device in the list isn't necessarily the caller-ID box.
+      const device =
+        devices.find(
+          (d: any) => d?.vendorId === COMET_VENDOR_ID && d?.productId === COMET_PRODUCT_ID,
+        ) ?? devices[0];
       // Vendor/product ID identify the chipset, and the chipset decides
       // whether a driver exists at all. The Comet is FTDI silicon (0x0403)
       // with a custom product ID (0x8e08) burned into its EEPROM, which the

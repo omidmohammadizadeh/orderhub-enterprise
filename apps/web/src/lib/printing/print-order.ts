@@ -12,7 +12,7 @@ import { pinnedPrinter, chooseReceiptPrinters } from "../../stores/device.store"
 import { formatMoney } from "@orderhub/shared";
 import { marketingClient } from "../api/marketing.client";
 import {
-  hasNativeBridge,
+  hasAnyPrintPath,
   bridgeSupportsPrinter,
   writeToPrinter,
   renderReceiptParts,
@@ -23,6 +23,7 @@ import {
   resolvePrintFont,
   buildDrawerKick,
 } from "./bridge";
+import { getBrowserPrinterLink } from "./browser-printers";
 import { buildPrintPayload } from "./order-receipt";
 import {
   readPrintFilter,
@@ -247,19 +248,19 @@ export function printerRenderOptions(p: any) {
 export async function openCashDrawerViaBridge(
   locationId: string,
 ): Promise<string> {
-  if (!hasNativeBridge()) {
+  if (!hasAnyPrintPath()) {
     throw new Error(
-      "The cash drawer opens through the printer, which only works inside the OrderHub Solutions tablet app.",
+      "The cash drawer opens through the printer — use the OrderHub Solutions tablet app, or link the receipt printer to this computer under Printers.",
     );
   }
   const printers = await listPrintersCached(locationId);
   const reachable = printers.filter(
     (p: any) =>
       p.locationId === locationId &&
-      (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
-      p.ipAddress &&
       p.isActive !== false &&
-      bridgeSupportsPrinter(p),
+      bridgeSupportsPrinter(p) &&
+      // The print dialog can't send a drawer kick — only raw transports can.
+      getBrowserPrinterLink(p.id)?.mode !== "system",
   );
   if (reachable.length === 0) {
     throw new Error(
@@ -286,9 +287,9 @@ export async function printOrderViaBridge(
     newOrder?: boolean;
   },
 ): Promise<string> {
-  if (!hasNativeBridge()) {
+  if (!hasAnyPrintPath()) {
     throw new Error(
-      "Native printing only works inside the OrderHub Solutions tablet app.",
+      "Printing from here needs the OrderHub Solutions tablet app, or a printer linked to this computer under Printers.",
     );
   }
   const printers = await listPrintersCached(order.locationId);
@@ -297,8 +298,6 @@ export async function printOrderViaBridge(
   const reachable = printers.filter(
     (p: any) =>
       p.locationId === order.locationId &&
-      (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
-      p.ipAddress &&
       p.isActive !== false &&
       bridgeSupportsPrinter(p),
   );

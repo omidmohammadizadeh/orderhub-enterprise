@@ -37,6 +37,7 @@ import {
   ensureBtPermissions,
 } from "@/print/transport/bluetooth";
 import { sendBytesOverTcp } from "@/print/transport/lan";
+import { isUsbPrintingAvailable, listUsbPrinters, printUsb } from "usb-printer";
 import { startCometReader, stopCometReader } from "@/callerid/comet";
 import { terminalController } from "@/services/terminal";
 import { showHowToTap } from "how-to-tap";
@@ -59,6 +60,10 @@ const WEB_URL =
 // time, same as every other reader failure mode in this app.
 // iOS: Tap to Pay on iPhone needs iOS 16.4+. Android: Tap to Pay needs
 // Android 11 (API 30)+; NFC hardware presence isn't checked here.
+// Android USB host printing — false on iOS and on APKs built before the
+// usb-printer module existed.
+const USB_PRINTING: boolean = isUsbPrintingAvailable();
+
 const TAP_TO_PAY_SUPPORTED: boolean =
   Platform.OS === "ios"
     ? parseFloat(String(Platform.Version)) >= 16.4
@@ -222,6 +227,15 @@ export function PosWebView({ tokens, onSignOut }: Props) {
             return request('lan:print', { ip: ip, port: port, bytes: base64Bytes });
           }
         };
+        // USB cable printer (Android USB host). Only defined when this APK
+        // has the native module, so the web can feature-detect with
+        // typeof OrderHubBT.printUsb === 'function', same as printLan.
+        if (${USB_PRINTING}) {
+          window.OrderHubBT.listUsbDevices = function () { return request('usb:list'); };
+          window.OrderHubBT.printUsb = function (vendorId, productId, base64Bytes) {
+            return request('usb:print', { vendorId: vendorId, productId: productId, bytes: base64Bytes });
+          };
+        }
 
         // BBPOS WisePad 3 (Bluetooth) or Tap to Pay (this device's own NFC)
         // card reader. The web POS creates the charge
@@ -378,6 +392,29 @@ export function PosWebView({ tokens, onSignOut }: Props) {
           respond(msg.reqId, { ok: true });
         } catch (err: any) {
           reject(msg.reqId, err?.message ?? "LAN print failed");
+        }
+      } else if (msg?.type === "usb:list" && msg?.reqId) {
+        try {
+          respond(msg.reqId, await listUsbPrinters());
+        } catch (err: any) {
+          reject(msg.reqId, err?.message ?? "USB device list failed");
+        }
+      } else if (msg?.type === "usb:print" && msg?.reqId && msg?.payload) {
+        try {
+          const { vendorId, productId, bytes } = msg.payload as {
+            vendorId: number;
+            productId: number;
+            bytes: string;
+          };
+          if (!vendorId || !productId || !bytes) {
+            throw new Error("vendorId + productId + bytes required");
+          }
+          // Native decodes the base64 itself — no round trip through a JS
+          // Uint8Array, which is slow for logo/QR rasters.
+          await printUsb(Number(vendorId), Number(productId), bytes);
+          respond(msg.reqId, { ok: true });
+        } catch (err: any) {
+          reject(msg.reqId, err?.message ?? "USB print failed");
         }
       } else if (msg?.type === "terminal:connect" && msg?.reqId) {
         try {

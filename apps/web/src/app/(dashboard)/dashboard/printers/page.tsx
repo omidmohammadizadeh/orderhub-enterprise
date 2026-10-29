@@ -27,7 +27,7 @@ import {
   type Widgets,
 } from "@/lib/api/printers.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
-import { hasNativeBridge, bridgeSupportsPrinter } from "@/lib/printing/bridge";
+import { hasAnyPrintPath, bridgeSupportsPrinter } from "@/lib/printing/bridge";
 import { PrintersTab } from "@/components/printers/printers-tab";
 import { ThisTabletCard } from "@/components/printers/this-tablet-card";
 import { StationsTab } from "@/components/printers/stations-tab";
@@ -64,14 +64,12 @@ export default function PrintersPage() {
     queryKey: ["printers", "list"],
     queryFn: () => printersClient.list(),
     refetchInterval: 15_000,
-    enabled: hasNativeBridge(),
+    enabled: hasAnyPrintPath(),
   });
-  const bridgeOnlineExtra = hasNativeBridge()
+  const bridgeOnlineExtra = hasAnyPrintPath()
     ? (printersQuery.data ?? []).filter(
         (p: any) =>
           (!locationId || p.locationId === locationId) &&
-          (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
-          p.ipAddress &&
           !p.isOnline &&
           bridgeSupportsPrinter(p),
       ).length

@@ -1,4 +1,9 @@
 import { formatMoney } from "@orderhub/shared";
+import {
+  getBrowserPrinterLink,
+  hasBrowserPrinterLinks,
+  printViaBrowserLink,
+} from "./browser-printers";
 // Browser-side ESC/POS rendering + native Bluetooth bridge.
 //
 // When the dashboard is loaded inside the OrderHub Solutions Android
@@ -200,7 +205,25 @@ export type BridgeWindow = Window & {
       port: number,
       base64Bytes: string,
     ): Promise<{ ok: true }>;
+    // USB cable printer (Android USB host), addressed by vendor + product id.
+    // Only present on APKs that ship the usb-printer module.
+    listUsbDevices?(): Promise<UsbBridgeDevice[]>;
+    printUsb?(
+      vendorId: number,
+      productId: number,
+      base64Bytes: string,
+    ): Promise<{ ok: true }>;
   };
+};
+
+export type UsbBridgeDevice = {
+  deviceName: string;
+  vendorId: number;
+  productId: number;
+  manufacturer: string | null;
+  product: string | null;
+  isPrinterClass: boolean;
+  hasPermission: boolean;
 };
 
 export function hasNativeBridge(): boolean {
@@ -214,6 +237,27 @@ export function hasLanBridge(): boolean {
   if (typeof window === "undefined") return false;
   const bt = (window as BridgeWindow).OrderHubBT;
   return !!bt?.isReady && typeof bt.printLan === "function";
+}
+
+// True if the installed app build can print over a USB cable.
+export function hasUsbBridge(): boolean {
+  if (typeof window === "undefined") return false;
+  const bt = (window as BridgeWindow).OrderHubBT;
+  return !!bt?.isReady && typeof bt.printUsb === "function";
+}
+
+export async function listUsbBridgeDevices(): Promise<UsbBridgeDevice[]> {
+  const bt = (window as BridgeWindow).OrderHubBT;
+  if (!bt?.isReady || typeof bt.listUsbDevices !== "function") return [];
+  return bt.listUsbDevices();
+}
+
+// Anything on THIS device that can put a ticket on paper: the tablet app,
+// or a desktop browser with a printer linked to it (browser-printers.ts).
+// Gates auto-print and the print buttons, so a plain browser with nothing
+// linked still never fetches orders for printing.
+export function hasAnyPrintPath(): boolean {
+  return hasNativeBridge() || hasBrowserPrinterLinks();
 }
 
 /**
@@ -275,14 +319,66 @@ export async function bridgeLanPrint(
   );
 }
 
-// Route a print to the right transport based on the printer's
-// connectionType: BLUETOOTH → bridgePrint(mac), LAN → bridgeLanPrint(ip).
-// `ipAddress` holds the MAC for Bluetooth and the IP for LAN.
-export async function writeToPrinter(
-  printer: { connectionType?: string; ipAddress?: string | null; port?: number | null },
+export async function bridgeUsbPrint(
+  vendorId: number,
+  productId: number,
   bytes: Uint8Array,
 ): Promise<void> {
+  const bt = (window as BridgeWindow).OrderHubBT;
+  if (!bt?.isReady || typeof bt.printUsb !== "function") {
+    throw new Error(
+      "USB printing needs the latest tablet app — please update the app.",
+    );
+  }
+  const b64 = bytesToBase64(bytes);
+  await enqueueForPrinter(`usb:${vendorId}:${productId}`, () =>
+    bt.printUsb!(vendorId, productId, b64),
+  );
+}
+
+type PrintTarget = {
+  id?: string;
+  connectionType?: string;
+  ipAddress?: string | null;
+  port?: number | null;
+  usbVendor?: number | null;
+  usbProduct?: number | null;
+  paperWidth?: number | null;
+  defaults?: any;
+  model?: string | null;
+};
+
+// A printer linked to this browser (desktop Chrome/Edge). Never inside the
+// tablet app — the native transports own printing there.
+function browserLinkFor(printer: PrintTarget) {
+  if (hasNativeBridge()) return null;
+  return getBrowserPrinterLink(printer?.id);
+}
+
+// Route a print to the right transport:
+//   linked in this browser → WebUSB / Web Serial / print dialog
+//   BLUETOOTH → bridgePrint(mac)   (`ipAddress` holds the MAC)
+//   LAN       → bridgeLanPrint(ip)
+//   USB       → bridgeUsbPrint(vendor, product)
+export async function writeToPrinter(
+  printer: PrintTarget,
+  bytes: Uint8Array,
+): Promise<void> {
+  const link = browserLinkFor(printer);
+  if (link) {
+    await enqueueForPrinter(`browser:${printer.id}`, () =>
+      printViaBrowserLink(link, bytes, printer),
+    );
+    return;
+  }
   const conn = String(printer?.connectionType ?? "").toUpperCase();
+  if (conn === "USB") {
+    if (!printer.usbVendor || !printer.usbProduct) {
+      throw new Error("USB printer has no vendor/product id saved");
+    }
+    await bridgeUsbPrint(printer.usbVendor, printer.usbProduct, bytes);
+    return;
+  }
   if (!printer?.ipAddress) throw new Error("Printer has no address configured");
   if (conn === "LAN") {
     await bridgeLanPrint(printer.ipAddress, printer.port ?? 9100, bytes);
@@ -291,12 +387,17 @@ export async function writeToPrinter(
   }
 }
 
-// Can the current app build print to this printer?
-export function bridgeSupportsPrinter(printer: {
-  connectionType?: string;
-}): boolean {
+// Can THIS device print to this printer right now? Checks both that a
+// transport exists here and that the printer has the address it needs.
+export function bridgeSupportsPrinter(printer: PrintTarget): boolean {
+  if (browserLinkFor(printer)) return true;
   const conn = String(printer?.connectionType ?? "").toUpperCase();
-  return conn === "LAN" ? hasLanBridge() : hasNativeBridge();
+  if (conn === "USB") {
+    return hasUsbBridge() && !!printer.usbVendor && !!printer.usbProduct;
+  }
+  if (conn === "LAN") return hasLanBridge() && !!printer.ipAddress;
+  if (conn === "BLUETOOTH") return hasNativeBridge() && !!printer.ipAddress;
+  return false;
 }
 
 // Repeat a fully-rendered receipt N times into one buffer. Each copy
@@ -364,7 +465,7 @@ export function buildTestReceipt(paperWidth: number = 80): Uint8Array {
   line(buf, "");
   buf.push(...ALIGN_LEFT);
   line(buf, "-".repeat(colsFor(paperWidth)));
-  line(buf, "Connected via Bluetooth bridge");
+  line(buf, "Connected to Order Hub");
   line(buf, "Status: OK");
   line(buf, "-".repeat(colsFor(paperWidth)));
   line(buf, "");

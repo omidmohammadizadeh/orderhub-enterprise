@@ -141,7 +141,7 @@ import {
   printOrderViaBridge,
   openCashDrawerViaBridge,
 } from "@/lib/printing/print-order";
-import { hasNativeBridge } from "@/lib/printing/bridge";
+import { hasAnyPrintPath } from "@/lib/printing/bridge";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
 import { retailClient, type BarcodeEntry } from "@/lib/api/retail.client";
@@ -751,7 +751,7 @@ export default function PosPage() {
    * the kitchen two copies.
    */
   const printOfflineTicket = async (localId: string) => {
-    if (!hasNativeBridge()) return;
+    if (!hasAnyPrintPath()) return;
     const row = await getQueued(localId).catch(() => undefined);
     if (!row || row.status === "syncing") return;
     try {
@@ -1940,7 +1940,7 @@ export default function PosPage() {
                   const ord = (
                     await apiClient.get(`/v1/orders/${tabOrderId}`)
                   ).data;
-                  if (hasNativeBridge()) {
+                  if (hasAnyPrintPath()) {
                     await printOrderViaBridge(ord, { billMode: true });
                     setSubmitFeedback("Bill printed.");
                   } else {
