@@ -306,6 +306,10 @@ export function receiptBytesToTickets(bytes: Uint8Array, star = false): Line[][]
         const v = bytes[i + 3] ?? 0;
         align = v === 1 ? "center" : v === 2 ? "right" : "left";
         i += 4;
+      } else if (star && (c === 0x34 || c === 0x35)) {
+        // ESC 4 / ESC 5 — Star reverse print on / off
+        style(() => (reverse = c === 0x34));
+        i += 2;
       } else if (star && c === 0x45) {
         style(() => (bold = true));
         i += 2;

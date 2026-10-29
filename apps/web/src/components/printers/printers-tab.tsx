@@ -22,6 +22,9 @@ import {
   type BrowserPrinterLink,
 } from "@/lib/printing/browser-printers";
 import { LinkPrinterDialog } from "./link-printer-dialog";
+import { ShowOnTicket, TextSizeControl, TicketPreview, presetToSize } from "./ticket-design";
+import { readTextSize, readTicketHide, type TicketFieldKey } from "@/lib/printing/ticket-layout";
+import { useCurrency } from "@/hooks/use-currency";
 import {
   Plus,
   Wifi,
@@ -956,15 +959,25 @@ function PrinterSettingsDrawer({
   const [printFont, setPrintFont] = useState<"A" | "B">(
     (d.printFont as any) === "B" ? "B" : "A",
   );
-  const [fontScale, setFontScale] = useState<TextScale>(
+  // The old preset. Kept as the fallback for printers with no 1–30 size yet,
+  // so they print exactly as they did until someone picks a number.
+  const [fontScale] = useState<TextScale>(
     (d.fontScale as any) ?? (d.largeFont ? "LARGE" : "NORMAL"),
   );
   // Options / modifiers size independently of the item headline: a
   // 12-option meal deal at double height runs a lot of paper, so shops
   // that want big toppings opt in rather than getting it by default.
-  const [modifierScale, setModifierScale] = useState<TextScale>(
+  const [modifierScale] = useState<TextScale>(
     (d.modifierScale as any) ?? "NORMAL",
   );
+  // Exact 1–30 sizes. null = this printer is still on the preset above and
+  // prints exactly as before until someone picks a number.
+  const [itemSize, setItemSize] = useState<number | null>(readTextSize(d.itemSize));
+  const [modifierSize, setModifierSize] = useState<number | null>(
+    readTextSize(d.modifierSize),
+  );
+  const [ticketHide, setTicketHide] = useState<Set<TicketFieldKey>>(() => readTicketHide(printer));
+  const { currency } = useCurrency(printer.locationId);
   // Item headlines have always printed bold. Kept opt-OUT so no existing
   // printer changes behaviour on save; shops that want a flat ticket untick it.
   const [boldItems, setBoldItems] = useState<boolean>(d.boldItems !== false);
@@ -1001,6 +1014,9 @@ function PrinterSettingsDrawer({
           fontScale,
           printFont,
           modifierScale,
+          itemSize,
+          modifierSize,
+          ticketHide: [...ticketHide],
           boldItems,
           // Keep the legacy flag consistent for any older reader.
           largeFont: fontScale !== "NORMAL",
@@ -1016,7 +1032,7 @@ function PrinterSettingsDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-zinc-900/40 p-4">
-      <div className="w-full max-w-xl rounded-lg bg-white shadow-xl">
+      <div className="w-full max-w-xl rounded-lg bg-white shadow-xl lg:max-w-5xl">
         <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3">
           <h2 className="text-base font-semibold text-zinc-900">
             {printer.name}
@@ -1028,7 +1044,8 @@ function PrinterSettingsDrawer({
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="space-y-4 p-5 max-h-[70vh] overflow-y-auto">
+        <div className="max-h-[75vh] overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5 lg:p-5">
+        <div className="space-y-4 p-5 lg:p-0">
           <Section title="Automatic printing">
             <label className="flex items-center justify-between rounded-md border border-violet-200 bg-violet-50/50 px-3 py-2.5">
               <span>
@@ -1151,22 +1168,36 @@ function PrinterSettingsDrawer({
           </Section>
 
           <Section title="Item text size">
-            <ScalePicker value={fontScale} onChange={setFontScale} />
+            <TextSizeControl
+              label="Item text size"
+              value={itemSize}
+              fallback={presetToSize(fontScale)}
+              onChange={setItemSize}
+            />
             <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
-              Applies to item lines, the delivery address and the total —
-              the lines staff and drivers actually read.
-              <span className="font-medium"> Extra large</span> also
-              doubles the width, so long item names wrap onto two lines.
+              1 to 30. 10 is the printer&rsquo;s normal font. Prices always
+              stay at normal size, whatever you pick.
+              {brand === "star"
+                ? " Star printers round this to their nearest built-in size."
+                : " Sizes other than 10 print as an image, which is a little slower on Bluetooth."}
             </p>
           </Section>
 
           <Section title="Options / extras text size">
-            <ScalePicker value={modifierScale} onChange={setModifierScale} />
+            <TextSizeControl
+              label="Options text size"
+              value={modifierSize}
+              fallback={presetToSize(modifierScale)}
+              onChange={setModifierSize}
+            />
             <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
-              The toppings and choices listed under each item. Kept
-              standard by default — a meal deal with a dozen options at
-              double height uses a lot of paper.
+              The toppings and choices listed under each item. Big options on
+              a meal deal use a lot of paper.
             </p>
+          </Section>
+
+          <Section title="Show on ticket">
+            <ShowOnTicket hidden={ticketHide} onChange={setTicketHide} />
           </Section>
 
           <Section title="Receipt options">
@@ -1203,6 +1234,21 @@ function PrinterSettingsDrawer({
               <Toggle label="Auto cut" value={autoCut} onChange={setAutoCut} />
             </div>
           </Section>
+        </div>
+        <div className="border-t border-zinc-200 p-5 lg:sticky lg:top-0 lg:self-start lg:border-0 lg:p-0">
+          <TicketPreview
+            paperWidth={printer.paperWidth}
+            star={brand === "star"}
+            printFont={printFont}
+            fontScale={fontScale}
+            modifierScale={modifierScale}
+            itemSize={itemSize}
+            modifierSize={modifierSize}
+            boldItems={boldItems}
+            hidden={ticketHide}
+            currency={currency}
+          />
+        </div>
         </div>
         <div className="flex items-center justify-end gap-2 border-t border-zinc-200 px-5 py-3">
           <button
@@ -1242,55 +1288,8 @@ function Th({ children }: { children?: React.ReactNode }) {
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-3 py-2 align-middle">{children}</td>;
 }
-// Thermal text sizing. Shared by the item headline and the options
-// beneath it so both read the same way in the drawer.
+// The old Standard / Large / Extra large presets, still read as the fallback.
 type TextScale = "NORMAL" | "LARGE" | "XLARGE";
-
-const SCALE_OPTIONS: ReadonlyArray<readonly [TextScale, string, string]> = [
-  ["NORMAL", "Standard", "Compact"],
-  ["LARGE", "Large", "Twice the height"],
-  ["XLARGE", "Extra large", "Tall + wide"],
-];
-
-function ScalePicker({
-  value,
-  onChange,
-}: {
-  value: TextScale;
-  onChange: (v: TextScale) => void;
-}) {
-  return (
-    <div className="grid grid-cols-3 gap-2">
-      {SCALE_OPTIONS.map(([option, label, hint]) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onChange(option)}
-          className={
-            "rounded-md border px-3 py-2 text-left " +
-            (value === option
-              ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500"
-              : "border-zinc-300 bg-white hover:bg-zinc-50")
-          }
-        >
-          <span
-            className={
-              "block font-semibold text-zinc-900 " +
-              (option === "NORMAL"
-                ? "text-xs"
-                : option === "LARGE"
-                  ? "text-sm"
-                  : "text-base")
-            }
-          >
-            {label}
-          </span>
-          <span className="block text-[10px] text-zinc-500">{hint}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function Field({
   label,
