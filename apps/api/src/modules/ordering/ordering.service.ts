@@ -1075,7 +1075,12 @@ export class OrderingService {
       addressLine2: place?.addressLine2 ?? location.addressLine2,
       city: place?.city ?? location.city,
       postcode: place?.postcode ?? location.postcode,
-      country: place?.country ?? location.country,
+      // The SHOP's country, never the brand's: Brand.country is non-null and
+      // defaults to GB, so `place?.country ?? location.country` turned the
+      // Dubai test store into a GB shop on its storefront — London address
+      // lookup, UK phone rules — while checkout (reading the location)
+      // routed it to Tap. A brand never trades outside its shop's country.
+      country: location.country,
       // Currency is location-only on purpose — it follows the till and the
       // bank account, not the brand, so a brand trading in two countries does
       // not force one currency onto both shops. The storefront needs it to

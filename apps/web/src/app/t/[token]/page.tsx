@@ -169,7 +169,10 @@ export default function TableQrPage() {
   const store = storeQuery.data;
   // Falls back to GBP only while the payload is still loading — every shop
   // carries a real currency on its location row.
-  const currency = ((store as any)?.store?.currency ?? "GBP") as string;
+  // Sent as location.currency (there is no `store` key) — see storefront-client.
+  const currency = ((store as any)?.location?.currency ??
+    (store as any)?.store?.currency ??
+    "GBP") as string;
   const money = useMemo(() => moneyFor(currency), [currency]);
 
   // Everything this phone remembers between visits, keyed by table token.
@@ -648,7 +651,7 @@ export default function TableQrPage() {
           // This page is public, so the modal must never look the currency up
           // — that endpoint needs a dashboard token. It comes from the same
           // storefront payload the menu does.
-          currency={(store as any)?.store?.currency ?? "GBP"}
+          currency={currency}
           allModifierGroups={store?.brandModifierGroups ?? []}
           // One question per screen: staff and customers at a till are
           // completing a task, not browsing. The storefront stays on scroll.

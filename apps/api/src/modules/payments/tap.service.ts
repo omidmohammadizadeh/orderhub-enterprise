@@ -7,6 +7,7 @@ import {
 import { createHmac, timingSafeEqual } from "crypto";
 import {
   currencyForCountry,
+  dialCodeForCountry,
   usesTap,
   roundToCurrency,
   currencyDecimals,
@@ -430,7 +431,7 @@ export class TapService {
           first_name: params.customer.firstName || "Customer",
           ...(params.customer.lastName ? { last_name: params.customer.lastName } : {}),
           ...(params.customer.email ? { email: params.customer.email } : {}),
-          ...(params.customer.phone ? { phone: parsePhone(params.customer.phone) } : {}),
+          ...(params.customer.phone ? { phone: parsePhone(params.customer.phone, (order as any).location?.country) } : {}),
         },
         // Tap's hosted page shows the description, and it is the only place
         // the customer can see why they are being charged more than their
@@ -1067,19 +1068,38 @@ function platformKindOf(payment: any): TapPlatformKind {
   return TAP_PLATFORM_KINDS.includes(k) ? k : "COMMERCE";
 }
 
-/** Tap wants the country code and number as separate fields. Best-effort:
- *  an unparseable number is sent without a country code rather than blocking
- *  a payment over a phone format. */
-function parsePhone(raw: string): { country_code: string; number: string } {
-  const digits = String(raw).replace(/\D/g, "");
-  // +971 50 123 4567 → 971 / 501234567. Gulf codes are three digits, the UK
-  // two; longest-first so 971 isn't read as 97.
-  for (const cc of ["971", "966", "965", "974", "973", "968", "962", "20", "44"]) {
-    if (digits.startsWith(cc)) {
-      return { country_code: cc, number: digits.slice(cc.length) };
+/**
+ * Tap wants the country code and number as separate fields, and refuses the
+ * charge outright ("Customer phone number or email address is required")
+ * when the code is empty — which is what a number typed the local way
+ * (050 123 4567, or 501234567) used to produce, because only numbers that
+ * already started with a dialling code were recognised. Seen on the Dubai
+ * test store, 2026-10-30.
+ *
+ * International forms (+971…, 00971…) keep their own code; anything else is
+ * read as local to the SHOP's country, with the trunk 0 dropped.
+ */
+export function parsePhone(
+  raw: string,
+  shopCountry?: string | null,
+): { country_code: string; number: string } {
+  const trimmed = String(raw).trim();
+  let digits = trimmed.replace(/\D/g, "");
+  const international = trimmed.startsWith("+") || digits.startsWith("00");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  // Longest-first so 971 isn't read as 97.
+  const known = ["971", "966", "965", "974", "973", "968", "962", "20", "44"];
+  if (international) {
+    for (const cc of known) {
+      if (digits.startsWith(cc)) return { country_code: cc, number: digits.slice(cc.length) };
     }
   }
-  return { country_code: "", number: digits };
+  const shopCc = dialCodeForCountry(shopCountry ?? "GB").replace(/\D/g, "");
+  // Typed with the shop's code but no "+" (971501234567): still the shop's.
+  if (!international && digits.startsWith(shopCc) && digits.length > 10) {
+    return { country_code: shopCc, number: digits.slice(shopCc.length) };
+  }
+  return { country_code: shopCc, number: digits.replace(/^0+/, "") };
 }
 
 function toUnits(amount: number, currency: string): number {

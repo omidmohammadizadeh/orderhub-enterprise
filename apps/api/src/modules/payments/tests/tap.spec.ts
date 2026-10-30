@@ -10,6 +10,7 @@ import {
   tapPlatformProblem,
   publicApiRoot,
   tapChargeWebhookUrl,
+  parsePhone,
 } from "../tap.service";
 import {
   paymentProviderForCountry,
@@ -176,6 +177,20 @@ describe("tapPlatformFromEnv", () => {
     // That key belonged to a different account type; charging with it would
     // route money as if we were the merchant.
     expect(tapPlatformFromEnv("COMMERCE", { TAP_SECRET_KEY: "sk_old" } as any)).toBeNull();
+  });
+});
+
+describe("parsePhone", () => {
+  it("reads a number typed the local way as the shop's country, not as no country", () => {
+    // Tap refuses a charge whose phone has an empty country code (2026-10-30).
+    expect(parsePhone("5012345670", "AE")).toEqual({ country_code: "971", number: "5012345670" });
+    expect(parsePhone("050 123 4567", "AE")).toEqual({ country_code: "971", number: "501234567" });
+    expect(parsePhone("07700 900123", "GB")).toEqual({ country_code: "44", number: "7700900123" });
+  });
+  it("keeps an international number's own code", () => {
+    expect(parsePhone("+44 7700 900123", "AE")).toEqual({ country_code: "44", number: "7700900123" });
+    expect(parsePhone("00971 50 123 4567", "GB")).toEqual({ country_code: "971", number: "501234567" });
+    expect(parsePhone("971501234567", "AE")).toEqual({ country_code: "971", number: "501234567" });
   });
 });
 

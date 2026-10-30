@@ -719,7 +719,11 @@ function OrderPage() {
   // Every price on this page goes through money(). A hardcoded £ here is a
   // customer in Dubai reading AED prices as pounds — the one place where
   // getting currency wrong reaches the person actually paying.
-  const currency = (storefront as any)?.store?.currency ?? "GBP";
+  // The API sends it as location.currency — there is no `store` key, so the
+  // old `storefront.store.currency` read was always undefined and every Gulf
+  // storefront priced in £ (seen on the Dubai test store, 2026-10-30).
+  const currency =
+    (storefront as any)?.location?.currency ?? (storefront as any)?.store?.currency ?? "GBP";
   const money = (n: number | string | null | undefined) =>
     formatMoney(n, currency, { compact: true });
   const symbol = currencySymbol(currency);
