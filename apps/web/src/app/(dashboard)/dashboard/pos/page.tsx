@@ -2870,6 +2870,8 @@ export default function PosPage() {
           // One question per screen: staff and customers at a till are
           // completing a task, not browsing. The storefront stays on scroll.
           flow="stepped"
+          // Options as a grid of squares, so a long group fits without scrolling.
+          layout="tiles"
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => addToCart(line)}
@@ -2920,11 +2922,11 @@ function ProductCard({
       aria-label={`${product.name}, ${formatDisplayPrice(product as any, currency)}${
         inCart ? `, ${inCart} in order` : ""
       }`}
-      className={`relative flex min-h-[5.5rem] flex-col justify-between gap-2 rounded-xl border border-zinc-200 bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[transform,border-color,box-shadow] duration-100 hover:border-zinc-400 hover:shadow-md active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 ${sizing.pad}`}
+      className={`relative flex aspect-square flex-col justify-between gap-1 overflow-hidden rounded-xl border border-zinc-200 bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[transform,border-color,box-shadow] duration-100 hover:border-zinc-400 hover:shadow-md active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 ${sizing.pad}`}
       disabled={product.outOfStock}
     >
       <span
-        className={`pr-6 font-semibold leading-snug line-clamp-3 ${sizing.name} ${
+        className={`${inCart ? "pr-6" : ""} font-semibold leading-tight line-clamp-4 ${sizing.name} ${
           onDark ? "" : "text-zinc-900"
         }`}
       >
