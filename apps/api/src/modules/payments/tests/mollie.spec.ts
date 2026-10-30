@@ -400,6 +400,58 @@ describe("MollieService test payment", () => {
   });
 });
 
+describe("MollieService.listStatus", () => {
+  const build = (brands: any[], conns: any[], loc: any = { id: "loc1", brandId: "b1" }, locs: any[] = []) => {
+    const prisma = {
+      location: {
+        findFirst: jest.fn().mockResolvedValue(loc),
+        findMany: jest.fn().mockResolvedValue(locs),
+      },
+      brand: { findMany: jest.fn().mockResolvedValue(brands) },
+      mollieConnection: { findMany: jest.fn().mockResolvedValue(conns) },
+    } as any;
+    return { svc: new MollieService(prisma, crypto, {} as any), prisma };
+  };
+
+  it("scopes to a location's brands exactly as the Stripe list does", async () => {
+    const { svc, prisma } = build([], []);
+    await svc.listStatus("t1", "loc1");
+    expect(prisma.location.findFirst.mock.calls[0][0].where).toEqual({ id: "loc1", brand: { tenantId: "t1" } });
+    expect(prisma.brand.findMany.mock.calls[0][0].where).toEqual({
+      tenantId: "t1",
+      deletedAt: null,
+      OR: [{ id: "b1" }, { primaryLocationId: "loc1" }],
+    });
+  });
+
+  it("lists no brands for a location outside the tenant, and every brand with no location", async () => {
+    const other = build([{ id: "b1", name: "A" }], [], null);
+    expect((await other.svc.listStatus("t1", "elsewhere")).brands).toEqual([]);
+    expect(other.prisma.brand.findMany).not.toHaveBeenCalled();
+    const all = build([], []);
+    await all.svc.listStatus("t1");
+    expect(all.prisma.brand.findMany.mock.calls[0][0].where).toEqual({ tenantId: "t1", deletedAt: null });
+  });
+
+  it("puts connected brands first and keeps each group in name order", async () => {
+    const { svc } = build(
+      [{ id: "a", name: "A" }, { id: "b", name: "B" }, { id: "c", name: "C" }, { id: "d", name: "D" }],
+      [{ brandId: "c", refreshTokenEnc: {} }, { brandId: "b", refreshTokenEnc: {} }],
+    );
+    expect((await svc.listStatus("t1")).brands.map((b: any) => b.brandId)).toEqual(["b", "c", "a", "d"]);
+  });
+
+  it("takes a kitchen brand's country from its primary location, so a Gulf one isn't eligible", async () => {
+    const { svc } = build(
+      [{ id: "g", name: "Dubai Grill", primaryLocationId: "dxb", country: "GB", locations: [] }],
+      [],
+      undefined,
+      [{ id: "dxb", country: "AE" }],
+    );
+    expect((await svc.listStatus("t1")).brands[0].eligible).toBe(false);
+  });
+});
+
 describe("MollieService onboarding", () => {
   it("builds a client link with our app id, a signed state and the scopes", async () => {
     const prisma = {
