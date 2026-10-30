@@ -188,7 +188,7 @@ const BUCKETS: Bucket[] = [
     key: "WAITING_FOR_PAYMENT",
     label: "Waiting for payment",
     match: (o) => isWaitingForPayment(o),
-    pill: "bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-1 dark:ring-inset dark:ring-violet-500/25",
+    pill: "bg-violet-50 text-violet-700",
     accent: "bg-violet-500",
     icon: CreditCard,
   },
@@ -196,7 +196,7 @@ const BUCKETS: Bucket[] = [
     key: "SCHEDULED",
     label: "Scheduled",
     match: (o) => isScheduledForLater(o as any),
-    pill: "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-1 dark:ring-inset dark:ring-indigo-500/25",
+    pill: "bg-indigo-50 text-indigo-700",
     accent: "bg-indigo-500",
     icon: CalendarClock,
   },
@@ -209,7 +209,7 @@ const BUCKETS: Bucket[] = [
       // A pre-order is not work to start now. Without this the kitchen makes
       // a 9pm delivery at 5pm because it looked like every other new order.
       !isScheduledForLater(o as any),
-    pill: "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 dark:ring-1 dark:ring-inset dark:ring-blue-500/25",
+    pill: "bg-blue-50 text-blue-700",
     accent: "bg-blue-500",
     icon: Clock,
   },
@@ -223,7 +223,7 @@ const BUCKETS: Bucket[] = [
       o.status === "ACCEPTED" &&
       !isWaitingForPayment(o) &&
       !isScheduledForLater(o as any),
-    pill: "bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-1 dark:ring-inset dark:ring-sky-500/25",
+    pill: "bg-sky-50 text-sky-700",
     accent: "bg-sky-500",
     icon: CheckCircle2,
   },
@@ -231,7 +231,7 @@ const BUCKETS: Bucket[] = [
     key: "PREPARING",
     label: "Preparing",
     match: (o) => o.status === "PREPARING" && !isWaitingForPayment(o),
-    pill: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-1 dark:ring-inset dark:ring-amber-500/25",
+    pill: "bg-amber-50 text-amber-700",
     accent: "bg-amber-500",
     icon: ChefHat,
   },
@@ -239,7 +239,7 @@ const BUCKETS: Bucket[] = [
     key: "READY",
     label: "Ready",
     match: (o) => o.status === "READY" && !isWaitingForPayment(o),
-    pill: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-1 dark:ring-inset dark:ring-emerald-500/25",
+    pill: "bg-emerald-50 text-emerald-700",
     accent: "bg-emerald-500",
     icon: CheckCircle2,
   },
@@ -261,7 +261,7 @@ const BUCKETS: Bucket[] = [
       o.status === "ASSIGNED_DRIVER" ||
       o.status === "ACCEPTED_BY_DRIVER" ||
       (o.status === "RIDER_ARRIVED" && !o.outForDeliveryAt),
-    pill: "bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 dark:ring-1 dark:ring-inset dark:ring-violet-500/25",
+    pill: "bg-violet-50 text-violet-700",
     accent: "bg-violet-500",
     icon: Truck,
   },
@@ -270,7 +270,7 @@ const BUCKETS: Bucket[] = [
     label: "Out for delivery",
     match: (o) =>
       o.status === "OUT_FOR_DELIVERY" || o.status === "DISPATCHED",
-    pill: "bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300 dark:ring-1 dark:ring-inset dark:ring-orange-500/25",
+    pill: "bg-orange-50 text-orange-700",
     accent: "bg-orange-500",
     icon: Truck,
   },
@@ -282,7 +282,7 @@ const BUCKETS: Bucket[] = [
     key: "AT_CUSTOMER",
     label: "At the customer",
     match: (o) => o.status === "RIDER_ARRIVED" && !!o.outForDeliveryAt,
-    pill: "bg-amber-50 text-amber-700 dark:bg-yellow-500/15 dark:text-yellow-300 dark:ring-1 dark:ring-inset dark:ring-yellow-500/25",
+    pill: "bg-amber-50 text-amber-700",
     accent: "bg-yellow-500",
     icon: MapPin,
   },
@@ -290,8 +290,8 @@ const BUCKETS: Bucket[] = [
     key: "COMPLETED",
     label: "Completed",
     match: (o) => o.status === "COMPLETED",
-    pill: "bg-zinc-100 text-zinc-700 dark:bg-white/[0.06] dark:text-zinc-400 dark:ring-1 dark:ring-inset dark:ring-white/10",
-    accent: "bg-zinc-600",
+    pill: "bg-zinc-100 text-zinc-700",
+    accent: "bg-zinc-300",
     icon: CheckCircle2,
   },
   {
@@ -301,7 +301,7 @@ const BUCKETS: Bucket[] = [
       o.status === "CANCELLED" ||
       o.status === "REJECTED" ||
       o.status === "FAILED",
-    pill: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300 dark:ring-1 dark:ring-inset dark:ring-red-500/25",
+    pill: "bg-red-50 text-red-700",
     accent: "bg-red-500",
     icon: XCircle,
   },
@@ -333,8 +333,8 @@ const KITCHEN_BUCKETS = new Set(["PENDING", "ACCEPTED", "PREPARING"]);
 function ageTone(bucketKey: string, createdAt: string): string {
   if (!KITCHEN_BUCKETS.has(bucketKey)) return "text-zinc-500";
   const mins = (Date.now() - new Date(createdAt).getTime()) / 60_000;
-  if (mins >= 30) return "font-semibold text-red-400";
-  if (mins >= 15) return "font-semibold text-amber-400";
+  if (mins >= 30) return "font-semibold text-red-600";
+  if (mins >= 15) return "font-semibold text-amber-600";
   return "text-zinc-500";
 }
 
@@ -532,14 +532,9 @@ export function OrderList({ locationId }: Props) {
         </div>
       )}
 
-      {/* `dark` switches on the dark: halves of the shared badges and action
-          buttons for everything inside — and only here. The detail drawer
-          and the modals are rendered outside this wrapper on purpose, so
-          they keep their light styling. */}
-      <div className="dark">
       {/* Live counters — the stages a shift actually works through. Each
           one is also the quickest way to filter to it; tap again for all. */}
-      <div className="mb-4 grid grid-cols-3 gap-2 md:grid-cols-6">
+      <div className="mb-3 grid grid-cols-3 gap-2 md:grid-cols-6">
         {KPI_BUCKETS.map((key) => {
           const b = BUCKETS.find((x) => x.key === key)!;
           const n = counts[key] ?? 0;
@@ -551,25 +546,25 @@ export function OrderList({ locationId }: Props) {
               onClick={() => setBucketFilter(active ? "ALL" : key)}
               aria-pressed={active}
               aria-label={`${b.label}: ${n}`}
-              className={`group relative overflow-hidden rounded-xl border px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${
+              className={`rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
                 active
-                  ? "border-white/25 bg-white/[0.08]"
-                  : "border-white/[0.06] bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.05]"
+                  ? "border-zinc-900 bg-white ring-1 ring-zinc-900"
+                  : "border-zinc-200 bg-white hover:border-zinc-300"
               }`}
             >
-              <span className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400">
+              <span className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-500">
                 <span className="relative flex h-2 w-2">
                   {key === "PENDING" && n > 0 && (
                     <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${b.accent}`} />
                   )}
-                  <span className={`relative inline-flex h-2 w-2 rounded-full ${n > 0 ? b.accent : "bg-zinc-700"}`} />
+                  <span className={`relative inline-flex h-2 w-2 rounded-full ${n > 0 ? b.accent : "bg-zinc-200"}`} />
                 </span>
                 <span className="truncate sm:hidden">{KPI_SHORT[key] ?? b.label}</span>
                 <span className="hidden truncate sm:inline">{b.label}</span>
               </span>
               <span
-                className={`mt-1 block text-2xl font-semibold tabular-nums leading-none ${
-                  n > 0 ? "text-white" : "text-zinc-600"
+                className={`mt-1 block text-xl font-semibold tabular-nums leading-none ${
+                  n > 0 ? "text-zinc-900" : "text-zinc-300"
                 }`}
               >
                 {n}
@@ -592,17 +587,17 @@ export function OrderList({ locationId }: Props) {
             }}
             aria-haspopup="listbox"
             aria-expanded={statusOpen}
-            className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
               bucketFilter !== "ALL"
-                ? "border-white bg-white text-zinc-900"
-                : "border-white/10 bg-white/[0.04] text-zinc-200 hover:border-white/20 hover:bg-white/[0.08]"
+                ? "border-zinc-900 bg-zinc-900 text-white"
+                : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
             }`}
           >
             <ListFilter className="h-3.5 w-3.5" aria-hidden="true" />
             {activeStatus.label}
             <span
               className={`rounded-full px-1.5 py-0 text-[10px] tabular-nums ${
-                bucketFilter !== "ALL" ? "bg-zinc-900/10" : "bg-white/10 text-zinc-400"
+                bucketFilter !== "ALL" ? "bg-white/15" : "bg-zinc-100 text-zinc-500"
               }`}
             >
               {counts[activeStatus.key] ?? 0}
@@ -614,16 +609,15 @@ export function OrderList({ locationId }: Props) {
             <div
               role="listbox"
               aria-label="Order status"
-              className="absolute left-0 top-full z-40 mt-1 w-60 overflow-hidden rounded-xl border border-white/10 bg-[#17171a] shadow-2xl shadow-black/50"
+              className="absolute left-0 top-full z-40 mt-1 w-60 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl"
             >
-              <div className="border-b border-white/[0.06] px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              <div className="border-b border-zinc-100 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 Status
               </div>
               <div className="max-h-80 overflow-y-auto py-1">
                 {statusOptions.map((o) => {
                   const active = bucketFilter === o.key;
                   const count = counts[o.key] ?? 0;
-                  const accent = BUCKETS.find((b) => b.key === o.key)?.accent;
                   return (
                     <button
                       key={o.key}
@@ -635,22 +629,18 @@ export function OrderList({ locationId }: Props) {
                         setStatusOpen(false);
                       }}
                       className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors ${
-                        active ? "bg-white/[0.06] font-semibold text-white" : "text-zinc-300 hover:bg-white/[0.04]"
+                        active ? "bg-zinc-50 font-semibold text-zinc-900" : "text-zinc-800 hover:bg-zinc-50"
                       }`}
                     >
                       <span className="flex items-center gap-2">
                         <span className="grid h-4 w-4 place-items-center">
-                          {active ? (
-                            <Check className="h-3.5 w-3.5 text-white" />
-                          ) : accent ? (
-                            <span className={`h-1.5 w-1.5 rounded-full ${accent}`} />
-                          ) : null}
+                          {active && <Check className="h-3.5 w-3.5 text-zinc-900" />}
                         </span>
                         {o.label}
                       </span>
                       <span
                         className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
-                          count > 0 ? "bg-white text-zinc-900" : "bg-white/[0.06] text-zinc-500"
+                          count > 0 ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-400"
                         }`}
                       >
                         {count}
@@ -668,10 +658,10 @@ export function OrderList({ locationId }: Props) {
           type="button"
           onClick={() => (bulkMode ? exitBulk() : setBulkMode(true))}
           aria-pressed={bulkMode}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-colors ${
+          className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
             bulkMode
-              ? "border-violet-500 bg-violet-600 text-white hover:bg-violet-500"
-              : "border-white/10 bg-white/[0.04] text-zinc-200 hover:border-white/20 hover:bg-white/[0.08]"
+              ? "border-violet-600 bg-violet-600 text-white hover:bg-violet-700"
+              : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
           }`}
         >
           {bulkMode ? (
@@ -691,7 +681,7 @@ export function OrderList({ locationId }: Props) {
             setBulkMode(true);
             setMapOpen(true);
           }}
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-zinc-200 transition-colors hover:border-white/20 hover:bg-white/[0.08]"
+          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-300"
         >
           <MapIcon className="h-3.5 w-3.5" aria-hidden="true" />
           Dispatch map
@@ -705,24 +695,24 @@ export function OrderList({ locationId }: Props) {
               setFilterOpen((o) => !o);
               setStatusOpen(false);
             }}
-            className={`inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-semibold transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors ${
               channelFilter.size > 0
-                ? "border-white bg-white text-zinc-900"
-                : "border-white/10 bg-white/[0.04] text-zinc-200 hover:border-white/20 hover:bg-white/[0.08]"
+                ? "border-zinc-900 bg-zinc-900 text-white"
+                : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
             }`}
           >
             <FilterIcon className="h-3.5 w-3.5" />
-            Channels
+            Filter
             {channelFilter.size > 0 && (
-              <span className="rounded-full bg-zinc-900/10 px-1.5 py-0 text-[10px] tabular-nums">
+              <span className="rounded-full bg-white/15 px-1.5 py-0 text-[10px] tabular-nums">
                 {channelFilter.size}
               </span>
             )}
           </button>
 
           {filterOpen && (
-            <div className="absolute right-0 top-full z-40 mt-1 w-64 overflow-hidden rounded-xl border border-white/10 bg-[#17171a] shadow-2xl shadow-black/50">
-              <div className="flex items-center justify-between border-b border-white/[0.06] px-3 py-2">
+            <div className="absolute right-0 top-full z-40 mt-1 w-64 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-zinc-100 px-3 py-2">
                 <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
                   Channels
                 </span>
@@ -730,7 +720,7 @@ export function OrderList({ locationId }: Props) {
                   <button
                     type="button"
                     onClick={() => setChannelFilter(new Set())}
-                    className="text-[11px] font-semibold text-violet-400 hover:text-violet-300"
+                    className="text-[11px] font-semibold text-violet-600 hover:text-violet-700"
                   >
                     Clear
                   </button>
@@ -754,26 +744,26 @@ export function OrderList({ locationId }: Props) {
                       }}
                       className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition-colors ${
                         c.enabled
-                          ? "text-zinc-200 hover:bg-white/[0.04]"
-                          : "cursor-not-allowed text-zinc-600"
+                          ? "text-zinc-800 hover:bg-zinc-50"
+                          : "cursor-not-allowed text-zinc-400"
                       }`}
                     >
                       <span className="flex items-center gap-2">
                         <span
                           className={`grid h-4 w-4 place-items-center rounded border ${
                             checked
-                              ? "border-white bg-white"
+                              ? "border-zinc-900 bg-zinc-900"
                               : c.enabled
-                                ? "border-white/20 bg-transparent"
-                                : "border-white/10 bg-white/[0.02]"
+                                ? "border-zinc-300 bg-white"
+                                : "border-zinc-200 bg-zinc-50"
                           }`}
                         >
-                          {checked && <Check className="h-3 w-3 text-zinc-900" />}
+                          {checked && <Check className="h-3 w-3 text-white" />}
                         </span>
                         {c.label}
                       </span>
                       {!c.enabled && (
-                        <span className="rounded-full bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500">
+                        <span className="rounded-full bg-zinc-100 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-500">
                           Coming soon
                         </span>
                       )}
@@ -796,7 +786,7 @@ export function OrderList({ locationId }: Props) {
             return (
               <span
                 key={key}
-                className="inline-flex items-center gap-1 rounded-full bg-white/[0.06] px-2 py-0.5 text-[11px] font-semibold text-zinc-200"
+                className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-semibold text-zinc-700"
               >
                 {c.label}
                 <button
@@ -808,7 +798,7 @@ export function OrderList({ locationId }: Props) {
                       return next;
                     })
                   }
-                  className="text-zinc-500 hover:text-zinc-200"
+                  className="text-zinc-400 hover:text-zinc-700"
                   aria-label={`Remove ${c.label} filter`}
                 >
                   <XIcon className="h-3 w-3" />
@@ -820,7 +810,7 @@ export function OrderList({ locationId }: Props) {
       )}
 
       {bulkMode && (
-        <p className="mb-3 text-xs text-zinc-400">
+        <p className="mb-3 text-xs text-zinc-600">
           Tap the deliveries to send together. For your own driver, they&rsquo;re
           delivered in the order you tap them.
           {!filteredOrders.some(canBulkDispatch) &&
@@ -830,16 +820,8 @@ export function OrderList({ locationId }: Props) {
 
       {/* The list */}
       {filteredOrders.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-16 text-center">
-          <ShoppingBag className="mx-auto mb-2 h-6 w-6 text-zinc-600" aria-hidden="true" />
-          <p className="text-sm font-medium text-zinc-300">
-            {orders.length === 0 ? "No live orders right now" : "No orders match this filter"}
-          </p>
-          <p className="mt-0.5 text-xs text-zinc-500">
-            {orders.length === 0
-              ? "New orders appear here the moment they arrive."
-              : "Try another status or channel."}
-          </p>
+        <div className="rounded-lg border border-dashed border-zinc-200 bg-white px-6 py-12 text-center text-sm text-zinc-500">
+          No orders match this filter.
         </div>
       ) : (
         <>
@@ -860,12 +842,12 @@ export function OrderList({ locationId }: Props) {
           ))}
         </div>
 
-        <div className="hidden overflow-x-auto rounded-xl border border-white/[0.06] bg-[#111114] md:block">
+        <div className="hidden overflow-x-auto rounded-lg border border-zinc-200 bg-white md:block">
           {/* Auto width (not w-full) so columns hug their content — on a
               small tablet this removes the big inter-column gaps that
               pushed the Status column off-screen. */}
-          <table className="min-w-full text-sm">
-            <thead className="border-b border-white/[0.06] bg-white/[0.02] text-[10px] uppercase tracking-wider text-zinc-500">
+          <table className="divide-y divide-zinc-200 text-sm">
+            <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 {bulkMode && (
                   <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap">
@@ -886,7 +868,7 @@ export function OrderList({ locationId }: Props) {
                 <Th>Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05]">
+            <tbody className="divide-y divide-zinc-100">
               {filteredOrders.map((o) => (
                 <OrderRow
                   key={o.id}
@@ -900,7 +882,6 @@ export function OrderList({ locationId }: Props) {
         </div>
         </>
       )}
-      </div>
 
       <OrderDetailDrawer
         // Always derive from the live orders list so the drawer reflects
@@ -921,13 +902,13 @@ export function OrderList({ locationId }: Props) {
       {bulkMode && <div className="h-24" aria-hidden="true" />}
       {bulkMode && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <div className="pointer-events-auto flex w-full max-w-lg items-center gap-3 rounded-xl border border-white/10 bg-[#17171a] px-4 py-3 shadow-2xl shadow-black/60">
-            <p className="min-w-0 flex-1 text-sm text-zinc-300" aria-live="polite">
+          <div className="pointer-events-auto flex w-full max-w-lg items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-xl">
+            <p className="min-w-0 flex-1 text-sm text-zinc-700" aria-live="polite">
               {pickedOrders.length === 0 ? (
                 "Tap deliveries to add them"
               ) : (
                 <>
-                  <span className="font-semibold tabular-nums text-white">
+                  <span className="font-semibold tabular-nums text-zinc-900">
                     {pickedOrders.length}
                   </span>{" "}
                   {pickedOrders.length === 1 ? "order" : "orders"} picked
@@ -938,7 +919,7 @@ export function OrderList({ locationId }: Props) {
               <button
                 type="button"
                 onClick={() => setPicks([])}
-                className="rounded-lg px-2 py-1.5 text-xs font-semibold text-zinc-400 hover:text-white"
+                className="rounded-lg px-2 py-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-800"
               >
                 Clear
               </button>
@@ -947,7 +928,7 @@ export function OrderList({ locationId }: Props) {
               type="button"
               onClick={() => setBulkOpen(true)}
               disabled={pickedOrders.length === 0}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-40"
             >
               <Bike className="h-4 w-4" aria-hidden="true" />
               Dispatch {pickedOrders.length > 0 ? pickedOrders.length : ""}
@@ -1018,8 +999,8 @@ function PickBox({ bulk, label }: { bulk: BulkRowProps; label: string }) {
       }}
       className={`grid h-6 w-6 place-items-center rounded-md border text-xs font-bold tabular-nums focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 ${
         picked
-          ? "border-violet-500 bg-violet-600 text-white"
-          : "border-white/25 bg-transparent text-transparent hover:border-violet-400"
+          ? "border-violet-600 bg-violet-600 text-white"
+          : "border-zinc-300 bg-white text-transparent hover:border-violet-400"
       }`}
     >
       {picked ? bulk.pickNumber : ""}
@@ -1073,14 +1054,14 @@ function OrderCard({
   return (
     <div
       onClick={bulk ? (bulk.pickable ? bulk.onPick : undefined) : onOpen}
-      className={`relative overflow-hidden rounded-xl border p-3 pl-4 transition-colors ${
+      className={`relative overflow-hidden rounded-lg border bg-white p-3 pl-4 transition-colors ${
         bulk && !bulk.pickable
-          ? "cursor-default opacity-45"
-          : "cursor-pointer active:bg-white/[0.06]"
+          ? "cursor-default border-zinc-200 opacity-45"
+          : "cursor-pointer active:bg-zinc-50"
       } ${
         bulk?.pickNumber != null
-          ? "border-violet-500/60 bg-violet-500/10"
-          : "border-white/[0.06] bg-[#111114]"
+          ? "border-violet-400 bg-violet-50/60"
+          : "border-zinc-200"
       }`}
     >
       {/* Stage stripe — the colour reads before the words do. */}
@@ -1093,7 +1074,7 @@ function OrderCard({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <span className="font-mono text-base font-semibold text-white">
+          <span className="text-base font-semibold text-zinc-900">
             #{order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}
           </span>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-zinc-500">
@@ -1113,7 +1094,7 @@ function OrderCard({
                 ? scheduledWhen(order as any)
                 : null;
               return due ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/15 px-1.5 py-0.5 font-semibold text-indigo-300">
+                <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-1.5 py-0.5 font-semibold text-indigo-700">
                   <CalendarClock className="h-3 w-3" />
                   for {formatScheduledWhen(due)}
                 </span>
@@ -1153,18 +1134,18 @@ function OrderCard({
       </div>
 
       {/* Customer + where it's going. */}
-      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-400">
-        <span className="truncate font-medium text-zinc-200">
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-600">
+        <span className="truncate font-medium text-zinc-800">
           {order.customerInfo?.name ?? "—"}
         </span>
         {typeof order.customerVisitCount === "number" &&
           order.customerVisitCount > 0 &&
           (order.customerVisitCount <= 1 ? (
-            <span className="inline-flex items-center rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+            <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-800">
               New
             </span>
           ) : (
-            <span className="inline-flex items-center rounded-md bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-300">
+            <span className="inline-flex items-center rounded-md bg-violet-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-800">
               Returning · #{order.customerVisitCount}
             </span>
           ))}
@@ -1231,31 +1212,25 @@ function OrderRow({
       className={`transition-colors ${
         bulk && !bulk.pickable
           ? "cursor-default opacity-45"
-          : "cursor-pointer hover:bg-white/[0.03]"
-      } ${
-        bulk?.pickNumber != null
-          ? "bg-violet-500/10"
-          : bucket.key === "PENDING"
-            ? "bg-blue-500/[0.04]"
-            : ""
-      }`}
+          : "cursor-pointer hover:bg-zinc-50/60"
+      } ${bulk?.pickNumber != null ? "bg-violet-50/70" : ""}`}
     >
       {bulk && (
         <Td>
           <PickBox bulk={bulk} label={ref} />
         </Td>
       )}
-      <td className="relative py-2.5 pl-3.5 pr-1.5 align-middle">
+      <td className="relative py-2.5 pl-3 pr-1.5 align-middle">
         {/* Stage stripe down the row's left edge. */}
         <span aria-hidden className={`absolute inset-y-1.5 left-0 w-[3px] rounded-r ${bucket.accent}`} />
         <div className="flex flex-col">
-          <span className="font-medium tabular-nums text-zinc-100">
+          <span className="font-medium text-zinc-900">
             {new Date(order.createdAt).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             })}
           </span>
-          <span className={`text-[11px] tabular-nums ${ageTone(bucket.key, order.createdAt)}`}>
+          <span className={`text-[11px] ${ageTone(bucket.key, order.createdAt)}`}>
             {timeAgo(order.createdAt)}
           </span>
           {/* Expected delivery / collection time lives in the order
@@ -1264,7 +1239,7 @@ function OrderRow({
         </div>
       </td>
       <Td>
-        <span className="font-mono font-semibold text-white">
+        <span className="font-semibold text-zinc-900">
           {/* Phase AW-30 — prefer the 5-char displayId ("AB31C"). It's
               what the customer sees on their receipt + status page so
               the board should match. Marketplace orders also populate
@@ -1297,7 +1272,7 @@ function OrderRow({
           location beneath it. */}
       <Td>
         <div className="max-w-[160px] flex flex-col gap-0.5">
-          <span className="truncate font-medium text-zinc-100">
+          <span className="truncate font-medium text-zinc-900">
             {(order as any).brand?.name ??
               (order as any).location?.brand?.name ??
               "—"}
@@ -1333,7 +1308,7 @@ function OrderRow({
       </Td>
       <Td>
         <div className="max-w-[150px] flex flex-col gap-0.5">
-          <div className="truncate text-zinc-200">
+          <div className="truncate text-zinc-700">
             {order.customerInfo?.name ?? "—"}
           </div>
           {/* Phase AW-26 — NEW / RETURNING customer signal. The
@@ -1342,11 +1317,11 @@ function OrderRow({
           {typeof order.customerVisitCount === "number" &&
             order.customerVisitCount > 0 &&
             (order.customerVisitCount <= 1 ? (
-              <span className="inline-flex w-fit items-center rounded-md bg-emerald-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
+              <span className="inline-flex w-fit items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-800">
                 New
               </span>
             ) : (
-              <span className="inline-flex w-fit items-center rounded-md bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-300">
+              <span className="inline-flex w-fit items-center rounded-md bg-violet-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet-800">
                 Returning · #{order.customerVisitCount}
               </span>
             ))}
@@ -1430,13 +1405,12 @@ function PrintOrderButton({ order }: { order: Order }) {
       onClick={run}
       disabled={state === "printing"}
       title={msg ?? "Print receipt"}
-      aria-label={msg ?? "Print receipt"}
       className={`rounded-md p-1.5 ${
         state === "ok"
-          ? "text-emerald-500"
+          ? "text-emerald-600"
           : state === "error"
-            ? "text-rose-500"
-            : "text-zinc-400 hover:bg-violet-50 hover:text-violet-700 dark:text-zinc-500 dark:hover:bg-white/10 dark:hover:text-zinc-100"
+            ? "text-rose-600"
+            : "text-zinc-400 hover:bg-violet-50 hover:text-violet-700"
       }`}
     >
       {state === "printing" ? (
@@ -1502,16 +1476,16 @@ function RiderCell({ order }: { order: Order }) {
   // In-house wins when both exist: the shop dispatched it themselves, so
   // whatever a marketplace last said about a courier is stale.
   const name = inHouse || platform;
-  if (!name) return <span className="text-zinc-600">—</span>;
+  if (!name) return <span className="text-zinc-300">—</span>;
 
   return (
     <div className="flex max-w-[130px] flex-col gap-0.5">
-      <span className="truncate text-zinc-200">{name}</span>
+      <span className="truncate text-zinc-700">{name}</span>
       <span
         className={`w-fit rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
           inHouse
-            ? "bg-violet-500/15 text-violet-300"
-            : "bg-white/[0.06] text-zinc-400"
+            ? "bg-violet-100 text-violet-800"
+            : "bg-zinc-100 text-zinc-600"
         }`}
       >
         {inHouse ? "Ours" : "Platform"}
@@ -1552,18 +1526,18 @@ function PickupEtaCell({ order }: { order: Order }) {
     return () => clearInterval(t);
   }, [raw, inHouse]);
 
-  if (inHouse || !raw) return <span className="text-zinc-600">—</span>;
+  if (inHouse || !raw) return <span className="text-zinc-300">—</span>;
 
   if (collected) {
     // Said rather than blanked: "the rider has been and gone" is a different
     // fact from "we never had an estimate", and the kitchen cares which.
     return (
-      <span className="text-[11px] font-medium text-zinc-500">Collected</span>
+      <span className="text-[11px] font-medium text-zinc-400">Collected</span>
     );
   }
 
   const eta = new Date(raw).getTime();
-  if (!Number.isFinite(eta)) return <span className="text-zinc-600">—</span>;
+  if (!Number.isFinite(eta)) return <span className="text-zinc-300">—</span>;
 
   const mins = Math.round((eta - now) / 60_000);
 
@@ -1572,7 +1546,7 @@ function PickupEtaCell({ order }: { order: Order }) {
   // being information.
   if (mins <= 0) {
     return (
-      <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[11px] font-bold text-amber-300">
+      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800">
         Due
       </span>
     );
@@ -1582,7 +1556,7 @@ function PickupEtaCell({ order }: { order: Order }) {
   return (
     <span
       className={`rounded px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
-        urgent ? "bg-emerald-500/15 text-emerald-300" : "text-zinc-400"
+        urgent ? "bg-emerald-100 text-emerald-800" : "text-zinc-600"
       }`}
     >
       {mins} min
@@ -1595,16 +1569,16 @@ function PickupEtaCell({ order }: { order: Order }) {
 // MERCHANT) instead of a generic neutral so operators triaging the
 // board can scan the column in one glance.
 function DeliveryTypeBadge({ type }: { type?: string | null }) {
-  if (!type) return <span className="text-zinc-600">—</span>;
+  if (!type) return <span className="text-zinc-400">—</span>;
   const cfg =
     type === "PLATFORM"
       ? {
           label: "Platform",
-          cls: "bg-amber-500/10 text-amber-300 ring-1 ring-inset ring-amber-500/25",
+          cls: "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200",
         }
       : {
           label: "Merchant",
-          cls: "bg-emerald-500/10 text-emerald-300 ring-1 ring-inset ring-emerald-500/25",
+          cls: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
         };
   return (
     <span
