@@ -1,0 +1,25 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "desalt",
+  "name": "De Salt",
+  "brandId": "cmsaf0erj02b5fu1wp61f7go1",
+  "locationId": "cmsaezxix02azfu1wdcq38c5o",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmsaezxix02azfu1wdcq38c5o?brand=cmsaf0erj02b5fu1wp61f7go1",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#1A7F7A",
+  "backgroundColor": "#1A7F7A",
+  "icon": "brands/desalt/icon.png",
+  "adaptiveIcon": "brands/desalt/adaptive-icon.png",
+  "splash": "brands/desalt/splash.png",
+  "notificationIcon": "brands/desalt/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.desalt",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.desalt"
+  },
+  "easProjectId": "c14bf684-50a3-4c84-a190-4a166c8fe12d"
+}

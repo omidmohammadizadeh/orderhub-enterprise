@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useQuery } from "@tanstack/react-query";
-import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed, MapPin } from "lucide-react";
+import { Trash2, ShoppingBag, Loader2, Clock, Calendar, Tag, Phone, CheckCircle2, Search, XCircle, WifiOff, UtensilsCrossed, MapPin, StickyNote } from "lucide-react";
 import {
   applyMultiBuys,
   round2,
@@ -368,6 +368,19 @@ export function PosCartPanel(props: CartPanelProps) {
   const [promoApplied, setPromoApplied] = useState<PromoValidateResult | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
   const [promoChecking, setPromoChecking] = useState(false);
+
+  // Promo code and notes stay folded away until someone needs them — or
+  // until they hold something (a restored draft, a caller-ID fill), which
+  // must never be hidden.
+  const [promoOpen, setPromoOpen] = useState(!!initialDraft?.promoCode);
+  const [notesOpen, setNotesOpen] = useState(!!initialDraft?.notes);
+  useEffect(() => {
+    if (promoCodeInput) setPromoOpen(true);
+  }, [promoCodeInput]);
+  useEffect(() => {
+    if (notes) setNotesOpen(true);
+  }, [notes]);
+  const itemCount = cart.reduce((n, l) => n + l.quantity, 0);
 
   // Payment
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
@@ -756,20 +769,27 @@ export function PosCartPanel(props: CartPanelProps) {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white">
+    <div className="flex h-full flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white">
       {!online && (
-        <div className="flex items-center gap-2 bg-amber-100 px-3 py-1.5 text-[11px] font-medium text-amber-900">
-          <WifiOff className="h-3 w-3" />
+        <div className="flex items-center gap-2 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900">
+          <WifiOff className="h-3.5 w-3.5" />
           Offline — orders save on this till and sync when you reconnect
         </div>
       )}
-      <div className="border-b border-zinc-200 px-3 py-2 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-zinc-900">Current order</h2>
+      <div className="flex items-center justify-between border-b border-zinc-200 px-4 py-2.5">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900">
+          Current order
+          {itemCount > 0 && (
+            <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-zinc-700">
+              {itemCount} item{itemCount === 1 ? "" : "s"}
+            </span>
+          )}
+        </h2>
         <button
           type="button"
           onClick={onClearCart}
           disabled={cart.length === 0}
-          className="text-xs text-zinc-400 hover:text-red-600 disabled:opacity-30"
+          className="-mr-2 h-9 rounded-lg px-2.5 text-sm font-medium text-zinc-500 hover:bg-red-50 hover:text-red-600 disabled:pointer-events-none disabled:opacity-30"
         >
           Clear
         </button>
@@ -778,58 +798,69 @@ export function PosCartPanel(props: CartPanelProps) {
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
         {/* Cart lines */}
-        <div className="px-3 py-2">
+        <div className="px-2 py-2">
           {cart.length === 0 ? (
-            <div className="py-8 text-center">
-              <ShoppingBag className="mx-auto mb-1 h-7 w-7 text-zinc-300" />
-              <p className="text-xs text-zinc-400">Tap items on the left</p>
+            <div className="px-4 py-10 text-center">
+              <span className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-zinc-100">
+                <ShoppingBag className="h-6 w-6 text-zinc-400" />
+              </span>
+              <p className="text-sm font-medium text-zinc-700">No items yet</p>
+              <p className="mt-0.5 text-xs text-zinc-500">Tap a product to add it to the order</p>
             </div>
           ) : (
-            <ul className="space-y-1">
+            <ul className="divide-y divide-zinc-100">
               {cart.map((line) => (
-                <li
-                  key={line.id}
-                  className="flex items-start gap-2 rounded-md px-2 py-1.5 hover:bg-zinc-50"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-zinc-900 leading-snug">
+                <li key={line.id} className="px-2 py-2.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="min-w-0 text-sm font-medium leading-snug text-zinc-900">
                       {line.displayName}
                     </p>
-                    {line.modifiers.length > 0 && (
-                      <p className="mt-0.5 text-[10px] text-zinc-500 leading-snug">
-                        {line.modifiers.map((m) => m.name).join(", ")}
-                      </p>
-                    )}
-                    <div className="mt-1 flex items-center gap-1.5">
+                    <span className="shrink-0 text-sm font-semibold tabular-nums text-zinc-900">
+                      {money(line.unitPrice * line.quantity)}
+                    </span>
+                  </div>
+                  {line.modifiers.length > 0 && (
+                    <p className="mt-0.5 text-xs leading-snug text-zinc-500">
+                      {line.modifiers.map((m) => m.name).join(", ")}
+                    </p>
+                  )}
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex items-center rounded-lg border border-zinc-200">
                       <button
                         type="button"
                         onClick={() => onChangeQty(line.id, Math.max(1, line.quantity - 1))}
-                        className="h-5 w-5 rounded border border-zinc-200 text-xs hover:bg-zinc-100"
+                        disabled={line.quantity <= 1}
+                        aria-label={`One fewer ${line.displayName}`}
+                        className="grid h-9 w-10 place-items-center rounded-l-lg text-lg leading-none text-zinc-700 hover:bg-zinc-100 disabled:text-zinc-300 disabled:hover:bg-transparent"
                       >
                         −
                       </button>
-                      <span className="min-w-[1.5rem] text-center text-[11px]">
+                      <span className="min-w-[2rem] text-center text-sm font-semibold tabular-nums text-zinc-900">
                         {line.quantity}
                       </span>
                       <button
                         type="button"
                         onClick={() => onChangeQty(line.id, line.quantity + 1)}
-                        className="h-5 w-5 rounded border border-zinc-200 text-xs hover:bg-zinc-100"
+                        aria-label={`One more ${line.displayName}`}
+                        className="grid h-9 w-10 place-items-center rounded-r-lg text-lg leading-none text-zinc-700 hover:bg-zinc-100"
                       >
                         +
                       </button>
-                      <span className="ml-auto text-[11px] text-zinc-600">
-                        {money((line.unitPrice * line.quantity))}
-                      </span>
                     </div>
+                    {line.quantity > 1 && (
+                      <span className="text-xs tabular-nums text-zinc-500">
+                        {money(line.unitPrice)} each
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => onRemoveLine(line.id)}
+                      aria-label={`Remove ${line.displayName}`}
+                      className="ml-auto grid h-9 w-9 place-items-center rounded-lg text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveLine(line.id)}
-                    className="rounded-md p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
                 </li>
               ))}
             </ul>
@@ -839,7 +870,7 @@ export function PosCartPanel(props: CartPanelProps) {
         {/* Table Tabs — dine-in identity card replaces the takeaway
             Order-type toggle. The table IS the order type. */}
         {dineIn && (
-          <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2.5">
+          <div className="mx-3 mb-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2.5">
             <div className="flex items-center gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-md bg-indigo-600 text-white">
                 <UtensilsCrossed className="h-4.5 w-4.5" />
@@ -848,7 +879,7 @@ export function PosCartPanel(props: CartPanelProps) {
                 <p className="truncate text-sm font-bold text-indigo-900">
                   {dineIn.tableName}
                 </p>
-                <p className="text-[11px] text-indigo-700">
+                <p className="text-xs text-indigo-700">
                   Dine-in
                   {dineIn.tabItemCount > 0
                     ? ` — ${dineIn.tabItemCount} item${
@@ -956,11 +987,11 @@ export function PosCartPanel(props: CartPanelProps) {
         <Section title="Timing">
           <div className="flex items-center gap-1.5">
             <Clock className="h-3 w-3 text-zinc-400" />
-            <span className="text-[10px] uppercase tracking-wider text-zinc-500">
+            <span className="text-xs text-zinc-500">
               Expected time
             </span>
           </div>
-          <div className="mt-1 flex flex-wrap gap-1">
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
             {PREP_PRESETS.map((p) => (
               <button
                 key={p.label}
@@ -969,7 +1000,7 @@ export function PosCartPanel(props: CartPanelProps) {
                   setPrepMinutes(p.mins);
                   setCustomPrep("");
                 }}
-                className={`rounded-md border px-2 py-1 text-[11px] ${
+                className={`h-9 rounded-lg border px-3 text-sm font-medium ${
                   prepMinutes === p.mins && !customPrep
                     ? "border-zinc-900 bg-zinc-900 text-white"
                     : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
@@ -986,18 +1017,19 @@ export function PosCartPanel(props: CartPanelProps) {
                 setCustomPrep(e.target.value);
                 setPrepMinutes(Number(e.target.value) || 0);
               }}
-              placeholder="custom"
-              className="w-16 rounded-md border border-zinc-200 px-1.5 py-1 text-[11px]"
+              placeholder="Mins"
+              aria-label="Custom minutes"
+              className="h-9 w-20 rounded-lg border border-zinc-200 px-2 text-sm"
             />
           </div>
-          <label className="mt-2 flex cursor-pointer items-center gap-1.5 text-[11px] text-zinc-700">
+          <label className="mt-2.5 flex cursor-pointer items-center gap-2 text-sm text-zinc-700">
             <input
               type="checkbox"
               checked={isScheduled}
               onChange={(e) => setIsScheduled(e.target.checked)}
-              className="h-3 w-3"
+              className="h-4 w-4"
             />
-            <Calendar className="h-3 w-3" />
+            <Calendar className="h-4 w-4 text-zinc-400" />
             Schedule for later
           </label>
           {isScheduled && (
@@ -1006,13 +1038,13 @@ export function PosCartPanel(props: CartPanelProps) {
                 type="date"
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
-                className="rounded-md border border-zinc-200 px-2 py-1 text-[11px]"
+                className="h-10 rounded-lg border border-zinc-200 px-2 text-sm"
               />
               <input
                 type="time"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
-                className="rounded-md border border-zinc-200 px-2 py-1 text-[11px]"
+                className="h-10 rounded-lg border border-zinc-200 px-2 text-sm"
               />
             </div>
           )}
@@ -1053,7 +1085,8 @@ export function PosCartPanel(props: CartPanelProps) {
                 type="button"
                 onClick={() => setPaymentMethod(opt.value)}
                 disabled={!online && !canTakeOffline(opt.value)}
-                className={`rounded-md border px-2 py-1.5 text-[11px] ${
+                aria-pressed={paymentMethod === opt.value}
+                className={`min-h-11 rounded-lg border px-2 py-2 text-sm font-medium ${
                   paymentMethod === opt.value
                     ? "border-zinc-900 bg-zinc-900 text-white"
                     : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
@@ -1064,15 +1097,17 @@ export function PosCartPanel(props: CartPanelProps) {
             ))}
           </div>
           {!online && paymentMethod === "CARD_TERMINAL" && (
-            <p className="mt-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-[11px] text-amber-900">
+            <p className="mt-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-xs text-amber-900">
               Offline: key the amount into your card machine. After Place order
               you&apos;ll confirm it showed APPROVED.
             </p>
           )}
-          <p className="mt-1 text-[10px] text-zinc-500">
-            Online card &amp; Payment link require Stripe. Payment link places the
-            order as pending and shows a QR/link for the customer to pay.
-          </p>
+          {paymentMethod === "PAYMENT_LINK" && (
+            <p className="mt-1.5 text-xs text-zinc-500">
+              The order waits as pending and shows a QR/link for the customer
+              to pay.
+            </p>
+          )}
         </Section>
         )}
 
@@ -1108,35 +1143,77 @@ export function PosCartPanel(props: CartPanelProps) {
           </Section>
         )}
 
-        {/* Promo code */}
+        {/* Promo code and notes are used on a minority of orders, so they
+            wait behind one tap rather than taking a third of the panel. They
+            open by themselves when there's something in them. */}
+        {(promoOpen || notesOpen) ? null : (
+          <div className="flex gap-2 border-t border-zinc-100 px-4 py-3">
+            <button
+              type="button"
+              onClick={() => setPromoOpen(true)}
+              className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-300 text-sm font-medium text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50"
+            >
+              <Tag className="h-4 w-4" /> Promo code
+            </button>
+            <button
+              type="button"
+              onClick={() => setNotesOpen(true)}
+              className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-dashed border-zinc-300 text-sm font-medium text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50"
+            >
+              <StickyNote className="h-4 w-4" /> Add note
+            </button>
+          </div>
+        )}
+        {(promoOpen || notesOpen) && !(promoOpen && notesOpen) && (
+          <div className="border-t border-zinc-100 px-4 pt-3">
+            <button
+              type="button"
+              onClick={() => (promoOpen ? setNotesOpen(true) : setPromoOpen(true))}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg px-1 text-sm font-medium text-zinc-600 hover:text-zinc-900"
+            >
+              {promoOpen ? (
+                <>
+                  <StickyNote className="h-4 w-4" /> Add note
+                </>
+              ) : (
+                <>
+                  <Tag className="h-4 w-4" /> Promo code
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        {promoOpen && (
         <Section title="Promo code">
           <div className="flex gap-1.5">
             <div className="relative flex-1">
-              <Tag className="pointer-events-none absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-400" />
+              <Tag className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
               <input
                 value={promoCodeInput}
                 onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
                 placeholder="ENTER CODE"
-                className="w-full rounded-md border border-zinc-200 px-7 py-1 text-[11px] uppercase focus:border-zinc-900 focus:outline-none"
+                aria-label="Promo code"
+                className="h-10 w-full rounded-lg border border-zinc-200 pl-8 pr-2 text-sm uppercase focus:border-zinc-900 focus:outline-none"
               />
             </div>
             {promoApplied?.valid ? (
               <button
                 type="button"
                 onClick={clearPromo}
-                className="rounded-md border border-red-200 bg-red-50 px-2 text-[11px] text-red-700 hover:bg-red-100"
+                className="inline-flex h-10 items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 text-sm font-medium text-red-700 hover:bg-red-100"
               >
-                <XCircle className="inline h-3 w-3" /> Remove
+                <XCircle className="h-4 w-4" /> Remove
               </button>
             ) : (
               <button
                 type="button"
                 onClick={applyPromo}
                 disabled={promoChecking || !promoCodeInput.trim()}
-                className="rounded-md border border-zinc-300 bg-white px-2 text-[11px] hover:bg-zinc-50 disabled:opacity-50"
+                className="inline-flex h-10 items-center rounded-lg border border-zinc-300 bg-white px-3 text-sm font-medium hover:bg-zinc-50 disabled:opacity-50"
               >
                 {promoChecking ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   "Apply"
                 )}
@@ -1144,38 +1221,42 @@ export function PosCartPanel(props: CartPanelProps) {
             )}
           </div>
           {promoApplied?.valid && (
-            <p className="mt-1 flex items-center gap-1 text-[10px] text-emerald-700">
-              <CheckCircle2 className="h-3 w-3" />
+            <p className="mt-1.5 flex items-center gap-1 text-xs text-emerald-700">
+              <CheckCircle2 className="h-3.5 w-3.5" />
               {promoApplied.freeDelivery
                 ? "Free delivery applied"
                 : `−${money((promoApplied.discountAmount ?? 0))} off (${promoApplied.code})`}
             </p>
           )}
           {promoError && (
-            <p className="mt-1 text-[10px] text-red-600">{promoError}</p>
+            <p className="mt-1.5 text-xs text-red-600">{promoError}</p>
           )}
         </Section>
+        )}
 
         {/* Notes — last, because a kitchen note is written after the food is
             chosen, not before it. */}
+        {notesOpen && (
         <Section title="Notes">
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
+            autoFocus={!notes}
             placeholder={
               dineIn
                 ? "Kitchen notes for this round (allergies, cooking preferences…)"
                 : "Order notes (e.g. allergies, instructions)"
             }
             rows={2}
-            className="w-full resize-none rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+            className="w-full resize-none rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-zinc-900 focus:outline-none"
           />
         </Section>
+        )}
 
       </div>
 
       {/* Footer totals + submit */}
-      <div className="border-t border-zinc-200 bg-zinc-50 px-3 py-2 space-y-1.5">
+      <div className="space-y-1.5 border-t border-zinc-200 bg-zinc-50 px-4 pb-3 pt-2.5">
         <Row
           label={dineIn ? "This round" : "Subtotal"}
           value={`${money(subtotal)}`}
@@ -1235,10 +1316,13 @@ export function PosCartPanel(props: CartPanelProps) {
         {!(dineIn && dineIn.tabItemCount > 0) && (
           <Row label="Total" value={`${money(total)}`} bold />
         )}
-        {errors.length > 0 && (
+        {/* An empty basket already says so above, and the button is
+            disabled — a red error before anyone has tapped a thing reads
+            like something went wrong. */}
+        {errors.length > 0 && cart.length > 0 && (
           <ul className="mt-1 space-y-0.5">
             {errors.map((e) => (
-              <li key={e} className="text-[10px] text-red-600">
+              <li key={e} className="text-xs text-red-600">
                 • {e}
               </li>
             ))}
@@ -1248,14 +1332,14 @@ export function PosCartPanel(props: CartPanelProps) {
           type="button"
           onClick={handlePlaceOrder}
           disabled={!canSubmit}
-          className={`mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`mt-2 flex h-14 w-full items-center justify-center gap-2 rounded-xl px-4 text-base font-semibold text-white shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
             dineIn
-              ? "bg-indigo-600 hover:bg-indigo-700"
-              : "bg-emerald-500 hover:bg-emerald-600"
+              ? "bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-600"
+              : "bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-600"
           }`}
         >
-          {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          {dineIn && <UtensilsCrossed className="h-3.5 w-3.5" />}
+          {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {dineIn && <UtensilsCrossed className="h-4 w-4" />}
           {props.submitButtonLabel ??
             (dineIn
               ? dineIn.tabItemCount > 0
@@ -1264,9 +1348,12 @@ export function PosCartPanel(props: CartPanelProps) {
               : isScheduled
                 ? "Save scheduled order"
                 : "Place order")}
+          {!dineIn && cart.length > 0 && (
+            <span className="tabular-nums opacity-90">· {money(total)}</span>
+          )}
         </button>
         {feedback && (
-          <p className="text-center text-[11px] text-zinc-600">{feedback}</p>
+          <p role="status" className="text-center text-sm text-zinc-700">{feedback}</p>
         )}
       </div>
     </div>
@@ -1286,8 +1373,8 @@ function promoButtonLabel(
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="border-t border-zinc-100 px-3 py-2">
-      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+    <div className="border-t border-zinc-100 px-4 py-3">
+      <p className="mb-2 text-xs font-semibold text-zinc-500">
         {title}
       </p>
       {children}
@@ -1312,7 +1399,7 @@ function Input({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+      className="h-10 w-full rounded-lg border border-zinc-200 px-3 text-sm focus:border-zinc-900 focus:outline-none"
     />
   );
 }
@@ -1362,7 +1449,8 @@ function DiscountButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-md border px-2 py-1.5 text-[11px] ${
+      aria-pressed={active}
+      className={`min-h-11 rounded-lg border px-2 py-2 text-sm font-medium ${
         active
           ? "border-emerald-600 bg-emerald-50 text-emerald-700"
           : "border-zinc-200 text-zinc-700 hover:border-zinc-300"
@@ -1386,8 +1474,8 @@ function Row({
 }) {
   return (
     <div
-      className={`flex items-center justify-between text-xs ${
-        bold ? "font-semibold text-zinc-900" : "text-zinc-600"
+      className={`flex items-center justify-between tabular-nums ${
+        bold ? "pt-1 text-lg font-bold text-zinc-900" : "text-sm text-zinc-600"
       } ${accent ?? ""}`}
     >
       <span>{label}</span>

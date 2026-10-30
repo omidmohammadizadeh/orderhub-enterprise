@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, type RouteProp, useRoute } from "@react-navigation/native";
 import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, BackHandler, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, BackHandler, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import WebView, { type WebViewMessageEvent, type WebViewNavigation } from "react-native-webview";
 import {
@@ -16,6 +17,7 @@ import {
   useAuth,
 } from "../auth";
 import { Button } from "../components/Button";
+import { isPaymentPage, PaymentSheet } from "../components/PaymentSheet";
 import { brand } from "../brand";
 import { openOrder, type TabParams } from "../navigation";
 import { saveOrder } from "../orders";
@@ -42,6 +44,9 @@ export function OrderScreen() {
   const [webKey, setWebKey] = useState(0);
   const lastUrl = useRef<string | null>(null);
   const shownVersion = useRef(auth.version);
+  // A hosted payment page (Mollie, Stripe Checkout, Dojo, Tap) open in the
+  // wallet-capable sheet over the menu. See PaymentSheet for why.
+  const [payUrl, setPayUrl] = useState<string | null>(null);
 
   useEffect(() => {
     availableProviders().then(setProviders);
@@ -180,12 +185,58 @@ export function OrderScreen() {
     [onUrl],
   );
 
-  const onShouldStartLoadWithRequest = useCallback((req: { url: string }) => {
+  // Back from a payment (or a cancel): show that storefront page in the
+  // storefront WebView with its scripts, so the order is followed and the
+  // native tracker opens as before.
+  const showReturnPage = useCallback(
+    (url: string) => {
+      setPayUrl(null);
+      lastUrl.current = url;
+      setSource(url);
+      setWebKey((k) => k + 1);
+      onUrl(url);
+    },
+    [onUrl],
+  );
+
+  // Android pays in a Chrome tab over the app. Google Pay won't run inside
+  // an app's WebView unless Google approves that app for it (OR_BIBED_11),
+  // and every restaurant is its own app; real Chrome needs no approval. The
+  // return page (carrying appReturn=<scheme>, set at checkout) sends
+  // <scheme>://payment-return?to=<page>, which closes the tab here.
+  const payInChromeTab = useCallback(
+    async (url: string) => {
+      const scheme = `orderhub-${brand.slug}`;
+      try {
+        const res = await WebBrowser.openAuthSessionAsync(url, `${scheme}://payment-return`, {
+          showTitle: true,
+          toolbarColor: colors.card,
+          enableBarCollapsing: false,
+        });
+        if (res.type !== "success") return; // closed by the customer: stay put
+        const to = decodeURIComponent(res.url.match(/[?&]to=([^&#]+)/)?.[1] ?? "");
+        if (/^https:\/\//i.test(to)) showReturnPage(to);
+      } catch {
+        // No browser able to open it: fall back to the in-app sheet.
+        setPayUrl(url);
+      }
+    },
+    [showReturnPage],
+  );
+
+  const onShouldStartLoadWithRequest = useCallback((req: { url: string; isTopFrame?: boolean }) => {
+    // The storefront leaving for a hosted payment page: open it in the
+    // payment sheet instead, where Apple Pay / Google Pay work.
+    if (req.isTopFrame !== false && isPaymentPage(req.url)) {
+      if (Platform.OS === "android") payInChromeTab(req.url);
+      else setPayUrl(req.url);
+      return false;
+    }
     if (/^https?:/i.test(req.url) || req.url.startsWith("about:")) return true;
     // tel:, mailto:, maps, wallet links — hand them to the OS.
     Linking.openURL(req.url).catch(() => {});
     return false;
-  }, []);
+  }, [payInChromeTab]);
 
   const pageScript = sessionScript(auth, providers) + INJECTED_JS;
 
@@ -243,13 +294,20 @@ export function OrderScreen() {
         onLoadStart={() => setLoading(true)}
         onLoadEnd={() => setLoading(false)}
         onError={() => setFailed(true)}
-        applicationNameForUserAgent={`OrderHubApp/${brand.slug}`}
+        // OHPayReturn/1: this build handles <scheme>://payment-return, so
+        // checkout may send payment returns straight back into the app.
+        applicationNameForUserAgent={`OrderHubApp/${brand.slug} OHPayReturn/1`}
         allowsBackForwardNavigationGestures
         setSupportMultipleWindows={false}
         sharedCookiesEnabled
         pullToRefreshEnabled
         // No decelerationRate: Android passes "normal" straight to a numeric
         // native prop and the ClassCastException blanks the whole app.
+      />
+      <PaymentSheet
+        url={payUrl}
+        onReturn={showReturnPage}
+        onClose={() => setPayUrl(null)}
       />
       {loading && !failed ? (
         <View style={styles.loading} pointerEvents="none">

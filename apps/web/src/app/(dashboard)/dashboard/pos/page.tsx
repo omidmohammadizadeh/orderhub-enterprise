@@ -18,7 +18,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /** How long a caller stays worth re-applying after a location switch. */
 const CALLER_FILL_TTL_MS = 2 * 60_000;
+
+// Tools touched once a shift, if that. They sit behind the Settings menu so
+// the bar keeps to what staff reach for during an order.
+const SETTING_TOOL_KEYS = new Set([
+  "tile-colours",
+  "fee",
+  "pin",
+  "service",
+  "promos",
+]);
 import { useCurrency } from "@/hooks/use-currency";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Search,
@@ -689,13 +700,17 @@ export default function PosPage() {
   }, [selectedLocationId, menuQuery.data, menuQuery.isError, online]);
 
   const categories = menuData?.categories ?? [];
-  // No fall-back to the first category: null means "no category chosen yet",
-  // which is what puts the category tiles on screen. Falling back to
-  // categories[0] would drop staff straight into Grilled Meats and leave every
-  // other category behind a horizontal scroll.
+  // On a phone null means "no category chosen yet", which is what puts the
+  // category tiles on screen — falling back to categories[0] there would drop
+  // staff straight into Grilled Meats with every other category out of
+  // sight. From md up every category is already on screen in the category
+  // bar, so the first one opens and the product grid is never empty.
+  const categoriesAlwaysVisible = useMediaQuery("(min-width: 768px)");
   const activeCategory = useMemo(
-    () => categories.find((c) => c.id === activeCategoryId) ?? null,
-    [categories, activeCategoryId],
+    () =>
+      categories.find((c) => c.id === activeCategoryId) ??
+      (categoriesAlwaysVisible ? (categories[0] ?? null) : null),
+    [categories, activeCategoryId, categoriesAlwaysVisible],
   );
 
   // Searching looks across the WHOLE menu, not just the open category. With a
@@ -740,6 +755,26 @@ export default function PosPage() {
         categoryItemAllowsFulfillment(activeCategory, it, draft.fulfillmentType),
       );
   }, [activeCategory, draft.fulfillmentType]);
+
+  // Counted the same way the grid filters, or a category advertises items it
+  // will not then show.
+  const categoryCount = (cat: (typeof categories)[number]) =>
+    (cat.items ?? []).filter(
+      (l: any) =>
+        l.item &&
+        l.item.isAvailable &&
+        categoryItemAllowsFulfillment(cat, l.item, draft.fulfillmentType),
+    ).length;
+
+  // How many of each product are already in the basket, for the badge on its
+  // tile — the quickest answer to "did that tap register?".
+  const cartQtyByItem = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const l of cart) {
+      if (l.menuItemId) m.set(l.menuItemId, (m.get(l.menuItemId) ?? 0) + l.quantity);
+    }
+    return m;
+  }, [cart]);
 
   // ── Offline payment + kitchen ticket ───────────────────────────────────────
 
@@ -1871,9 +1906,13 @@ export default function PosPage() {
       show: true,
     },
   ].filter((t) => t.show);
+  const posActions = posTools.filter((t) => !SETTING_TOOL_KEYS.has(t.key));
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col gap-3">
+    // The screen minus the dashboard top bar (3.5rem) and the page padding
+    // around us (2 × 1.5rem). Anything taller pushed Place order off the
+    // bottom of a tablet.
+    <div className="flex h-[calc(100dvh-6.5rem)] flex-col gap-3">
       {editOrderId && (
         <div className="flex items-center justify-between rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900">
           <div className="flex items-center gap-2">
@@ -2009,90 +2048,160 @@ export default function PosPage() {
           </div>
         </div>
       )}
-      {/* Top bar.
-          These five are settings, not per-order actions — you touch them
-          once a shift, if that. On a phone they were squeezing the title
-          into a one-word-per-line column and still running off the right
-          edge, so below md they collapse behind a single button and the
-          screen goes to the products instead. */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="flex items-center gap-2 truncate text-lg font-semibold text-zinc-900">
-            {/* Back to the order-type / customer step. The cart survives, so a
-                phone customer switching collection → delivery mid-order
-                doesn't lose their basket. Hidden on a dine-in tab and while
-                editing, neither of which has a start step to go back to. */}
-            {step === "menu" && !tableId && !editOrderId && (
-              <button
-                type="button"
-                onClick={() => setStep("start")}
-                aria-label="Back to order details"
-                className="-ml-1 rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+      {/* Top bar — one row: where you are, who the order is for, search, and
+          the buttons staff reach for during an order. Settings that are
+          touched once a shift (tile colours, fees, PIN…) live behind the
+          gear so they stop competing with the till for attention. On a phone
+          everything collapses into one "More" sheet; below lg search drops to
+          its own line rather than being squeezed to a few characters. */}
+      <header className="flex flex-wrap items-center gap-2 rounded-xl border border-zinc-200 bg-white p-2 lg:flex-nowrap lg:gap-3">
+        {/* Back to the order-type / customer step. The cart survives, so a
+            phone customer switching collection → delivery mid-order
+            doesn't lose their basket. Hidden on a dine-in tab and while
+            editing, neither of which has a start step to go back to. */}
+        {step === "menu" && !tableId && !editOrderId && (
+          <button
+            type="button"
+            onClick={() => setStep("start")}
+            aria-label="Back to order details"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+        )}
+
+        <div className="min-w-0 flex-1 px-1 lg:max-w-[16rem] lg:flex-none">
+          <div className="flex items-center gap-2">
+            <h1 className="truncate text-base font-semibold text-zinc-900">
+              {tableId ? tableName ?? "Table" : editOrderId ? `Order ${editOrderNumber ?? ""}` : "New order"}
+            </h1>
+            {step === "menu" && (tableId || orderTypeLabel) && (
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                  tableId
+                    ? "bg-indigo-100 text-indigo-800"
+                    : draft.fulfillmentType === "DELIVERY" && !draft.walkIn
+                      ? "bg-sky-100 text-sky-800"
+                      : "bg-emerald-100 text-emerald-800"
+                }`}
               >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-            )}
-            {tableId ? `POS · ${tableName ?? "Table"}` : "POS"}
-            {step === "menu" && orderTypeLabel && (
-              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
-                {orderTypeLabel}
+                {tableId ? "Dine-in" : orderTypeLabel}
               </span>
             )}
-          </h1>
-          {/* The subtitle is orientation, not information — on a phone the
-              vertical space is worth more than the sentence. */}
-          <p className="hidden text-sm text-zinc-500 md:block">
+          </div>
+          <p className="truncate text-xs text-zinc-500">
             {tableId
-              ? "Dine-in tab — items you add are sent to the kitchen."
-              : "Walk-in, phone & scheduled orders"}
+              ? "Items you add are sent to the kitchen"
+              : step === "menu" && (draft.customerName || draft.customerPhone)
+                ? [draft.customerName, draft.customerPhone].filter(Boolean).join(" · ")
+                : "Walk-in, phone & scheduled orders"}
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setToolsOpen(true)}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 md:hidden"
-        >
-          <SlidersHorizontal className="h-3.5 w-3.5" /> Tools
-        </button>
+        {step === "menu" && (
+          <div className="relative order-last w-full lg:order-none lg:w-auto lg:flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              // Retail R1 — a scanner typing into a focused search box
+              // (or a code typed by hand) adds the product on Enter.
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" || !isShop) return;
+                const entry = findByBarcode(barcodeIndex, search);
+                if (entry) {
+                  e.preventDefault();
+                  setSearch("");
+                  void handleScan(entry.barcode);
+                } else if (/^2\d{12}$/.test(search.trim())) {
+                  // A label-scale barcode: price or weight is inside it.
+                  e.preventDefault();
+                  const code = search.trim();
+                  setSearch("");
+                  void handleScan(code);
+                }
+              }}
+              aria-label={isShop ? "Scan or search products" : "Search the menu"}
+              placeholder={isShop ? "Scan or search products…" : "Search the whole menu…"}
+              className="h-11 w-full rounded-lg border border-zinc-200 bg-zinc-50 pl-9 pr-9 text-sm placeholder:text-zinc-400 focus:border-zinc-900 focus:bg-white focus:outline-none"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+                className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-md text-zinc-400 hover:bg-zinc-200 hover:text-zinc-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
+        {step !== "menu" && <div className="hidden flex-1 lg:block" />}
 
-        <div className="hidden items-center gap-2 md:flex">
-          {posTools.map((t) => (
+        {/* Order actions — always in reach on a tablet. Icon-only until xl so
+            they don't squeeze the search box; the label stays as the
+            accessible name and the tooltip. */}
+        <div className="hidden shrink-0 items-center gap-1.5 md:flex">
+          {posActions.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={t.onClick}
               disabled={t.disabled}
               title={t.title}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 disabled:opacity-50"
+              aria-label={t.label}
+              className="inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 disabled:opacity-40"
             >
-              <t.icon className="h-3.5 w-3.5" /> {t.label}
+              <t.icon className="h-4 w-4 shrink-0" />
+              <span className="hidden xl:inline">{t.label}</span>
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Phone: the same tools as a bottom sheet. */}
+        <button
+          type="button"
+          onClick={() => setToolsOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={toolsOpen}
+          className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          <span className="md:hidden">More</span>
+          <span className="hidden md:inline">Settings</span>
+        </button>
+      </header>
+
+      {/* Tools menu. A bottom sheet with everything on a phone; a dropdown of
+          just the settings on a tablet, where the order actions are already
+          on the bar. */}
       {toolsOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-end bg-black/40 md:hidden"
+          className="fixed inset-0 z-50 flex items-end bg-black/40 md:block md:bg-black/10"
           onClick={() => setToolsOpen(false)}
         >
           <div
-            className="w-full rounded-t-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            role="dialog"
+            aria-label="Till tools"
+            className="w-full rounded-t-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:absolute md:right-8 md:top-24 md:w-72 md:rounded-xl md:border md:border-zinc-200 md:p-2 md:shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-zinc-900">Tools</h2>
+            <div className="mb-2 flex items-center justify-between md:px-2 md:pt-1">
+              <h2 className="text-sm font-semibold text-zinc-900">
+                <span className="md:hidden">Tools</span>
+                <span className="hidden md:inline">Till settings</span>
+              </h2>
               <button
                 type="button"
                 onClick={() => setToolsOpen(false)}
-                className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100"
+                aria-label="Close"
+                className="grid h-9 w-9 place-items-center rounded-md text-zinc-500 hover:bg-zinc-100"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1">
               {posTools.map((t) => (
                 <button
                   key={t.key}
@@ -2102,7 +2211,9 @@ export default function PosPage() {
                     t.onClick();
                   }}
                   disabled={t.disabled}
-                  className="inline-flex items-center gap-2.5 rounded-lg border border-zinc-200 px-3 py-3 text-left text-sm font-medium text-zinc-700 disabled:opacity-50"
+                  className={`items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-40 md:py-2.5 ${
+                    SETTING_TOOL_KEYS.has(t.key) ? "inline-flex" : "inline-flex md:hidden"
+                  }`}
                 >
                   <t.icon className="h-4 w-4 shrink-0 text-zinc-500" />
                   {t.label}
@@ -2115,7 +2226,7 @@ export default function PosPage() {
 
       {(!online || pendingSync > 0) && (
         <div
-          className={`mb-2 flex items-center justify-between gap-2 rounded-md px-3 py-2 text-sm ${
+          className={`flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm ${
             !online
               ? "bg-amber-50 text-amber-800"
               : "bg-blue-50 text-blue-800"
@@ -2145,7 +2256,7 @@ export default function PosPage() {
         <div
           role="status"
           aria-live="polite"
-          className="mb-2 flex items-start justify-between gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-900"
+          className="flex items-start justify-between gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm text-blue-900"
         >
           <span>{repeatNote}</span>
           <button
@@ -2171,189 +2282,205 @@ export default function PosPage() {
           cartCount={cartCount}
         />
       ) : (
-        <div className="grid flex-1 grid-cols-1 gap-3 overflow-hidden md:grid-cols-12">
-          {/* Left — menu.
-              One column on a phone: a 5/12 cart beside a 7/12 menu works out
-              at ~156px each on a 375px screen, which is narrower than a
-              single product tile. Below md the cart becomes a full-screen
-              step instead (see the bottom bar). */}
-          <div className="flex flex-col gap-3 overflow-hidden md:col-span-12">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  // Retail R1 — a scanner typing into a focused search box
-                  // (or a code typed by hand) adds the product on Enter.
-                  onKeyDown={(e) => {
-                    if (e.key !== "Enter" || !isShop) return;
-                    const entry = findByBarcode(barcodeIndex, search);
-                    if (entry) {
-                      e.preventDefault();
-                      setSearch("");
-                      void handleScan(entry.barcode);
-                    } else if (/^2\d{12}$/.test(search.trim())) {
-                      // A label-scale barcode: price or weight is inside it.
-                      e.preventDefault();
-                      const code = search.trim();
-                      setSearch("");
-                      void handleScan(code);
-                    }
-                  }}
-                  placeholder={isShop ? "Scan or search products…" : "Search the whole menu…"}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-9 py-2 text-sm focus:border-zinc-900 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {isShop && scanNotice && (
-              <div
-                role="status"
-                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
-                  scanNotice.tone === "ok"
-                    ? "bg-emerald-50 text-emerald-900"
-                    : "bg-amber-50 text-amber-900"
-                }`}
+        <div className="flex flex-1 gap-3 overflow-hidden">
+          {/* Menu — categories, then products. The order ticket sits beside
+              it from lg up so staff can see what they've rung in as they go;
+              below that it's a sheet behind the bottom bar. */}
+          <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden xl:flex-row">
+            {/* Tablet and up: every category visible at once — a wrapping
+                row on a narrower tablet, a column down the left on a wide
+                one. One tap to switch, no drilling in and back out. Phones
+                keep the category tiles (below). */}
+            {categories.length > 0 && (
+              <nav
+                aria-label="Menu categories"
+                className="hidden max-h-[9.5rem] shrink-0 flex-wrap gap-1.5 overflow-y-auto md:flex xl:max-h-none xl:w-52 xl:flex-col xl:flex-nowrap xl:gap-1 xl:rounded-xl xl:border xl:border-zinc-200 xl:bg-white xl:p-2"
               >
-                <ScanBarcode className="h-4 w-4 flex-shrink-0" />
-                <span className="truncate">{scanNotice.text}</span>
-              </div>
+                {categories.map((cat) => {
+                  const selected = !search.trim() && cat.id === activeCategory?.id;
+                  const dot = resolveTileColour(tileColours, "", cat.id);
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        setSearch("");
+                        setActiveCategoryId(cat.id);
+                      }}
+                      aria-current={selected ? "true" : undefined}
+                      className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 xl:w-full xl:border-transparent xl:px-3 ${
+                        selected
+                          ? "border-zinc-900 bg-zinc-900 text-white xl:border-zinc-900"
+                          : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 xl:hover:border-transparent xl:hover:bg-zinc-100"
+                      }`}
+                    >
+                      {dot && (
+                        <span
+                          aria-hidden
+                          className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-black/10"
+                          style={{ backgroundColor: dot.border }}
+                        />
+                      )}
+                      <span className="truncate xl:flex-1 xl:text-left">{cat.name}</span>
+                      <span
+                        className={`hidden shrink-0 text-xs tabular-nums xl:inline ${
+                          selected ? "text-white/70" : "text-zinc-400"
+                        }`}
+                      >
+                        {categoryCount(cat)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </nav>
             )}
 
-            {/* Where in the menu we are. Only once a category is open — the
-                category grid is its own signpost. */}
-            {activeCategory && !search.trim() && (
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveCategoryId(null)}
-                  className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white font-medium text-zinc-700 hover:border-zinc-300 ${sizing.chip}`}
+            <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden">
+              {isShop && scanNotice && (
+                <div
+                  role="status"
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                    scanNotice.tone === "ok"
+                      ? "bg-emerald-50 text-emerald-900"
+                      : "bg-amber-50 text-amber-900"
+                  }`}
                 >
-                  <ChevronLeft className="h-4 w-4" />
-                  All categories
-                </button>
-                <span className="truncate text-sm font-semibold text-zinc-900">
-                  {activeCategory.name}
-                </span>
-              </div>
-            )}
+                  <ScanBarcode className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{scanNotice.text}</span>
+                </div>
+              )}
 
-            {/* Extra bottom padding on a phone so the last row of products
-                isn't sitting under the fixed cart bar. */}
-            <div className="flex-1 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-3 pb-24">
-              {search.trim() ? (
-                // Searching jumps straight to items, wherever they live.
-                searchResults.length === 0 ? (
+              {/* Phone only: where in the menu we are, once a category is
+                  open — the category tiles are their own signpost. */}
+              {activeCategory && !search.trim() && (
+                <div className="flex items-center gap-2 md:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCategoryId(null)}
+                    className="inline-flex h-10 flex-shrink-0 items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-700 hover:border-zinc-300"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Categories
+                  </button>
+                  <span className="truncate text-sm font-semibold text-zinc-900">
+                    {activeCategory.name}
+                  </span>
+                </div>
+              )}
+
+              {/* Extra bottom padding below lg so the last row of products
+                  isn't sitting under the fixed basket bar. */}
+              <div className="flex-1 overflow-y-auto rounded-xl border border-zinc-200 bg-white p-3 pb-24 lg:pb-3">
+                {search.trim() ? (
+                  // Searching jumps straight to items, wherever they live.
+                  searchResults.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <Search className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
+                      <p className="text-sm text-zinc-500">
+                        Nothing on the menu matches &ldquo;{search.trim()}&rdquo;.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="mb-2 px-0.5 text-xs font-medium text-zinc-500">
+                        {searchResults.length} result{searchResults.length === 1 ? "" : "s"} for &ldquo;{search.trim()}&rdquo;
+                      </p>
+                      <div className={`grid gap-2 ${sizing.grid}`}>
+                        {searchResults.map((hit) => (
+                          <ProductCard
+                            key={`${hit.categoryId}:${hit.item.id}`}
+                            product={hit.item}
+                            colour={resolveTileColour(
+                              tileColours,
+                              hit.item.id,
+                              hit.categoryId,
+                            )}
+                            onClick={() => onProductClick(hit.item)}
+                            sizing={sizing}
+                            inCart={cartQtyByItem.get(hit.item.id)}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )
+                ) : !activeCategory ? (
+                  // Phone step one: pick a category. Every category is on
+                  // screen at once instead of hidden behind a horizontal
+                  // scroll, which is what made the old strip slow to work
+                  // during a rush.
+                  categories.length === 0 ? (
+                    <div className="py-12 text-center">
+                      <ShoppingBag className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
+                      <p className="text-sm text-zinc-500">This menu has no categories.</p>
+                    </div>
+                  ) : (
+                    <div className={`grid gap-2 ${sizing.grid}`}>
+                      {categories.map((cat) => {
+                        const count = categoryCount(cat);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => setActiveCategoryId(cat.id)}
+                            className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-zinc-200 bg-white text-center transition-colors hover:border-zinc-900 hover:bg-zinc-50 ${sizing.pad}`}
+                            style={{ minHeight: "5.5rem" }}
+                          >
+                            <span
+                              className={`font-semibold leading-tight text-zinc-900 ${sizing.name}`}
+                            >
+                              {cat.name}
+                            </span>
+                            <span className={`text-zinc-500 ${sizing.price}`}>
+                              {count} item{count === 1 ? "" : "s"}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )
+                ) : products.length === 0 ? (
                   <div className="py-12 text-center">
-                    <Search className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
-                    <p className="text-sm text-zinc-400">
-                      Nothing on the menu matches &ldquo;{search.trim()}&rdquo;.
-                    </p>
+                    <ShoppingBag className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
+                    <p className="text-sm text-zinc-500">No items in this category.</p>
                   </div>
                 ) : (
                   <div className={`grid gap-2 ${sizing.grid}`}>
-                    {searchResults.map((hit) => (
+                    {products.map((product) => (
                       <ProductCard
-                        key={`${hit.categoryId}:${hit.item.id}`}
-                        product={hit.item}
+                        key={product.id}
+                        product={product}
                         colour={resolveTileColour(
                           tileColours,
-                          hit.item.id,
-                          hit.categoryId,
+                          product.id,
+                          activeCategory.id,
                         )}
-                        onClick={() => onProductClick(hit.item)}
+                        onClick={() => onProductClick(product)}
                         sizing={sizing}
+                        inCart={cartQtyByItem.get(product.id)}
                       />
                     ))}
                   </div>
-                )
-              ) : !activeCategory ? (
-                // Step one: pick a category. Every category is on screen at
-                // once instead of hidden behind a horizontal scroll, which is
-                // what made the old strip slow to work during a rush.
-                categories.length === 0 ? (
-                  <div className="py-12 text-center">
-                    <ShoppingBag className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
-                    <p className="text-sm text-zinc-400">This menu has no categories.</p>
-                  </div>
-                ) : (
-                  <div className={`grid gap-2 ${sizing.grid}`}>
-                    {categories.map((cat) => {
-                      // Counted the same way the grid filters, or a category
-                      // advertises items it will not then show.
-                      const count = (cat.items ?? []).filter(
-                        (l: any) =>
-                          l.item &&
-                          l.item.isAvailable &&
-                          categoryItemAllowsFulfillment(
-                            cat,
-                            l.item,
-                            draft.fulfillmentType,
-                          ),
-                      ).length;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setActiveCategoryId(cat.id)}
-                          className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-zinc-200 bg-white text-center transition-colors hover:border-zinc-900 hover:bg-zinc-50 ${sizing.pad}`}
-                          style={{ minHeight: "5.5rem" }}
-                        >
-                          <span
-                            className={`font-semibold leading-tight text-zinc-900 ${sizing.name}`}
-                          >
-                            {cat.name}
-                          </span>
-                          <span className={`text-zinc-400 ${sizing.price}`}>
-                            {count} item{count === 1 ? "" : "s"}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )
-              ) : products.length === 0 ? (
-                <div className="py-12 text-center">
-                  <ShoppingBag className="mx-auto mb-2 h-7 w-7 text-zinc-300" />
-                  <p className="text-sm text-zinc-400">No items in this category.</p>
-                </div>
-              ) : (
-                <div className={`grid gap-2 ${sizing.grid}`}>
-                  {products.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      colour={resolveTileColour(
-                        tileColours,
-                        product.id,
-                        activeCategoryId,
-                      )}
-                      onClick={() => onProductClick(product)}
-                      sizing={sizing}
-                    />
-                  ))}
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
-          {/* The cart is a sheet at every size now, not a side column.
-              Half the screen sat on a cart that is empty for the first half of
-              every order, while the menu — the thing staff are actually
-              tapping — was squeezed into the other half. Kiosk-style: the menu
-              gets the room, and the cart is one tap away. */}
-          <div
-            className={`flex-col overflow-hidden ${
+          {/* The order ticket. Always on screen from lg up — a till where you
+              can't see what you've rung in is the first thing staff
+              complained about. Below lg it's a sheet: full screen on a
+              phone, a right-hand panel on a portrait tablet. */}
+          <aside
+            aria-label="Current order"
+            className={`flex-col overflow-hidden lg:static lg:z-auto lg:flex lg:w-[22rem] lg:shrink-0 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none xl:w-[24rem] ${
               cartOpen
-                ? "fixed inset-0 z-50 flex bg-white p-3 md:inset-y-0 md:left-auto md:right-0 md:w-[26rem] md:border-l md:border-zinc-200 md:shadow-2xl"
+                ? "fixed inset-0 z-50 flex bg-zinc-50 p-3 md:inset-y-0 md:left-auto md:right-0 md:w-[26rem] md:border-l md:border-zinc-200 md:shadow-2xl"
                 : "hidden"
             }`}
           >
             <button
               type="button"
               onClick={() => setCartOpen(false)}
-              className="mb-2 inline-flex w-fit items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700"
+              className="mb-2 inline-flex h-11 w-fit items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-700 lg:hidden"
             >
               <X className="h-4 w-4" />
               Back to menu
@@ -2373,7 +2500,7 @@ export default function PosPage() {
                     {loyaltyMember.firstName ?? "Loyalty card"} · {loyaltyMember.stamps}/{loyaltyMember.stampsRequired}{" "}
                     stamps
                   </span>
-                  <span className="block text-[11px] text-zinc-600">
+                  <span className="block text-xs text-zinc-600">
                     {loyaltyRewardId
                       ? loyaltyMoneyReward
                         ? `${loyaltyMoneyReward.label} · stamp lands when paid`
@@ -2425,30 +2552,30 @@ export default function PosPage() {
                   : null
               }
             />
-          </div>
+          </aside>
 
-          {/* Phone-only bar: what's in the cart, and the way to it.
-              Sits above the iOS home indicator via safe-area padding, and
-              only exists while the cart sheet is closed so it can't cover
-              the Place order button underneath it. */}
+          {/* Below lg: what's in the basket, and the way to it. Sits above
+              the iOS home indicator via safe-area padding, and only exists
+              while the sheet is closed so it can't cover Place order. */}
           {!cartOpen && (
-            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200 bg-white px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden">
               <button
                 type="button"
                 onClick={() => setCartOpen(true)}
-                className="flex w-full items-center justify-between rounded-lg bg-zinc-900 px-4 py-3 text-sm font-semibold text-white"
+                className="flex h-14 w-full items-center justify-between rounded-xl bg-zinc-900 px-4 text-base font-semibold text-white"
               >
-                <span className="inline-flex items-center gap-2">
-                  <ShoppingBag className="h-4 w-4" />
-                  {cartCount} {cartCount === 1 ? "item" : "items"}
+                <span className="inline-flex items-center gap-2.5">
+                  <span className="grid h-7 min-w-7 place-items-center rounded-full bg-white/15 px-1.5 text-sm tabular-nums">
+                    {cartCount}
+                  </span>
+                  View order
                 </span>
-                <span>{money(cartSubtotal)}</span>
+                <span className="tabular-nums">{money(cartSubtotal)}</span>
               </button>
             </div>
           )}
         </div>
       )}
-
       {/* Incoming-call popup is now mounted globally in the dashboard layout
           (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
 
@@ -2743,6 +2870,8 @@ export default function PosPage() {
           // One question per screen: staff and customers at a till are
           // completing a task, not browsing. The storefront stays on scroll.
           flow="stepped"
+          // Options as a grid of squares, so a long group fits without scrolling.
+          layout="tiles"
           open={!!modalItem}
           onClose={() => setModalItem(null)}
           onAdd={(line) => addToCart(line)}
@@ -2757,6 +2886,7 @@ function ProductCard({
   onClick,
   colour,
   sizing,
+  inCart,
 }: {
   product: MenuItem;
   onClick: () => void;
@@ -2764,7 +2894,12 @@ function ProductCard({
   colour?: { bg: string; border: string; fg?: string } | null;
   /** Padding and text steps for the shop's chosen tile size. */
   sizing: { pad: string; name: string; price: string };
+  /** How many are already in the basket — shown as a badge. */
+  inCart?: number;
 }) {
+  // The tile prices in the till's own currency — formatDisplayPrice used to
+  // default to "£" for every shop, Gulf ones included.
+  const { currency } = useCurrency();
   // The strong shades carry their own text colour. The tile's usual near-black
   // on a dark navy is a label nobody can read across a counter, which would
   // make the colours actively worse than none.
@@ -2784,32 +2919,43 @@ function ProductCard({
             }
           : undefined
       }
-      className={`flex flex-col items-start gap-1 rounded-lg border border-zinc-200 bg-white text-left transition-colors hover:border-zinc-900 hover:shadow-sm disabled:opacity-50 ${sizing.pad}`}
+      aria-label={`${product.name}, ${formatDisplayPrice(product as any, currency)}${
+        inCart ? `, ${inCart} in order` : ""
+      }`}
+      className={`relative flex aspect-square flex-col justify-between gap-1 overflow-hidden rounded-xl border border-zinc-200 bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[transform,border-color,box-shadow] duration-100 hover:border-zinc-400 hover:shadow-md active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 ${sizing.pad}`}
       disabled={product.outOfStock}
     >
-      <div className="flex w-full items-start justify-between gap-2">
+      <span
+        className={`${inCart ? "pr-6" : ""} font-semibold leading-tight line-clamp-4 ${sizing.name} ${
+          onDark ? "" : "text-zinc-900"
+        }`}
+      >
+        {product.name}
+      </span>
+      <span className="flex w-full items-end justify-between gap-2">
         <span
-          className={`font-medium leading-snug line-clamp-2 ${sizing.name} ${
-            onDark ? "" : "text-zinc-900"
-          }`}
+          className={`font-medium tabular-nums ${sizing.price} ${onDark ? "opacity-90" : "text-zinc-600"}`}
         >
-          {product.name}
+          {formatDisplayPrice(product as any, currency)}
+          {/* Weighed products: the price is per kg / per 100 g. */}
+          {normaliseSellBy((product as any).sellBy)
+            ? sellByLabel(normaliseSellBy((product as any).sellBy) as SellBy)
+            : ""}
         </span>
         {product.outOfStock && (
-          <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-600">
-            OOS
+          <span className="rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+            Sold out
           </span>
         )}
-      </div>
-      <span
-        className={`mt-0.5 ${sizing.price} ${onDark ? "opacity-90" : "text-zinc-500"}`}
-      >
-        {formatDisplayPrice(product as any)}
-        {/* Weighed products: the price is per kg / per 100 g. */}
-        {normaliseSellBy((product as any).sellBy)
-          ? sellByLabel(normaliseSellBy((product as any).sellBy) as SellBy)
-          : ""}
       </span>
+      {!!inCart && (
+        <span
+          aria-hidden
+          className="absolute right-1.5 top-1.5 grid h-6 min-w-6 place-items-center rounded-full bg-zinc-900 px-1.5 text-xs font-bold tabular-nums text-white ring-2 ring-white"
+        >
+          {inCart}
+        </span>
+      )}
     </button>
   );
 }

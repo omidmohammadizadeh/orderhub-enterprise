@@ -21,5 +21,6 @@
   "android": {
     "package": "com.orderhubsolutions.grillstop"
   },
+  "google": {},
   "easProjectId": "491a429a-b0a1-440e-8476-716b25558a62"
 }

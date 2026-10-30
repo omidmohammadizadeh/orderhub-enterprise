@@ -91,6 +91,41 @@ export class OrderingController {
     return this.ordering.brandShops(brandId);
   }
 
+  /**
+   * GET /v1/ordering/app-return — where a hosted payment page sends a
+   * customer who paid in a restaurant app's Chrome tab (Android). Redirects
+   * straight into the app (`<scheme>://payment-return?to=<page>`), which
+   * closes the tab and shows that page. As a server redirect following the
+   * Pay tap, Chrome opens the app without asking for another tap.
+   *
+   * Android gets an intent: URL with the page itself as the fallback, so a
+   * Chrome that still won't open the app shows the normal confirmation page
+   * (with its "Back to the app" button) rather than nothing.
+   */
+  @Get("app-return")
+  @Public()
+  appReturn(
+    @Query("scheme") scheme: string,
+    @Query("to") to: string,
+    @Headers("user-agent") ua: string,
+    @Res() res: Response,
+  ) {
+    const web = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
+    const page = typeof to === "string" && /^https:\/\/[^\s]+$/i.test(to) ? to : web;
+    if (!/^orderhub-[a-z0-9]{1,40}$/.test(String(scheme ?? ""))) {
+      return res.redirect(302, page);
+    }
+    const back = `payment-return?to=${encodeURIComponent(page)}`;
+    if (/Android/i.test(ua ?? "")) {
+      const fallback = page + (page.includes("?") ? "&" : "?") + `appReturn=${scheme}`;
+      return res.redirect(
+        302,
+        `intent://${back}#Intent;scheme=${scheme};S.browser_fallback_url=${encodeURIComponent(fallback)};end`,
+      );
+    }
+    return res.redirect(302, `${scheme}://${back}`);
+  }
+
   @Public()
   @Post("store/:slug/checkout")
   @Throttle({ short: { limit: 3, ttl: 10000 }, medium: { limit: 20, ttl: 60000 } })

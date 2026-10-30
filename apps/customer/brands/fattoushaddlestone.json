@@ -1,0 +1,25 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "fattoushaddlestone",
+  "name": "Fattoush Addlestone",
+  "brandId": "cmulnsm6v0c18r625anm9lwys",
+  "locationId": "cmulnqt9n0c0ur625dc9x9uhu",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmulnqt9n0c0ur625dc9x9uhu?brand=cmulnsm6v0c18r625anm9lwys",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#3E5A16",
+  "backgroundColor": "#F2F2EE",
+  "icon": "brands/fattoushaddlestone/icon.png",
+  "adaptiveIcon": "brands/fattoushaddlestone/adaptive-icon.png",
+  "splash": "brands/fattoushaddlestone/splash.png",
+  "notificationIcon": "brands/fattoushaddlestone/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.fattoushaddlestone",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.fattoushaddlestone"
+  },
+  "easProjectId": "ad8c32c4-0583-4716-a0ad-e4d57be40a5b"
+}

@@ -73,6 +73,8 @@ type Bucket = {
   label: string;
   match: (o: Order) => boolean;
   pill: string; // tailwind classes for the status pill
+  /** Solid colour for the row's stage stripe and the counter dot. */
+  accent: string;
   icon: React.ElementType;
 };
 
@@ -187,6 +189,7 @@ const BUCKETS: Bucket[] = [
     label: "Waiting for payment",
     match: (o) => isWaitingForPayment(o),
     pill: "bg-violet-50 text-violet-700",
+    accent: "bg-violet-500",
     icon: CreditCard,
   },
   {
@@ -194,6 +197,7 @@ const BUCKETS: Bucket[] = [
     label: "Scheduled",
     match: (o) => isScheduledForLater(o as any),
     pill: "bg-indigo-50 text-indigo-700",
+    accent: "bg-indigo-500",
     icon: CalendarClock,
   },
   {
@@ -206,6 +210,7 @@ const BUCKETS: Bucket[] = [
       // a 9pm delivery at 5pm because it looked like every other new order.
       !isScheduledForLater(o as any),
     pill: "bg-blue-50 text-blue-700",
+    accent: "bg-blue-500",
     icon: Clock,
   },
   {
@@ -219,6 +224,7 @@ const BUCKETS: Bucket[] = [
       !isWaitingForPayment(o) &&
       !isScheduledForLater(o as any),
     pill: "bg-sky-50 text-sky-700",
+    accent: "bg-sky-500",
     icon: CheckCircle2,
   },
   {
@@ -226,6 +232,7 @@ const BUCKETS: Bucket[] = [
     label: "Preparing",
     match: (o) => o.status === "PREPARING" && !isWaitingForPayment(o),
     pill: "bg-amber-50 text-amber-700",
+    accent: "bg-amber-500",
     icon: ChefHat,
   },
   {
@@ -233,6 +240,7 @@ const BUCKETS: Bucket[] = [
     label: "Ready",
     match: (o) => o.status === "READY" && !isWaitingForPayment(o),
     pill: "bg-emerald-50 text-emerald-700",
+    accent: "bg-emerald-500",
     icon: CheckCircle2,
   },
   // Phase AV-2 follow-up — split the old single "Dispatch" bucket
@@ -254,6 +262,7 @@ const BUCKETS: Bucket[] = [
       o.status === "ACCEPTED_BY_DRIVER" ||
       (o.status === "RIDER_ARRIVED" && !o.outForDeliveryAt),
     pill: "bg-violet-50 text-violet-700",
+    accent: "bg-violet-500",
     icon: Truck,
   },
   {
@@ -262,6 +271,7 @@ const BUCKETS: Bucket[] = [
     match: (o) =>
       o.status === "OUT_FOR_DELIVERY" || o.status === "DISPATCHED",
     pill: "bg-orange-50 text-orange-700",
+    accent: "bg-orange-500",
     icon: Truck,
   },
   {
@@ -273,6 +283,7 @@ const BUCKETS: Bucket[] = [
     label: "At the customer",
     match: (o) => o.status === "RIDER_ARRIVED" && !!o.outForDeliveryAt,
     pill: "bg-amber-50 text-amber-700",
+    accent: "bg-yellow-500",
     icon: MapPin,
   },
   {
@@ -280,6 +291,7 @@ const BUCKETS: Bucket[] = [
     label: "Completed",
     match: (o) => o.status === "COMPLETED",
     pill: "bg-zinc-100 text-zinc-700",
+    accent: "bg-zinc-300",
     icon: CheckCircle2,
   },
   {
@@ -290,9 +302,41 @@ const BUCKETS: Bucket[] = [
       o.status === "REJECTED" ||
       o.status === "FAILED",
     pill: "bg-red-50 text-red-700",
+    accent: "bg-red-500",
     icon: XCircle,
   },
 ];
+
+/** The stages shown as counters across the top of the board, in order. */
+const KPI_BUCKETS = [
+  "PENDING",
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+  "DRIVER_ASSIGNED",
+  "OUT_FOR_DELIVERY",
+] as const;
+
+/** Phone-width names for the counters whose full label doesn't fit a third of 375px. */
+const KPI_SHORT: Partial<Record<string, string>> = {
+  DRIVER_ASSIGNED: "Driver",
+  OUT_FOR_DELIVERY: "On the way",
+};
+
+/** Still in the kitchen's hands — the stages where a long wait is a problem. */
+const KITCHEN_BUCKETS = new Set(["PENDING", "ACCEPTED", "PREPARING"]);
+
+/**
+ * How loudly the age of an order should read. Only while the kitchen still
+ * has it: a completed order being an hour old is not news.
+ */
+function ageTone(bucketKey: string, createdAt: string): string {
+  if (!KITCHEN_BUCKETS.has(bucketKey)) return "text-zinc-500";
+  const mins = (Date.now() - new Date(createdAt).getTime()) / 60_000;
+  if (mins >= 30) return "font-semibold text-red-600";
+  if (mins >= 15) return "font-semibold text-amber-600";
+  return "text-zinc-500";
+}
 
 interface Props {
   locationId?: string;
@@ -487,6 +531,48 @@ export function OrderList({ locationId }: Props) {
           </button>
         </div>
       )}
+
+      {/* Live counters — the stages a shift actually works through. Each
+          one is also the quickest way to filter to it; tap again for all. */}
+      <div className="mb-3 grid grid-cols-3 gap-2 md:grid-cols-6">
+        {KPI_BUCKETS.map((key) => {
+          const b = BUCKETS.find((x) => x.key === key)!;
+          const n = counts[key] ?? 0;
+          const active = bucketFilter === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setBucketFilter(active ? "ALL" : key)}
+              aria-pressed={active}
+              aria-label={`${b.label}: ${n}`}
+              className={`rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
+                active
+                  ? "border-zinc-900 bg-white ring-1 ring-zinc-900"
+                  : "border-zinc-200 bg-white hover:border-zinc-300"
+              }`}
+            >
+              <span className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-500">
+                <span className="relative flex h-2 w-2">
+                  {key === "PENDING" && n > 0 && (
+                    <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${b.accent}`} />
+                  )}
+                  <span className={`relative inline-flex h-2 w-2 rounded-full ${n > 0 ? b.accent : "bg-zinc-200"}`} />
+                </span>
+                <span className="truncate sm:hidden">{KPI_SHORT[key] ?? b.label}</span>
+                <span className="hidden truncate sm:inline">{b.label}</span>
+              </span>
+              <span
+                className={`mt-1 block text-xl font-semibold tabular-nums leading-none ${
+                  n > 0 ? "text-zinc-900" : "text-zinc-300"
+                }`}
+              >
+                {n}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Status dropdown + channel Filter, one tidy row */}
       {/* Wraps on a phone: four controls don't fit in 375px, and a row
@@ -968,7 +1054,7 @@ function OrderCard({
   return (
     <div
       onClick={bulk ? (bulk.pickable ? bulk.onPick : undefined) : onOpen}
-      className={`rounded-lg border bg-white p-3 transition-colors ${
+      className={`relative overflow-hidden rounded-lg border bg-white p-3 pl-4 transition-colors ${
         bulk && !bulk.pickable
           ? "cursor-default border-zinc-200 opacity-45"
           : "cursor-pointer active:bg-zinc-50"
@@ -978,6 +1064,8 @@ function OrderCard({
           : "border-zinc-200"
       }`}
     >
+      {/* Stage stripe — the colour reads before the words do. */}
+      <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${bucket.accent}`} />
       {/* Order # + status — the two things worth seeing from arm's length. */}
       <div className="flex items-start justify-between gap-2">
         {bulk && (
@@ -997,7 +1085,7 @@ function OrderCard({
               })}
             </span>
             <span>·</span>
-            <span>{timeAgo(order.createdAt)}</span>
+            <span className={ageTone(bucket.key, order.createdAt)}>{timeAgo(order.createdAt)}</span>
             {/* When it's due, not when it arrived. On a pre-order the placed
                 time is the one number nobody needs — the slot the customer
                 chose is what the kitchen works back from. */}
@@ -1132,7 +1220,9 @@ function OrderRow({
           <PickBox bulk={bulk} label={ref} />
         </Td>
       )}
-      <Td>
+      <td className="relative py-2.5 pl-3 pr-1.5 align-middle">
+        {/* Stage stripe down the row's left edge. */}
+        <span aria-hidden className={`absolute inset-y-1.5 left-0 w-[3px] rounded-r ${bucket.accent}`} />
         <div className="flex flex-col">
           <span className="font-medium text-zinc-900">
             {new Date(order.createdAt).toLocaleTimeString([], {
@@ -1140,14 +1230,14 @@ function OrderRow({
               minute: "2-digit",
             })}
           </span>
-          <span className="text-[11px] text-zinc-500">
+          <span className={`text-[11px] ${ageTone(bucket.key, order.createdAt)}`}>
             {timeAgo(order.createdAt)}
           </span>
           {/* Expected delivery / collection time lives in the order
               detail popup now — keeping it out of the list row so the
               Status column stays visible on small tablets. */}
         </div>
-      </Td>
+      </td>
       <Td>
         <span className="font-semibold text-zinc-900">
           {/* Phase AW-30 — prefer the 5-char displayId ("AB31C"). It's

@@ -7,6 +7,8 @@ import {
 import { createHmac, timingSafeEqual } from "crypto";
 import {
   currencyForCountry,
+  dialCodeForCountry,
+  usesTap,
   roundToCurrency,
   currencyDecimals,
 } from "@orderhub/shared";
@@ -429,7 +431,7 @@ export class TapService {
           first_name: params.customer.firstName || "Customer",
           ...(params.customer.lastName ? { last_name: params.customer.lastName } : {}),
           ...(params.customer.email ? { email: params.customer.email } : {}),
-          ...(params.customer.phone ? { phone: parsePhone(params.customer.phone) } : {}),
+          ...(params.customer.phone ? { phone: parsePhone(params.customer.phone, (order as any).location?.country) } : {}),
         },
         // Tap's hosted page shows the description, and it is the only place
         // the customer can see why they are being charged more than their
@@ -736,6 +738,17 @@ export class TapService {
     const platforms = this.configuredPlatforms();
     if (!platforms.length) throw new BadRequestException("Tap isn't configured.");
 
+    // The SHOP's country, not Brand.country: that column defaults to GB, and
+    // sending it made Tap create our first test merchant as GB/USD, which
+    // Tap had to have recreated (Donny, 2026-10-24: "Country should be AE
+    // and currency AED … pass country as AE in the lead and connect").
+    const country = await this.tradingCountry(b);
+    if (!usesTap(country)) {
+      throw new BadRequestException(
+        `This brand trades in ${country}, where cards go through Stripe, not Tap.`,
+      );
+    }
+
     const postUrl = this.onboardingWebhookUrl(brandId);
     const web = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
     const redirectUrl = `${web}/dashboard/payments?tapOnboarded=${encodeURIComponent(brandId)}`;
@@ -743,7 +756,7 @@ export class TapService {
     let leadId: string | null = b.tapLeadId ?? null;
     let connectUrl: string | null = null;
     if (leadId) {
-      connectUrl = await this.connectUrlFor(platforms, leadId, postUrl, redirectUrl).catch(
+      connectUrl = await this.connectUrlFor(platforms, leadId, postUrl, redirectUrl, country).catch(
         (err) => {
           this.logger.warn(`Tap lead ${leadId} couldn't be reconnected (${err.message}) — starting a new one`);
           return null;
@@ -751,8 +764,8 @@ export class TapService {
       );
     }
     if (!connectUrl) {
-      leadId = await this.createLead(platforms, b, postUrl);
-      connectUrl = await this.connectUrlFor(platforms, leadId, postUrl, redirectUrl);
+      leadId = await this.createLead(platforms, b, postUrl, country);
+      connectUrl = await this.connectUrlFor(platforms, leadId, postUrl, redirectUrl, country);
     }
 
     await this.prisma.brand.update({
@@ -787,12 +800,41 @@ export class TapService {
     throw last instanceof Error ? last : new BadRequestException("Tap refused the request.");
   }
 
-  private async createLead(platforms: TapPlatform[], brand: any, postUrl: string): Promise<string> {
+  /**
+   * Where the brand actually trades: its primary location, else its first
+   * location, else Brand.country. The same order the Payments page uses to
+   * decide Stripe vs Tap, so the two can't disagree.
+   */
+  private async tradingCountry(brand: any): Promise<string> {
+    if (brand.primaryLocationId) {
+      const loc = await this.prisma.location.findFirst({
+        where: { id: brand.primaryLocationId },
+        select: { country: true },
+      });
+      if (loc?.country) return String(loc.country).toUpperCase();
+    }
+    const first = await this.prisma.location.findFirst({
+      where: { brandId: brand.id, deletedAt: null },
+      select: { country: true },
+      orderBy: { createdAt: "asc" },
+    });
+    return String(first?.country || brand.country || "GB").toUpperCase();
+  }
+
+  private async createLead(
+    platforms: TapPlatform[],
+    brand: any,
+    postUrl: string,
+    country: string,
+  ): Promise<string> {
     // Tap wants a brand name of at least three characters.
     const name = String(brand.name ?? "").trim().padEnd(3, ".");
     const body = {
-      country: String(brand.country || "AE").toUpperCase(),
+      country,
       brand: { name: [{ text: name, lang: "en" }] },
+      // The merchant's settlement wallet — country and currency together, so
+      // the account is born AED in the UAE rather than defaulting to USD.
+      wallet: { country, currency: currencyForCountry(country) },
       merchant: { platforms: platforms.map((p) => ({ id: p.id })) },
       // Echoed back on the lead — how a lead in Tap OS is traced to a brand.
       metadata: { brandId: brand.id, tenantId: brand.tenantId },
@@ -810,11 +852,15 @@ export class TapService {
     leadId: string,
     postUrl: string,
     redirectUrl: string,
+    country: string,
   ): Promise<string> {
     const res = await this.withAnyPlatform(platforms, (p) =>
       this.call<{ connect?: { url?: string } }>(p.secretKey, "/v3/connect", {
         method: "POST",
         body: {
+          // Not in Tap's published Connect schema, but Tap asked for it
+          // explicitly ("pass country as AE in the lead and connect").
+          country,
           scope: "merchant",
           data: ["operation", "brand", "entity", "merchant"],
           lead: { id: leadId },
@@ -891,14 +937,20 @@ export class TapService {
         "That isn't a Tap merchant id — it should start with merchant_ (Tap OS → Merchants).",
       );
     }
-    const status = id
-      ? "completed"
-      : (brand as any).tapLeadId
-        ? "link_sent"
-        : "not_started";
+    // Clearing the merchant starts onboarding over from scratch — the old
+    // lead goes too. Reusing it would hand Tap the same lead (and whatever
+    // country/currency it was created with) for the "new" sign-up.
+    const status = id ? "completed" : "not_started";
     await this.prisma.brand.update({
       where: { id: brandId },
-      data: { tapMerchantId: id, tapOnboardingStatus: status } as any,
+      data: id
+        ? ({ tapMerchantId: id, tapOnboardingStatus: status } as any)
+        : ({
+            tapMerchantId: null,
+            tapLeadId: null,
+            tapConnectUrl: null,
+            tapOnboardingStatus: status,
+          } as any),
     });
     return { tapMerchantId: id, tapOnboardingStatus: status };
   }
@@ -1016,19 +1068,38 @@ function platformKindOf(payment: any): TapPlatformKind {
   return TAP_PLATFORM_KINDS.includes(k) ? k : "COMMERCE";
 }
 
-/** Tap wants the country code and number as separate fields. Best-effort:
- *  an unparseable number is sent without a country code rather than blocking
- *  a payment over a phone format. */
-function parsePhone(raw: string): { country_code: string; number: string } {
-  const digits = String(raw).replace(/\D/g, "");
-  // +971 50 123 4567 → 971 / 501234567. Gulf codes are three digits, the UK
-  // two; longest-first so 971 isn't read as 97.
-  for (const cc of ["971", "966", "965", "974", "973", "968", "962", "20", "44"]) {
-    if (digits.startsWith(cc)) {
-      return { country_code: cc, number: digits.slice(cc.length) };
+/**
+ * Tap wants the country code and number as separate fields, and refuses the
+ * charge outright ("Customer phone number or email address is required")
+ * when the code is empty — which is what a number typed the local way
+ * (050 123 4567, or 501234567) used to produce, because only numbers that
+ * already started with a dialling code were recognised. Seen on the Dubai
+ * test store, 2026-10-30.
+ *
+ * International forms (+971…, 00971…) keep their own code; anything else is
+ * read as local to the SHOP's country, with the trunk 0 dropped.
+ */
+export function parsePhone(
+  raw: string,
+  shopCountry?: string | null,
+): { country_code: string; number: string } {
+  const trimmed = String(raw).trim();
+  let digits = trimmed.replace(/\D/g, "");
+  const international = trimmed.startsWith("+") || digits.startsWith("00");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  // Longest-first so 971 isn't read as 97.
+  const known = ["971", "966", "965", "974", "973", "968", "962", "20", "44"];
+  if (international) {
+    for (const cc of known) {
+      if (digits.startsWith(cc)) return { country_code: cc, number: digits.slice(cc.length) };
     }
   }
-  return { country_code: "", number: digits };
+  const shopCc = dialCodeForCountry(shopCountry ?? "GB").replace(/\D/g, "");
+  // Typed with the shop's code but no "+" (971501234567): still the shop's.
+  if (!international && digits.startsWith(shopCc) && digits.length > 10) {
+    return { country_code: shopCc, number: digits.slice(shopCc.length) };
+  }
+  return { country_code: shopCc, number: digits.replace(/^0+/, "") };
 }
 
 function toUnits(amount: number, currency: string): number {
