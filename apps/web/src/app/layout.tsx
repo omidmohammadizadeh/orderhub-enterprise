@@ -1,18 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { Toaster } from "react-hot-toast";
 import { QueryProvider } from "@/providers/query-provider";
 import { ServiceWorkerRegister } from "@/providers/service-worker-register";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
+// Fonts are self-hosted (src/fonts, latin subset from Google Fonts): with
+// next/font/google every `next build` fetched them, and a bad response from
+// Google failed the whole deploy.
+const inter = localFont({
+  src: "../fonts/inter-latin-var.woff2",
+  weight: "100 900",
   variable: "--font-inter",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
+const jetbrainsMono = localFont({
+  src: "../fonts/jetbrains-mono-latin-var.woff2",
+  weight: "100 800",
   variable: "--font-mono",
   display: "swap",
 });
