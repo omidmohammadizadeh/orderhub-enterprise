@@ -579,6 +579,7 @@ describe("Tap onboarding", () => {
 
   it("creates a lead listing every platform, then a Connect link, and saves both", async () => {
     const prisma = {
+      location: { findFirst: jest.fn().mockResolvedValue(null) },
       brand: {
         findFirst: jest.fn().mockResolvedValue(brandRow()),
         update: jest.fn().mockResolvedValue({}),
@@ -619,6 +620,7 @@ describe("Tap onboarding", () => {
     // Seen in the sandbox: the same lead call refused by one platform key
     // (2109 Api_key_unauthorised) and accepted by another.
     const prisma = {
+      location: { findFirst: jest.fn().mockResolvedValue(null) },
       brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() },
     } as any;
     const fetchMock = jest
@@ -638,25 +640,76 @@ describe("Tap onboarding", () => {
   it("refuses by variable name when a platform key is broken, instead of a nameless 500", async () => {
     process.env.TAP_APP_SECRET_KEY = "sk_test_NLE•••x";
     process.env.TAP_APP_PLATFORM_ID = "app_platform_1";
-    const prisma = { brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
+    const prisma = { location: { findFirst: jest.fn().mockResolvedValue(null) }, brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
     const fetchMock = jest.spyOn(global, "fetch" as any);
     await expect(new TapService(prisma, {} as any).startOnboarding("t1", "b1")).rejects.toThrow(/TAP_APP_SECRET_KEY/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("turns a fetch that never reached Tap into a readable error", async () => {
-    const prisma = { brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
+    const prisma = { location: { findFirst: jest.fn().mockResolvedValue(null) }, brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
     jest.spyOn(global, "fetch" as any).mockRejectedValue(new TypeError("fetch failed"));
     await expect(new TapService(prisma, {} as any).startOnboarding("t1", "b1")).rejects.toThrow(/Couldn't reach Tap/);
   });
 
+  it("creates the lead in the SHOP's country and currency, not Brand.country's GB default", async () => {
+    // Tap recreated our first test merchant because it came through GB/USD
+    // (Donny, 2026-10-24). Brand.country defaults to GB; the Dubai kitchen
+    // the brand lives at is what decides.
+    const prisma = {
+      location: { findFirst: jest.fn().mockResolvedValue({ country: "AE" }) },
+      brand: {
+        findFirst: jest.fn().mockResolvedValue(brandRow({ country: "GB", primaryLocationId: "locDXB" })),
+        update: jest.fn(),
+      },
+    } as any;
+    const fetchMock = jest
+      .spyOn(global, "fetch" as any)
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => JSON.stringify({ id: "led_ae" }) } as any)
+      .mockResolvedValueOnce({ ok: true, status: 200, text: async () => JSON.stringify({ connect: { url: "c" } }) } as any);
+    await new TapService(prisma, {} as any).startOnboarding("t1", "b1");
+    const lead = JSON.parse((fetchMock.mock.calls[0] as any)[1].body);
+    expect(lead.country).toBe("AE");
+    expect(lead.wallet).toEqual({ country: "AE", currency: "AED" });
+    const conn = JSON.parse((fetchMock.mock.calls[1] as any)[1].body);
+    expect(conn.country).toBe("AE");
+  });
+
+  it("refuses to onboard a brand that trades outside Tap's countries", async () => {
+    const prisma = {
+      location: { findFirst: jest.fn().mockResolvedValue({ country: "GB" }) },
+      brand: { findFirst: jest.fn().mockResolvedValue(brandRow({ primaryLocationId: "locUK" })), update: jest.fn() },
+    } as any;
+    const fetchMock = jest.spyOn(global, "fetch" as any);
+    await expect(new TapService(prisma, {} as any).startOnboarding("t1", "b1")).rejects.toThrow(/Stripe/);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("clearing the merchant drops the old lead too, so the next link starts a fresh one", async () => {
+    const prisma = {
+      brand: {
+        findFirst: jest.fn().mockResolvedValue(brandRow({ tapMerchantId: "merchant_old", tapLeadId: "led_gb" })),
+        update: jest.fn(),
+      },
+    } as any;
+    const out = await new TapService(prisma, {} as any).setMerchantId("t1", "b1", null);
+    expect(out).toEqual({ tapMerchantId: null, tapOnboardingStatus: "not_started" });
+    expect(prisma.brand.update.mock.calls[0][0].data).toEqual({
+      tapMerchantId: null,
+      tapLeadId: null,
+      tapConnectUrl: null,
+      tapOnboardingStatus: "not_started",
+    });
+  });
+
   it("won't start onboarding for a brand that already has a merchant", async () => {
-    const prisma = { brand: { findFirst: jest.fn().mockResolvedValue(brandRow({ tapMerchantId: "merchant_1" })) } } as any;
+    const prisma = { location: { findFirst: jest.fn().mockResolvedValue(null) }, brand: { findFirst: jest.fn().mockResolvedValue(brandRow({ tapMerchantId: "merchant_1" })) } } as any;
     await expect(new TapService(prisma, {} as any).startOnboarding("t1", "b1")).rejects.toThrow(/already has/i);
   });
 
   it("completes onboarding with the merchant id and never stores Tap's API credentials", async () => {
     const prisma = {
+      location: { findFirst: jest.fn().mockResolvedValue(null) },
       brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() },
     } as any;
     const ok = await new TapService(prisma, {} as any).completeOnboarding("b1", {
@@ -672,6 +725,7 @@ describe("Tap onboarding", () => {
 
   it("never moves a trading brand to a different merchant", async () => {
     const prisma = {
+      location: { findFirst: jest.fn().mockResolvedValue(null) },
       brand: { findFirst: jest.fn().mockResolvedValue(brandRow({ tapMerchantId: "merchant_old" })), update: jest.fn() },
     } as any;
     const ok = await new TapService(prisma, {} as any).completeOnboarding("b1", { id: "merchant_other" });
@@ -680,7 +734,7 @@ describe("Tap onboarding", () => {
   });
 
   it("refuses a post whose echoed metadata names a different brand", async () => {
-    const prisma = { brand: { findFirst: jest.fn(), update: jest.fn() } } as any;
+    const prisma = { location: { findFirst: jest.fn().mockResolvedValue(null) }, brand: { findFirst: jest.fn(), update: jest.fn() } } as any;
     const ok = await new TapService(prisma, {} as any).completeOnboarding("b1", {
       id: "merchant_x",
       metadata: { brandId: "b2" },
@@ -690,7 +744,7 @@ describe("Tap onboarding", () => {
   });
 
   it("rejects a hand-typed id that isn't a merchant id", async () => {
-    const prisma = { brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
+    const prisma = { location: { findFirst: jest.fn().mockResolvedValue(null) }, brand: { findFirst: jest.fn().mockResolvedValue(brandRow()), update: jest.fn() } } as any;
     await expect(
       new TapService(prisma, {} as any).setMerchantId("t1", "b1", "led_123"),
     ).rejects.toThrow(/merchant_/);
