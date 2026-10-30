@@ -481,7 +481,7 @@ body { width: ${printMm}mm; padding: 2mm ${(paperWidth - printMm) / 2}mm; font-f
 
 // One dialog at a time — a second print() while one is open is dropped by
 // the browser, so queue them the same way the raw transports are queued.
-async function printViaSystemDialog(
+export async function printViaSystemDialog(
   bytes: Uint8Array,
   opts: { paperWidth: 58 | 80; star: boolean },
 ): Promise<void> {

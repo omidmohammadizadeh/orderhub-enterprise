@@ -42,6 +42,7 @@ import {
   Loader2,
   MapPin,
   PoundSterling,
+  Printer,
   ShoppingBag,
   Sparkles,
   Tag,
@@ -71,6 +72,9 @@ import {
 } from "@/lib/api/analytics.client";
 import { brandsClient, locationsClient } from "@/lib/api/locations.client";
 import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
+import { PrintZReportDialog } from "@/components/analytics/print-z-report-dialog";
+import type { ZReportInput } from "@/lib/printing/z-report";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 // Channel catalog for the Filter popover. Same list and same popover the
 // Orders board uses, so "which channels am I looking at" is answered the
@@ -344,6 +348,51 @@ export default function AnalyticsPage() {
     return opts;
   }, [data?.filterOptions?.brands, brandsQuery.data, brandIds]);
 
+  // ── Z report ───────────────────────────────────────────────────────
+  const [zReportOpen, setZReportOpen] = useState(false);
+  const printedBy = useAuthStore((s) =>
+    s.user ? `${s.user.firstName} ${s.user.lastName}`.trim() : null,
+  );
+  const sidebarLocationId = useSelectedLocationStore((s) => s.selectedLocationId);
+
+  // Whose printers to offer: the shop being reported on, else the viewer's only
+  // shop, else the one they have selected in the sidebar.
+  const visibleLocations = (locationsQuery.data ?? []) as any[];
+  const reportLocation =
+    locationIds.length === 1
+      ? visibleLocations.find((l) => l.id === locationIds[0])
+      : locationIds.length === 0 && visibleLocations.length === 1
+        ? visibleLocations[0]
+        : null;
+  const printerLocationId =
+    reportLocation?.id ?? (locationIds.length === 1 ? locationIds[0]! : sidebarLocationId);
+
+  const zReport = useMemo<ZReportInput | null>(() => {
+    if (!data) return null;
+    const pickedBrands = brandOptions.filter((o) => brandIds.includes(o.value));
+    const pickedChannels = CHANNELS.filter((c) => selectedChannels.includes(c.key));
+    return {
+      data,
+      currency,
+      scopeName:
+        reportLocation?.name ??
+        (locationIds.length > 1 ? `${locationIds.length} locations` : "All locations"),
+      scopeAddress: reportLocation
+        ? [reportLocation.addressLine1, reportLocation.city, reportLocation.postcode]
+            .filter(Boolean)
+            .join(", ")
+        : null,
+      brandFilter: pickedBrands.length ? pickedBrands.map((o) => o.label).join(", ") : null,
+      channelFilter: pickedChannels.length ? pickedChannels.map((c) => c.label).join(", ") : null,
+      printedBy,
+      includesTestOrders: filters.includeTest,
+      mixedCurrencies: mixedCurrencies as string[],
+      channelLabel: (raw) => CHANNELS.find((c) => c.key === raw)?.label ?? titleCase(raw),
+      methodLabel: (raw) => PAYMENT_METHOD_LABELS[raw] ?? titleCase(raw),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, currency, reportLocation, locationIds.length, brandOptions, brandIds, selectedChannels, printedBy, filters.includeTest, mixedCurrencies]);
+
   function exportCsv() {
     if (!data) return;
     const rows: string[] = [];
@@ -412,15 +461,38 @@ export default function AnalyticsPage() {
             same-length prior-period comparison for every KPI.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={exportCsv}
-          disabled={!data}
-          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
-        >
-          <Download className="h-3.5 w-3.5" /> Export CSV
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              // Takings printed at close must not be whatever was loaded at lunch.
+              void overviewQuery.refetch();
+              setZReportOpen(true);
+            }}
+            disabled={!data}
+            className="inline-flex items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+          >
+            <Printer className="h-3.5 w-3.5" /> Print Z report
+          </button>
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={!data}
+            className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+          >
+            <Download className="h-3.5 w-3.5" /> Export CSV
+          </button>
+        </div>
       </header>
+
+      {zReportOpen && (
+        <PrintZReportDialog
+          report={zReport}
+          refreshing={overviewQuery.isFetching}
+          locationId={printerLocationId ?? null}
+          onClose={() => setZReportOpen(false)}
+        />
+      )}
 
       {/* Filter bar */}
       <section className="rounded-lg border border-zinc-200 bg-white p-3 space-y-3">

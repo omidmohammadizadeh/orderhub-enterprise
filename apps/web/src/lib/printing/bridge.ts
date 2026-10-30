@@ -137,7 +137,7 @@ function colsForFont(paperWidth: number, font: PrintFont): number {
   return font === "B" ? Math.floor(base * 1.33) : base;
 }
 
-function colsFor(paperWidth: number): number {
+export function colsFor(paperWidth: number): number {
   return paperWidth === 58 ? 32 : 42;
 }
 
@@ -198,13 +198,13 @@ function strBytes(s: string): number[] {
  * truncated rather than wrapped — a band that runs onto a second line stops
  * reading as a band. Mirrors centreOn() in the two server renderers.
  */
-function centreOn(s: string, width: number): string {
+export function centreOn(s: string, width: number): string {
   const text = s.length > width ? s.slice(0, width) : s;
   const left = Math.floor((width - text.length) / 2);
   return " ".repeat(left) + text + " ".repeat(width - text.length - left);
 }
 
-function line(buf: number[], text: string) {
+export function line(buf: number[], text: string) {
   for (const b of strBytes(text)) buf.push(b);
   buf.push(LF);
 }
@@ -218,7 +218,7 @@ function indented(text: string, prefix: string, width: number): string[] {
   );
 }
 
-function padBetween(left: string, right: string, width: number): string {
+export function padBetween(left: string, right: string, width: number): string {
   const total = left.length + right.length;
   if (total >= width) return (left + " " + right).slice(0, width);
   return left + " ".repeat(width - total) + right;
@@ -526,7 +526,7 @@ function fmtWhen(iso: any): string {
   return `${date} ${time}`;
 }
 
-function moneyIn(n: any, currency?: string | null): string {
+export function moneyIn(n: any, currency?: string | null): string {
   const v = typeof n === "number" ? n : Number(n);
   if (!Number.isFinite(v)) return "";
   // £ is encoded to its CP437 byte (0x9C) by strBytes so it prints. Other
@@ -538,7 +538,7 @@ function moneyIn(n: any, currency?: string | null): string {
 
 // Word-wrap a long string at column boundaries. Thermal printers
 // don't auto-wrap — long lines just truncate at the column count.
-function wrap(text: string, width: number): string[] {
+export function wrap(text: string, width: number): string[] {
   const words = String(text).split(/\s+/);
   const lines: string[] = [];
   let cur = "";
@@ -1485,6 +1485,39 @@ const STAR_CUT = [ESC, 0x64, 0x03]; // ESC d 3 — partial cut with feed
 // ESC/POS `GS B`, which Star firmware does not implement.
 const STAR_REVERSE_ON = [ESC, 0x34];
 const STAR_REVERSE_OFF = [ESC, 0x35];
+
+/** The formatting commands of a printer's language, for tickets that are not orders. */
+export function commandsFor(star: boolean) {
+  return star
+    ? {
+        init: [ESC, 0x40],
+        alignLeft: STAR_ALIGN_LEFT,
+        alignCenter: STAR_ALIGN_CENTER,
+        boldOn: STAR_BOLD_ON,
+        boldOff: STAR_BOLD_OFF,
+        doubleOn: STAR_EXPAND_ON,
+        doubleOff: STAR_EXPAND_OFF,
+        tallOn: [ESC, 0x69, 0x01, 0x00], // ESC i 1 0 — double height only
+        tallOff: STAR_EXPAND_OFF,
+        reverseOn: STAR_REVERSE_ON,
+        reverseOff: STAR_REVERSE_OFF,
+        cut: STAR_CUT,
+      }
+    : {
+        init: INIT,
+        alignLeft: ALIGN_LEFT,
+        alignCenter: ALIGN_CENTER,
+        boldOn: BOLD_ON,
+        boldOff: BOLD_OFF,
+        doubleOn: DOUBLE_ON,
+        doubleOff: DOUBLE_OFF,
+        tallOn: sizeOn(1, 2),
+        tallOff: DOUBLE_OFF,
+        reverseOn: reverseOn(),
+        reverseOff: reverseOff(),
+        cut: CUT,
+      };
+}
 
 export function buildOrderReceiptStar(
   payload: any,
