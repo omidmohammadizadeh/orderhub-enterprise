@@ -11,6 +11,8 @@
 //
 // Display only: the line still charges the size the customer actually picks.
 
+import { formatMoney } from "./currency";
+
 export interface DisplayPrice {
   /** Amount to render. */
   amount: number;
@@ -57,8 +59,17 @@ export function displayPrice(item: PricedItem | null | undefined): DisplayPrice 
 /** "£8.50" or "From £8.50". */
 export function formatDisplayPrice(
   item: PricedItem | null | undefined,
-  currency = "£",
+  /**
+   * The shop's currency CODE (AED, KWD, GBP…). It used to be a symbol that
+   * defaulted to "£" with every caller passing nothing, so the menu editor,
+   * POS tiles and kiosk priced Gulf shops in pounds (2026-10-30). A legacy
+   * symbol argument is still accepted.
+   */
+  currency: string = "GBP",
 ): string {
   const { amount, from } = displayPrice(item);
-  return `${from ? "From " : ""}${currency}${amount.toFixed(2)}`;
+  const price = /^[A-Za-z]{3}$/.test(currency)
+    ? formatMoney(amount, currency, { compact: true })
+    : `${currency}${amount.toFixed(2)}`;
+  return `${from ? "From " : ""}${price}`;
 }

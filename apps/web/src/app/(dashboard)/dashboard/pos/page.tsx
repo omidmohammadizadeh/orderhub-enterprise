@@ -2895,6 +2895,9 @@ function ProductCard({
   /** How many are already in the basket — shown as a badge. */
   inCart?: number;
 }) {
+  // The tile prices in the till's own currency — formatDisplayPrice used to
+  // default to "£" for every shop, Gulf ones included.
+  const { currency } = useCurrency();
   // The strong shades carry their own text colour. The tile's usual near-black
   // on a dark navy is a label nobody can read across a counter, which would
   // make the colours actively worse than none.
@@ -2914,7 +2917,7 @@ function ProductCard({
             }
           : undefined
       }
-      aria-label={`${product.name}, ${formatDisplayPrice(product as any)}${
+      aria-label={`${product.name}, ${formatDisplayPrice(product as any, currency)}${
         inCart ? `, ${inCart} in order` : ""
       }`}
       className={`relative flex min-h-[5.5rem] flex-col justify-between gap-2 rounded-xl border border-zinc-200 bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-[transform,border-color,box-shadow] duration-100 hover:border-zinc-400 hover:shadow-md active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-45 disabled:active:scale-100 ${sizing.pad}`}
@@ -2931,7 +2934,7 @@ function ProductCard({
         <span
           className={`font-medium tabular-nums ${sizing.price} ${onDark ? "opacity-90" : "text-zinc-600"}`}
         >
-          {formatDisplayPrice(product as any)}
+          {formatDisplayPrice(product as any, currency)}
           {/* Weighed products: the price is per kg / per 100 g. */}
           {normaliseSellBy((product as any).sellBy)
             ? sellByLabel(normaliseSellBy((product as any).sellBy) as SellBy)
