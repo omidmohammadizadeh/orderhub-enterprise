@@ -148,7 +148,7 @@ export function MollieSection() {
       ) : (
         <ul className="mt-4 divide-y divide-zinc-100">
           {s.brands.length === 0 && (
-            <li className="py-3 text-sm text-zinc-500">No brands at this location.</li>
+            <li className="py-3 text-sm text-zinc-500">No brands selling online at this location.</li>
           )}
           {s.brands.map((b) => (
             <MollieBrand key={b.brandId} row={b} clientLinks={s.clientLinksAvailable} onChange={refresh} />

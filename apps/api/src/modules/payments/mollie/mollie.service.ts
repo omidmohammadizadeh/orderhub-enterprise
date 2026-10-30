@@ -610,6 +610,7 @@ export class MollieService {
           id: true,
           name: true,
           primaryLocationId: true,
+          directOrderingEnabled: true,
           country: true,
           locations: {
             where: { deletedAt: null },
@@ -637,15 +638,19 @@ export class MollieService {
       for (const l of locs) primaryCountry.set(l.id, l.country);
     }
     const byBrand = new Map<string, any>(conns.map((c: any) => [c.brandId, c]));
-    const rows = (brands as any[]).map((b) => ({
-      brandId: b.id,
-      brandName: b.name,
-      // Gulf brands are Tap's; the page shows them greyed out.
-      eligible: !usesTap(
-        primaryCountry.get(b.primaryLocationId) ?? b.locations?.[0]?.country ?? b.country,
-      ),
-      ...this.view(byBrand.get(b.id)),
-    }));
+    const rows = (brands as any[])
+      // Brands that sell online, as in the Stripe list — plus any already
+      // connected, which must stay reachable to manage or disconnect.
+      .filter((b) => b.directOrderingEnabled || byBrand.get(b.id)?.refreshTokenEnc)
+      .map((b) => ({
+        brandId: b.id,
+        brandName: b.name,
+        // Gulf brands are Tap's; the page shows them greyed out.
+        eligible: !usesTap(
+          primaryCountry.get(b.primaryLocationId) ?? b.locations?.[0]?.country ?? b.country,
+        ),
+        ...this.view(byBrand.get(b.id)),
+      }));
     return {
       ...this.platformStatus(),
       // Connected brands first (stable, so each group stays alphabetical): in

@@ -435,15 +435,32 @@ describe("MollieService.listStatus", () => {
 
   it("puts connected brands first and keeps each group in name order", async () => {
     const { svc } = build(
-      [{ id: "a", name: "A" }, { id: "b", name: "B" }, { id: "c", name: "C" }, { id: "d", name: "D" }],
+      [
+        { id: "a", name: "A", directOrderingEnabled: true },
+        { id: "b", name: "B", directOrderingEnabled: true },
+        { id: "c", name: "C", directOrderingEnabled: true },
+        { id: "d", name: "D", directOrderingEnabled: true },
+      ],
       [{ brandId: "c", refreshTokenEnc: {} }, { brandId: "b", refreshTokenEnc: {} }],
     );
     expect((await svc.listStatus("t1")).brands.map((b: any) => b.brandId)).toEqual(["b", "c", "a", "d"]);
   });
 
+  it("hides brands that don't sell online, unless already connected", async () => {
+    const { svc } = build(
+      [
+        { id: "off", name: "Order Hub", directOrderingEnabled: false },
+        { id: "conn", name: "Was connected", directOrderingEnabled: false },
+        { id: "on", name: "Sells online", directOrderingEnabled: true },
+      ],
+      [{ brandId: "conn", refreshTokenEnc: {} }],
+    );
+    expect((await svc.listStatus("t1")).brands.map((b: any) => b.brandId)).toEqual(["conn", "on"]);
+  });
+
   it("takes a kitchen brand's country from its primary location, so a Gulf one isn't eligible", async () => {
     const { svc } = build(
-      [{ id: "g", name: "Dubai Grill", primaryLocationId: "dxb", country: "GB", locations: [] }],
+      [{ id: "g", name: "Dubai Grill", directOrderingEnabled: true, primaryLocationId: "dxb", country: "GB", locations: [] }],
       [],
       undefined,
       [{ id: "dxb", country: "AE" }],
