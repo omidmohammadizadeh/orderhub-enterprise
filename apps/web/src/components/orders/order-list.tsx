@@ -34,6 +34,7 @@ import {
   CalendarClock,
   ListChecks,
   Map as MapIcon,
+  Search,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { usePendingCallerStore } from "@/stores/pending-caller.store";
@@ -52,6 +53,7 @@ import { AppBadge, PlatformBadge, FulfillmentBadge, TableBadge } from "./platfor
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
+import { orderMatchesSearch } from "@/lib/orders/order-search";
 import { OrdersFeedBanner, OrdersFeedError } from "./feed-status";
 
 // Only loaded once someone actually opens it — it pulls in three courier
@@ -391,6 +393,7 @@ export function OrderList({ locationId }: Props) {
   // selected channel keys here; live filter narrows orders by
   // matching any selected channel's predicate.
   const [channelFilter, setChannelFilter] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   // The status stages used to be thirteen chips wrapping over four rows on a
@@ -483,8 +486,11 @@ export function OrderList({ locationId }: Props) {
       );
       list = list.filter((o) => matchers.some((m) => m(o.platform)));
     }
+    if (search.trim()) {
+      list = list.filter((o) => orderMatchesSearch(o, search));
+    }
     return list;
-  }, [orders, bucketFilter, channelFilter]);
+  }, [orders, bucketFilter, channelFilter, search]);
 
   if (isLoading) {
     return (
@@ -687,6 +693,36 @@ export function OrderList({ locationId }: Props) {
           Dispatch map
         </button>
 
+        {/* Find an order from what the customer says on the phone. */}
+        <div className="relative min-w-0 flex-1 basis-full md:max-w-sm md:basis-56">
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400"
+            aria-hidden="true"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setSearch("");
+            }}
+            autoComplete="off"
+            aria-label="Search orders by name, order number or phone number"
+            placeholder="Search name, order # or phone…"
+            className="h-[30px] w-full rounded-md border border-zinc-200 bg-white pl-8 pr-8 text-xs text-zinc-900 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-zinc-900 focus:outline-none"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              className="absolute right-1 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+            >
+              <XIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
         {/* Channel filter — Filter button with popover */}
         <div className="ml-auto relative" ref={filterRef}>
           <button
@@ -776,6 +812,13 @@ export function OrderList({ locationId }: Props) {
         </div>
       </div>
 
+      {search.trim() && filteredOrders.length > 0 && (
+        <p role="status" className="mb-3 text-xs text-zinc-500">
+          {filteredOrders.length} order{filteredOrders.length === 1 ? "" : "s"} found
+          for &ldquo;{search.trim()}&rdquo;
+        </p>
+      )}
+
       {/* Active channel chips — quick remove without re-opening popover */}
       {channelFilter.size > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
@@ -821,7 +864,30 @@ export function OrderList({ locationId }: Props) {
       {/* The list */}
       {filteredOrders.length === 0 ? (
         <div className="rounded-lg border border-dashed border-zinc-200 bg-white px-6 py-12 text-center text-sm text-zinc-500">
-          No orders match this filter.
+          {search.trim() ? (
+            <>
+              <p role="status">
+                No orders found for &ldquo;{search.trim()}&rdquo;
+                {bucketFilter !== "ALL" || channelFilter.size > 0
+                  ? " with these filters."
+                  : " on the live board."}
+              </p>
+              {(bucketFilter !== "ALL" || channelFilter.size > 0) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBucketFilter("ALL");
+                    setChannelFilter(new Set());
+                  }}
+                  className="mt-2 rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:border-zinc-300"
+                >
+                  Search all orders
+                </button>
+              )}
+            </>
+          ) : (
+            "No orders match this filter."
+          )}
         </div>
       ) : (
         <>
