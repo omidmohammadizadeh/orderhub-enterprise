@@ -43,7 +43,7 @@ export interface StorefrontSeo {
  * is useless from the server, so fall through to the internal service URL and
  * finally the known API origin, exactly as middleware.ts does.
  */
-function apiOrigin(): string | null {
+export function apiOrigin(): string | null {
   const candidates = [
     process.env.NEXT_PUBLIC_API_URL,
     process.env.API_PUBLIC_URL,

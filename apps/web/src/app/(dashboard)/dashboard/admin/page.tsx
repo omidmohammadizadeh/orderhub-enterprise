@@ -13,6 +13,7 @@ import {
   ArrowRight,
   ClipboardCheck,
   Globe,
+  Handshake,
   KeyRound,
   LayoutList,
   Lock,
@@ -32,6 +33,13 @@ interface AdminTool {
 }
 
 const TOOLS: AdminTool[] = [
+  {
+    href: "/dashboard/admin/prospects",
+    title: "Prospects",
+    blurb:
+      "Before a sales meeting: build a private preview of the shop from its own menu, and show what its marketplace statements say it pays in commission.",
+    icon: Handshake,
+  },
   {
     href: "/dashboard/admin/dashboard-access",
     title: "Dashboard access",

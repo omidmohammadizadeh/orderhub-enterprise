@@ -61,6 +61,7 @@ import { MenuAutoPublishController } from "./auto-publish/menu-auto-publish.cont
     UberMenuImporter,
     DeliverooMenuImporter,
     AiMenuImporter,
+    AiMenuParseService,
   ],
 })
 export class MenusModule {}

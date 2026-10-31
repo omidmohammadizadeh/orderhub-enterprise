@@ -12,6 +12,7 @@ export * from "./lib/pricing-variants";
 export * from "./lib/text";
 export * from "./lib/display-price";
 export * from "./lib/validate-menu-json";
+export * from "./lib/marketplace-menu-extract";
 export * from "./lib/build-guide";
 export * from "./lib/assembly-chart";
 export * from "./lib/assembly-ingredients";

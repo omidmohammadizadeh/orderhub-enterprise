@@ -6956,3 +6956,42 @@ model AutoDispatchRun {
   @@index([tenantId, createdAt(sort: Desc)])
   @@map("auto_dispatch_runs")
 }
+
+// Admin Dashboard → Prospects. A shop we want to sign: a private, read-only
+// preview built from its own menu, plus what its marketplace statements say it
+// pays in commission. Belongs to no tenant and touches no brand, location or
+// menu, so a prospect can never take an order or appear in anyone's reports.
+//
+// The uploaded statement files are never kept, only the numbers read from them.
+model Prospect {
+  id               String    @id @default(cuid())
+  shopName         String
+  sourceUrl        String?
+  city             String?
+  postcode         String?
+  logoUrl          String?
+  bannerUrl        String?
+  // The owner's link. Long and random: anyone holding it can see the preview.
+  previewToken     String    @unique
+  previewExpiresAt DateTime
+  // AiMenuDraft: the same shape the JSON menu import takes.
+  menu             Json?
+  // NONE | READING | READY | FAILED
+  menuStatus       String    @default("NONE")
+  menuError        String?
+  // { establishmentId, rating, url }
+  hygiene          Json?
+  // [ProspectStatement], see prospects/commission-report.ts
+  statements       Json      @default("[]")
+  // NONE | READING | READY | FAILED
+  statementStatus  String    @default("NONE")
+  statementError   String?
+  // Overrides of the report's defaults
+  assumptions      Json?
+  createdByUserId  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+  @@map("prospects")
+}
