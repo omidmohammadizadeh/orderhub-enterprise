@@ -29,6 +29,8 @@ import {
   Phone,
   User,
   ArrowRight,
+  Check,
+  History,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -37,6 +39,7 @@ import { usePendingCallerStore } from "@/stores/pending-caller.store";
 import type { PartialDraft } from "./pos-cart-panel";
 import { DeliveryAddressField } from "./delivery-address-field";
 import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { apiClient } from "@/lib/api/client";
 
 export type PosOrderType = "DELIVERY" | "COLLECTION" | "WALK_IN";
@@ -92,6 +95,9 @@ export function PosStartScreen({
   cartCount: number;
 }) {
   const type = orderTypeOf(draft);
+  // Desktop has room beside the form, so the customer's history goes there and
+  // the form stays where it is. Narrower screens keep it under the phone field.
+  const customerAtSide = useMediaQuery("(min-width: 1024px)");
   const set = (patch: Partial<PartialDraft>) =>
     onDraftChange({ ...draft, ...patch });
 
@@ -116,8 +122,32 @@ export function PosStartScreen({
     return "Choose an order type";
   }, [type, draft.customerPhone, draft.addressLine1]);
 
+  // Recognise the number as it is typed, the same way an incoming call is
+  // recognised. Offered, never applied on its own.
+  const knownCustomer = (
+    <KnownCustomer
+      phone={draft.customerPhone ?? ""}
+      chosenLine1={draft.addressLine1 ?? ""}
+      emptyHint={customerAtSide}
+      onUse={(m, address) =>
+        set({
+          customerName: m.name,
+          ...(address
+            ? {
+                addressLine1: address.line1,
+                addressLine2: address.line2 ?? "",
+                city: address.city ?? "",
+                postcode: address.postcode ?? "",
+              }
+            : {}),
+        })
+      }
+    />
+  );
+
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-5 overflow-y-auto p-1 pb-28">
+    <div className="flex flex-1 flex-col overflow-y-auto p-1">
+      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 pb-4">
       {/* ── Order type ── */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {TYPES.map(({ value, label, hint, Icon, accent }) => {
@@ -129,7 +159,7 @@ export function PosStartScreen({
               onClick={() => chooseType(value)}
               aria-pressed={active}
               className={cn(
-                "flex flex-col items-center gap-2 rounded-2xl border-2 px-3 py-5 transition-all sm:py-7",
+                "flex flex-col items-center gap-2 rounded-2xl border-2 px-3 py-5 transition-all",
                 active
                   ? "border-zinc-900 bg-zinc-900 text-white shadow-lg"
                   : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50",
@@ -159,6 +189,7 @@ export function PosStartScreen({
 
       {/* ── Customer ── */}
       {type && type !== "WALK_IN" && (
+        <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4">
           <Field label="Phone number" Icon={Phone} required>
             <input
@@ -172,24 +203,7 @@ export function PosStartScreen({
             />
           </Field>
 
-          {/* Recognise the number as it is typed, the same way an incoming
-              call is recognised. Offered, never applied on its own. */}
-          <KnownCustomer
-            phone={draft.customerPhone ?? ""}
-            onUse={(m, address) =>
-              set({
-                customerName: m.name,
-                ...(address
-                  ? {
-                      addressLine1: address.line1,
-                      addressLine2: address.line2 ?? "",
-                      city: address.city ?? "",
-                      postcode: address.postcode ?? "",
-                    }
-                  : {}),
-              })
-            }
-          />
+          {!customerAtSide && knownCustomer}
 
           <Field
             label="Name"
@@ -210,6 +224,12 @@ export function PosStartScreen({
             <AddressField draft={draft} set={set} />
           )}
         </div>
+        {customerAtSide && (
+          <aside aria-label="Customer history" className="sticky top-0">
+            {knownCustomer}
+          </aside>
+        )}
+        </div>
       )}
 
       {type === "WALK_IN" && (
@@ -223,11 +243,13 @@ export function PosStartScreen({
         </div>
       )}
 
+      </div>
+
       {/* ── Continue ──
-          Fixed to the bottom so it's under the thumb on a tablet, whatever
+          Pinned to the bottom so it's under the thumb on a tablet, whatever
           the form above has grown to. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center gap-3">
+      <div className="sticky bottom-0 z-30 rounded-xl border border-zinc-200 bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center gap-3">
           {missing && (
             <span className="hidden text-xs text-zinc-500 sm:block">
               {missing}
@@ -317,9 +339,15 @@ function AddressField({
  */
 function KnownCustomer({
   phone,
+  chosenLine1,
+  emptyHint,
   onUse,
 }: {
   phone: string;
+  /** The address currently on the order, so its row can show as chosen. */
+  chosenLine1: string;
+  /** Hold the panel's place with a short note while there's no match. */
+  emptyHint: boolean;
   onUse: (m: LookupMatch, address: LookupMatch["addresses"][number] | null) => void;
 }) {
   const [match, setMatch] = useState<LookupMatch | null>(null);
@@ -367,31 +395,49 @@ function KnownCustomer({
     };
   }, [digits, locationId]);
 
-  if (!match || dismissed === digits) return null;
+  if (!match || dismissed === digits) {
+    return emptyHint ? (
+      <div className="rounded-2xl border border-dashed border-zinc-300 px-5 py-8 text-center">
+        <History className="mx-auto mb-2 h-5 w-5 text-zinc-400" aria-hidden />
+        <p className="text-sm font-medium text-zinc-700">Customer history</p>
+        <p className="mt-0.5 text-xs text-zinc-500">
+          Enter a phone number to see past orders and saved addresses.
+        </p>
+      </div>
+    ) : null;
+  }
   const firstName = (match.name ?? "").split(" ")[0] || "this customer";
+  const initial = (match.name ?? "").trim().charAt(0).toUpperCase() || "?";
 
   return (
-    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-sm font-semibold text-emerald-900">
-            <User className="h-3.5 w-3.5" />
+    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+      <div className="flex items-center gap-3 border-b border-zinc-100 px-3 py-2.5">
+        <span
+          aria-hidden
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-zinc-900 text-sm font-semibold text-white"
+        >
+          {initial}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-zinc-900" title={match.name}>
             {match.name}
           </p>
-          <p className="text-[11px] text-emerald-700">
+          <p className="text-xs text-zinc-500">
             {match.orders} previous order{match.orders === 1 ? "" : "s"}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setDismissed(digits)}
-          className="rounded p-1 text-emerald-700/60 hover:bg-emerald-100 hover:text-emerald-900"
+          aria-label="Not this customer"
           title="Not this customer"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
 
+      <div className="space-y-3 p-3 lg:max-h-[calc(100dvh-32rem)] lg:min-h-[10rem] lg:overflow-y-auto">
       {/* The two things a returning customer is most likely ringing about.
           Same rule as the incoming-call popup: a live order outranks a repeat,
           because somebody with food in the kitchen is asking about THAT. */}
@@ -402,12 +448,12 @@ function KnownCustomer({
             setPendingOpenOrderId(match.openOrder!.id);
             router.push("/dashboard/orders");
           }}
-          className="mt-2 block w-full touch-manipulation break-words rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-left text-xs hover:border-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-500"
+          className="block w-full touch-manipulation break-words rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-left text-sm hover:border-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-amber-500"
         >
           <span className="font-semibold text-amber-900">
             Order #{match.openOrder.reference} in progress
           </span>
-          <span className="block text-amber-800">
+          <span className="mt-0.5 block text-xs text-amber-800">
             {match.openOrder.summary} — open it
           </span>
         </button>
@@ -425,38 +471,52 @@ function KnownCustomer({
               setRepeating(match.lastOrder);
             }
           }}
-          className={`mt-2 block w-full touch-manipulation break-words rounded-lg border px-3 py-2 text-left text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500 ${
+          className={`block w-full touch-manipulation break-words rounded-xl border px-3 py-2.5 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-500 ${
             repeating
-              ? "border-emerald-400 bg-emerald-50"
-              : "border-zinc-300 bg-white hover:border-zinc-400"
+              ? "border-emerald-500 bg-emerald-50"
+              : "border-zinc-200 bg-zinc-50 hover:border-zinc-400"
           }`}
         >
           <span className="font-semibold text-zinc-900">
             {repeating ? "Repeating — now pick where it goes" : "Repeat their last order"}
           </span>
-          <span className="block text-zinc-600">{match.lastOrder.summary}</span>
+          <span className="mt-0.5 block text-xs text-zinc-600">{match.lastOrder.summary}</span>
         </button>
       ) : null}
 
-      <div className="mt-2 space-y-1.5">
-        {match.addresses.map((a, i) => (
-          <button
-            key={`${a.line1}-${a.postcode ?? i}`}
-            type="button"
-            onClick={() => {
-              onUse(match, a);
-              if (repeating) setPendingRepeatOrderId(repeating.id);
-            }}
-            className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-left text-xs hover:border-emerald-400"
-          >
-            <span className="font-medium text-zinc-900">{a.line1}</span>
-            {(a.city || a.postcode) && (
-              <span className="block text-zinc-500">
-                {[a.city, a.postcode].filter(Boolean).join(", ")}
+      <div className="space-y-1.5">
+        {match.addresses.length > 0 && (
+          <p className="text-xs font-medium text-zinc-500">Saved addresses</p>
+        )}
+        {match.addresses.map((a, i) => {
+          const chosen = !!chosenLine1 && chosenLine1 === a.line1;
+          return (
+            <button
+              key={`${a.line1}-${a.postcode ?? i}`}
+              type="button"
+              onClick={() => {
+                onUse(match, a);
+                if (repeating) setPendingRepeatOrderId(repeating.id);
+              }}
+              aria-pressed={chosen}
+              className={`flex w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm ${
+                chosen
+                  ? "border-zinc-900 bg-zinc-50"
+                  : "border-zinc-200 bg-white hover:border-zinc-400"
+              }`}
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-medium text-zinc-900">{a.line1}</span>
+                {(a.city || a.postcode) && (
+                  <span className="block truncate text-xs text-zinc-500">
+                    {[a.city, a.postcode].filter(Boolean).join(", ")}
+                  </span>
+                )}
               </span>
-            )}
-          </button>
-        ))}
+              {chosen && <Check className="h-4 w-4 shrink-0 text-zinc-900" aria-hidden />}
+            </button>
+          );
+        })}
         {/* Collection orders need the name, not an address — and a delivery
             customer ordering to a new address still wants their name filled. */}
         <button
@@ -465,10 +525,11 @@ function KnownCustomer({
             onUse(match, null);
             if (repeating) setPendingRepeatOrderId(repeating.id);
           }}
-          className="block w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-left text-xs font-medium text-emerald-800 hover:border-emerald-400"
+          className="block min-h-10 w-full rounded-xl px-3 py-2 text-center text-sm font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
         >
           {repeating ? "They\u2019re collecting — no address" : `Use ${firstName}\u2019s name only`}
         </button>
+      </div>
       </div>
     </div>
   );
