@@ -1221,8 +1221,10 @@ export function buildOrderReceipt(
     line(buf, "");
   }
 
-  // ── Order number (big and bold) ───────────────────────────────────
+  // ── Ticket number + Order ID (big and bold) ───────────────────────
   buf.push(...BOLD_ON, ...DOUBLE_ON);
+  if (payload?.ticketNumber != null && show("ticketNumber"))
+    line(buf, `TICKET ${payload.ticketNumber}`);
   const orderNo = String(
     payload?.displayId ?? payload?.orderNumber ?? "",
   );
@@ -1603,8 +1605,10 @@ export function buildOrderReceiptStar(
     line(buf, "");
   }
 
-  // ── Order number ──────────────────────────────────────────────────
+  // ── Ticket number + Order ID ──────────────────────────────────────
   buf.push(...STAR_BOLD_ON, ...STAR_EXPAND_ON);
+  if (payload?.ticketNumber != null && show("ticketNumber"))
+    line(buf, `TICKET ${payload.ticketNumber}`);
   const orderNo = String(payload?.displayId ?? payload?.orderNumber ?? "");
   if (orderNo && show("orderNumber")) line(buf, `#${orderNo}`);
   buf.push(...STAR_EXPAND_OFF, ...STAR_BOLD_OFF);

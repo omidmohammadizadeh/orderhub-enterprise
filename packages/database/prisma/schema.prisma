@@ -2044,6 +2044,9 @@ model Order {
   // External-platform orders keep their own displayId (Just Eat order
   // ref, Uber Eats display_id, etc.) and leave this null.
   orderNumber Int?
+  // Short per-shop number for calling out, restarting each trading day (see
+  // OrderTicketSequence). Null on older orders and if claiming one failed.
+  ticketNumber Int?
 
   orderSource       OrderSource       @default(DIRECT)
   integrationSource IntegrationSource @default(DIRECT)
@@ -2274,6 +2277,18 @@ model OrderNumberSequence {
   updatedAt DateTime @updatedAt
 
   @@map("order_number_sequences")
+}
+
+// Per-shop, per-trading-day counter behind Order.ticketNumber. businessDate is
+// the shop-local YYYY-MM-DD, turning over at 4am so late shifts aren't split.
+model OrderTicketSequence {
+  locationId   String
+  businessDate String
+  lastValue    Int      @default(0)
+  updatedAt    DateTime @default(now()) @updatedAt
+
+  @@id([locationId, businessDate])
+  @@map("order_ticket_sequences")
 }
 
 model OrderItem {

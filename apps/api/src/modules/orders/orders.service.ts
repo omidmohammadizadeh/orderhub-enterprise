@@ -46,6 +46,7 @@ import { activeDojoLock } from "../payments/dojo/dojo-lock";
 import { isCounterSaleType } from "../retail/retail.logic";
 import { WalkInLoyaltyService } from "../loyalty/walk-in/walk-in-loyalty.service";
 import type { CanonicalOrder } from "@orderhub/shared";
+import { claimTicketNumber, ticketBusinessDate } from "./ticket-number";
 
 // Phase AM — if the operator scheduled this order more than this many seconds
 // into the future, we suppress the immediate PrinterJob and surface a
@@ -360,6 +361,21 @@ export class OrdersService {
     return seq.nextValue - 1;
   }
 
+  /** The shop's trading day. Can't fail: a lookup problem must not cost an order. */
+  private async ticketDateFor(locationId: string): Promise<string> {
+    let timezone = "Europe/London";
+    try {
+      const location = await this.prisma.location.findUnique({
+        where: { id: locationId },
+        select: { timezone: true },
+      });
+      timezone = location?.timezone ?? timezone;
+    } catch (e: any) {
+      this.logger.warn(`Ticket date using London time for ${locationId}: ${e?.message ?? e}`);
+    }
+    return ticketBusinessDate(new Date(), timezone);
+  }
+
   /**
    * True if the order should NOT trigger an immediate print at creation time.
    * The cut-off is 10 minutes — anything inside that window is treated as
@@ -650,11 +666,22 @@ export class OrdersService {
     // between DB commit and queue enqueue, the OutboxDispatcherCron picks up the
     // pending outbox event on its next tick and enqueues the job safely.
     try {
+      const ticketDate = await this.ticketDateFor(locationId);
       const order = await this.prisma.$transaction(async (tx) => {
+        const ticketNumber = await claimTicketNumber(
+          tx,
+          locationId,
+          ticketDate,
+          (e: any) =>
+            this.logger.error(
+              `Ticket number not claimed for location ${locationId}: ${e?.message ?? e}`,
+            ),
+        );
         const created = await tx.order.create({
           data: {
             tenantId,
             locationId,
+            ticketNumber,
             // Phase AW — pin the order to a specific virtual brand
             // when the storefront resolved one (?brand=<id> on the
             // public URL). The Orders board, receipt header, and

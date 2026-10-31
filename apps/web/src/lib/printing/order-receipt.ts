@@ -160,6 +160,7 @@ export function buildPrintPayload(
     locationPhone: brand?.phone ?? loc?.phone ?? null,
     displayId: (order as any).displayId ?? null,
     orderNumber: (order as any).orderNumber ?? null,
+    ticketNumber: (order as any).ticketNumber ?? null,
     // Receipt "Channel" line — resolved real channel, never "HUBRISE".
     platform: displayChannelFor(order),
     orderSource: (order as any).orderSource ?? null,

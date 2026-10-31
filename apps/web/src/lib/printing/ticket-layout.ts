@@ -15,6 +15,7 @@ export type TicketFieldKey =
   | "locationAddress"
   | "locationPhone"
   | "customerVisitTag"
+  | "ticketNumber"
   | "orderNumber"
   | "receivedAt"
   | "channel"
@@ -54,7 +55,8 @@ export const TICKET_FIELD_GROUPS: ReadonlyArray<{
   {
     title: "Order",
     fields: [
-      ["orderNumber", "Order number"],
+      ["ticketNumber", "Ticket number"],
+      ["orderNumber", "Order ID"],
       ["receivedAt", "Date and time received"],
       ["customerVisitTag", "Returning-customer banner"],
       ["channel", "Channel (Just Eat, Uber…)"],

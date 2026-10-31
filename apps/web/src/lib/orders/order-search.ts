@@ -1,10 +1,11 @@
 // Finding an order on the live board from what a customer says on the phone:
-// their name, the order number on their receipt, or their phone number.
+// their name, the Order ID or ticket number on their receipt, or their phone.
 
 type SearchableOrder = {
   id: string;
   displayId?: string | null;
   orderNumber?: number | null;
+  ticketNumber?: number | null;
   customerInfo?: { name?: string | null; phone?: string | null } | null;
   customerName?: string | null;
   customerPhone?: string | null;
@@ -47,16 +48,26 @@ export function orderMatchesSearch(
   const name = order.customerInfo?.name ?? order.customerName ?? "";
   if (folded(name).includes(q)) return true;
 
-  // The same references the row shows, with or without the "#".
+  const refs = [
+    order.displayId,
+    order.orderNumber != null ? String(order.orderNumber) : null,
+    order.id.slice(-6),
+  ];
+  const ticket = order.ticketNumber != null ? String(order.ticketNumber) : null;
   const ref = q.replace(/^#/, "").replace(/\s+/g, "");
-  if (ref) {
-    const refs = [
-      order.displayId,
-      order.orderNumber != null ? String(order.orderNumber) : null,
-      order.id.slice(-6),
-    ];
-    if (refs.some((r) => r && folded(r).includes(ref))) return true;
+
+  // "ticket 12" can only mean a ticket.
+  const asked = q.match(/^(?:ticket|tkt|t)\s*#?\s*(\d+)$/);
+  if (asked) return ticket === asked[1];
+
+  // A short number is someone calling out a ticket: "12" means ticket 12 (or an
+  // order numbered exactly 12), not every order ID with a 12 somewhere in it.
+  if (/^\d{1,3}$/.test(ref)) {
+    return ref === ticket || refs.some((r) => r === ref);
   }
+
+  // The same references the row shows, with or without the "#".
+  if (ref && refs.some((r) => r && folded(r).includes(ref))) return true;
 
   // Letters mean it's a name or a reference, never a phone number.
   if (/[a-z]/.test(q)) return false;

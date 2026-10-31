@@ -707,8 +707,8 @@ export function OrderList({ locationId }: Props) {
               if (e.key === "Escape") setSearch("");
             }}
             autoComplete="off"
-            aria-label="Search orders by name, order number or phone number"
-            placeholder="Search name, order # or phone…"
+            aria-label="Search orders by name, order ID, ticket number or phone number"
+            placeholder="Search name, order ID, ticket or phone…"
             className="h-[30px] w-full rounded-md border border-zinc-200 bg-white pl-8 pr-8 text-xs text-zinc-900 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-zinc-900 focus:outline-none"
           />
           {search && (
@@ -912,16 +912,17 @@ export function OrderList({ locationId }: Props) {
           {/* Auto width (not w-full) so columns hug their content — on a
               small tablet this removes the big inter-column gaps that
               pushed the Status column off-screen. */}
-          <table className="divide-y divide-zinc-200 text-sm">
+          <table className="divide-y divide-zinc-200 text-sm xl:w-full">
             <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 {bulkMode && (
-                  <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap">
+                  <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap xl:py-3.5">
                     <span className="sr-only">Pick</span>
                   </th>
                 )}
                 <Th>Time</Th>
-                <Th>Order #</Th>
+                <Th>Order ID</Th>
+                <Th>Ticket</Th>
                 <Th>Channel</Th>
                 <Th>Brand</Th>
                 <Th>Type</Th>
@@ -1132,7 +1133,7 @@ function OrderCard({
     >
       {/* Stage stripe — the colour reads before the words do. */}
       <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${bucket.accent}`} />
-      {/* Order # + status — the two things worth seeing from arm's length. */}
+      {/* Order ID + status — the two things worth seeing from arm's length. */}
       <div className="flex items-start justify-between gap-2">
         {bulk && (
           <div className="shrink-0 pt-0.5">
@@ -1143,6 +1144,11 @@ function OrderCard({
           <span className="text-base font-semibold text-zinc-900">
             #{order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}
           </span>
+          {order.ticketNumber != null && (
+            <span className="ml-2 rounded-md bg-zinc-900 px-1.5 py-0.5 text-xs font-bold tabular-nums text-white">
+              Ticket {order.ticketNumber}
+            </span>
+          )}
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-zinc-500">
             <span>
               {new Date(order.createdAt).toLocaleTimeString([], {
@@ -1286,7 +1292,7 @@ function OrderRow({
           <PickBox bulk={bulk} label={ref} />
         </Td>
       )}
-      <td className="relative py-2.5 pl-3 pr-1.5 align-middle">
+      <td className="relative py-2.5 pl-3 pr-1.5 align-middle xl:py-5">
         {/* Stage stripe down the row's left edge. */}
         <span aria-hidden className={`absolute inset-y-1.5 left-0 w-[3px] rounded-r ${bucket.accent}`} />
         <div className="flex flex-col">
@@ -1314,6 +1320,18 @@ function OrderRow({
               sequential orderNumber for legacy rows. */}
           #{order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}
         </span>
+      </Td>
+      <Td>
+        {order.ticketNumber != null ? (
+          <span
+            title={`Ticket ${order.ticketNumber}`}
+            className="inline-grid h-7 min-w-7 place-items-center rounded-md bg-zinc-900 px-1.5 text-sm font-bold tabular-nums text-white"
+          >
+            {order.ticketNumber}
+          </span>
+        ) : (
+          <span className="text-zinc-300">—</span>
+        )}
       </Td>
       <Td>
         {/* Phase AU — HubRise orders carry the original marketplace
@@ -1492,13 +1510,15 @@ function PrintOrderButton({ order }: { order: Order }) {
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap">
+    <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap xl:py-3.5">
       {children}
     </th>
   );
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-1.5 py-2.5 align-middle">{children}</td>;
+  // Taller rows from xl up, for reading across a kitchen. Vertical only, so the
+  // columns still fit: Status and Actions must stay on screen.
+  return <td className="px-1.5 py-2.5 align-middle xl:py-5">{children}</td>;
 }
 
 /**

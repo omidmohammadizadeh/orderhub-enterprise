@@ -14,6 +14,7 @@ export interface ReceiptPayload {
   type: "RECEIPT";
   orderId: string;
   displayId: string | null;
+  ticketNumber: number | null;
   platform: string;
   orderSource: string;
   fulfillmentType: string;
@@ -104,6 +105,7 @@ export function buildReceiptPayload(
     type: "RECEIPT",
     orderId: order.id,
     displayId: order.displayId ?? null,
+    ticketNumber: order.ticketNumber ?? null,
     platform: order.platform,
     orderSource: order.orderSource,
     fulfillmentType: order.fulfillmentType,

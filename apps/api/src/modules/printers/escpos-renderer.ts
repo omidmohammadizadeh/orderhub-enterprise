@@ -203,6 +203,11 @@ export function renderToEscPos(
   const orderRef =
     payload.displayId ?? payload.orderNumber ?? payload.orderId ?? null;
   out.push(...alignCenter(), ...boldOn(), ...doubleSizeOn());
+  // The number the kitchen calls out, above the Order ID it doesn't replace.
+  if (payload.ticketNumber != null) {
+    write(`TICKET ${payload.ticketNumber}`);
+    newline();
+  }
   write(orderRef ? `#${orderRef}` : "ORDER");
   newline();
   out.push(...doubleSizeOff(), ...boldOff(), ...alignLeft());

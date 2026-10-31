@@ -25,6 +25,22 @@ describe("orderMatchesSearch", () => {
     expect(orderMatchesSearch(order, "#482")).toBe(true);
   });
 
+  it("finds a ticket number exactly, not numbers containing it", () => {
+    const ticketed = { id: "cmvzzzzzz", displayId: "AB12C", ticketNumber: 12 };
+    for (const q of ["12", "#12", "ticket 12", "T12"]) {
+      expect(orderMatchesSearch(ticketed, q)).toBe(true);
+    }
+    expect(orderMatchesSearch({ ...ticketed, ticketNumber: 112 }, "12")).toBe(false);
+    expect(orderMatchesSearch({ ...ticketed, ticketNumber: null }, "ticket 12")).toBe(false);
+  });
+
+  it("doesn't let a short number match inside an Order ID, but a longer one can", () => {
+    const o = { id: "cmvzzzzzz", displayId: "983412345", ticketNumber: 3 };
+    expect(orderMatchesSearch(o, "12")).toBe(false);
+    expect(orderMatchesSearch(o, "3412")).toBe(true);
+    expect(orderMatchesSearch({ id: "x", orderNumber: 12 }, "12")).toBe(true);
+  });
+
   it("finds a phone number however it is typed", () => {
     for (const q of ["07788180709", "0778 818", "7788180709", "+44 7788 180709", "447788180"]) {
       expect(orderMatchesSearch(order, q)).toBe(true);
