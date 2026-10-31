@@ -23,6 +23,7 @@ import { menusClient } from "@/lib/api/menus.client";
 import { glovoClient } from "@/lib/api/glovo.client";
 import { keetaClient } from "@/lib/api/keeta.client";
 import { talabatClient } from "@/lib/api/talabat.client";
+import { careemClient } from "@/lib/api/careem.client";
 import {
   brandsClient,
   locationsClient,
@@ -117,6 +118,13 @@ const TARGETS: Target[] = [
     wired: true,
   },
   {
+    id: "CAREEM",
+    title: "Careem",
+    description:
+      "Direct Careem push — replaces the whole menu on the brand's connected Careem branch. Careem only accept whole-number prices; anything else is named before sending.",
+    wired: true,
+  },
+  {
     id: "TALABAT",
     title: "Talabat",
     description:
@@ -175,7 +183,7 @@ export function PublishMenuModal({
     (l: any) => l.id === locationId,
   )?.country as string | undefined;
   // Keeta the same way: Gulf markets only.
-  const COUNTRY_GATED = new Set(["GLOVO", "KEETA", "TALABAT"]);
+  const COUNTRY_GATED = new Set(["GLOVO", "KEETA", "TALABAT", "CAREEM"]);
   const visibleTargets = TARGETS.filter(
     (t) =>
       !COUNTRY_GATED.has(t.id) ||
@@ -304,6 +312,26 @@ export function PublishMenuModal({
             .catch((e: any) =>
               pushErrors.push(
                 `Keeta: ${e?.response?.data?.message ?? e?.message ?? "failed"}`,
+              ),
+            );
+        }
+        if (next.includes("CAREEM")) {
+          await careemClient
+            .publishMenu(menuId, { locationId: loc || undefined, brandId })
+            .then((r) => {
+              // Refused before sending, with the items named.
+              if (r && r.ok === false) {
+                pushErrors.push(
+                  `Careem: not sent — ${r.errors
+                    .slice(0, 3)
+                    .map((e) => e.message)
+                    .join("; ")}${r.errors.length > 3 ? ` (+${r.errors.length - 3} more)` : ""}`,
+                );
+              }
+            })
+            .catch((e: any) =>
+              pushErrors.push(
+                `Careem: ${e?.response?.data?.message ?? e?.response?.data?.careemSaid ?? e?.message ?? "failed"}`,
               ),
             );
         }
@@ -709,6 +737,7 @@ function describeSelection(s: Set<string>): string {
     GLOVO: "Glovo",
     KEETA: "Keeta",
     TALABAT: "Talabat",
+    CAREEM: "Careem",
   };
   const names = Array.from(s).map((id) => labels[id] ?? id);
   if (names.length === 0) return "no channels";

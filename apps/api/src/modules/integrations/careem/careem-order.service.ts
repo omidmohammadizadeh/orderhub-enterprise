@@ -12,10 +12,10 @@ import {
 //
 // ── How a Careem branch finds its way to one of our shops ───────────────────
 //
-// It doesn't need a mapping table. Careem's brand and branch endpoints take an
-// id "provided by vendor or restaurant" — we choose it — so we publish OUR
-// Location id as the branch id and OUR Brand id as the brand id. An order then
-// names the location it belongs to directly, and there is no join to drift.
+// Careem's brand and branch endpoints take an id "provided by vendor or
+// restaurant" — we choose it. A brand's branch uses its connection row's own id,
+// so that row says which brand and location an order belongs to. The first branch
+// registered from the Careem page uses the Location id instead, and still resolves.
 //
 // The same trick carries the menu: catalog item and option ids are our own
 // MenuItem and ModifierOption ids, which is the only reason an order that
@@ -66,9 +66,19 @@ export class CareemOrderService {
    */
   async ingest(order: CareemOrder): Promise<{ orderId: string } | null> {
     const branchId = String(order.branch?.id ?? "");
-    const location = branchId
+    // A brand's branch has its own id. The status of the row doesn't matter: an
+    // order already placed must still reach the kitchen.
+    const connection = branchId
+      ? await this.prisma.brandPlatformConnection.findFirst({
+          where: { platform: "CAREEM", externalStoreId: branchId },
+          select: { id: true, brandId: true, locationId: true },
+        })
+      : null;
+    // The branch registered from the Careem page uses the location's own id.
+    const locationId = connection?.locationId ?? branchId;
+    const location = locationId
       ? await this.prisma.location.findFirst({
-          where: { id: branchId, deletedAt: null },
+          where: { id: locationId, deletedAt: null },
           select: { id: true, country: true, brand: { select: { tenantId: true } } },
         })
       : null;
@@ -88,6 +98,14 @@ export class CareemOrderService {
     const canonical = transformCareemOrder(order, names, {
       country: location.country ?? "AE",
     });
+
+    if (connection) {
+      (canonical as { brandId?: string }).brandId = connection.brandId;
+      await this.prisma.brandPlatformConnection.update({
+        where: { id: connection.id },
+        data: { lastWebhookAt: new Date() },
+      });
+    }
 
     const created = await this.orders.ingestCanonical(
       canonical,
@@ -116,10 +134,7 @@ export class CareemOrderService {
       );
       return;
     }
-    const existing = await this.prisma.order.findFirst({
-      where: { externalId: String(order.id), platform: "CAREEM" as any },
-      select: { id: true, tenantId: true, status: true },
-    });
+    const existing = await this.findOrderAllowingForIngest(String(order.id));
     if (!existing) {
       this.logger.warn(
         `Careem status "${order.status}" for order ${order.id}, which we have not ingested`,
@@ -153,6 +168,23 @@ export class CareemOrderService {
       );
   }
 
+  /**
+   * Careem send ORDER_STATUS_UPDATED tens of milliseconds after ORDER_CREATED
+   * (seen on staging order 15142750), often before the first has finished
+   * saving. Give it a moment rather than losing the status.
+   */
+  private async findOrderAllowingForIngest(externalId: string) {
+    for (const waitMs of [0, ...INGEST_RETRY_MS]) {
+      if (waitMs) await new Promise((r) => setTimeout(r, waitMs));
+      const found = await this.prisma.order.findFirst({
+        where: { externalId, platform: "CAREEM" as any },
+        select: { id: true, tenantId: true, status: true },
+      });
+      if (found) return found;
+    }
+    return null;
+  }
+
   /** Which of Careem's three accepted states, if any, our status maps to. */
   static outboundState(status: string) {
     return OUTBOUND_STATE[status] ?? null;
@@ -169,12 +201,18 @@ export class CareemOrderService {
   private async nameLookup(order: CareemOrder): Promise<CareemNameLookup> {
     const itemIds = new Set<string>();
     const optionIds = new Set<string>();
+    const sizedItemIds = new Set<string>();
     // Options can carry their own groups, arbitrarily deep — Careem supports
     // nested modifiers natively — so collecting ids is a walk, not a loop.
     const walk = (groups: CareemOrderGroup[] | undefined): void => {
       for (const g of groups ?? []) {
         for (const o of g.options ?? []) {
-          if (o.id) optionIds.add(String(o.id));
+          if (o.id) {
+            const id = String(o.id);
+            const size = SIZE_OPTION.exec(id);
+            if (size) sizedItemIds.add(size[1]!);
+            else optionIds.add(baseOptionId(id));
+          }
           if (o.groups?.length) walk(o.groups);
         }
       }
@@ -184,11 +222,12 @@ export class CareemOrderService {
       walk(line.groups);
     }
 
+    const allItemIds = [...new Set([...itemIds, ...sizedItemIds])];
     const [items, options] = await Promise.all([
-      itemIds.size
+      allItemIds.length
         ? this.prisma.menuItem.findMany({
-            where: { id: { in: [...itemIds] } },
-            select: { id: true, name: true },
+            where: { id: { in: allItemIds } },
+            select: { id: true, name: true, productSkus: true },
           })
         : Promise.resolve([]),
       optionIds.size
@@ -200,10 +239,31 @@ export class CareemOrderService {
     ]);
 
     const itemNames = new Map(items.map((i) => [i.id, i.name]));
+    const skusByItem = new Map(items.map((i) => [i.id, i.productSkus]));
     const optionNames = new Map(options.map((o) => [o.id, o.name]));
     return {
       item: (id) => itemNames.get(id),
-      option: (id) => optionNames.get(id),
+      option: (id) => {
+        const size = SIZE_OPTION.exec(id);
+        if (size) {
+          const skus = skusByItem.get(size[1]!);
+          const sku = Array.isArray(skus) ? skus[Number(size[2])] : null;
+          return (sku as { name?: string } | null)?.name;
+        }
+        return optionNames.get(baseOptionId(id));
+      },
     };
   }
+}
+
+/** How long a status update waits for the order it belongs to. */
+const INGEST_RETRY_MS = [250, 500, 750];
+
+/** A size published as an option: `<itemId>__size<index>`. */
+const SIZE_OPTION = /^(.+)__size(\d+)$/;
+
+/** A per-size copy of an option is `<optionId>__<size>`; ours has no suffix. */
+function baseOptionId(id: string): string {
+  const i = id.indexOf("__");
+  return i > 0 ? id.slice(0, i) : id;
 }

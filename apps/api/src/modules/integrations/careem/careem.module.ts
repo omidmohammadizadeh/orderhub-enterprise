@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { OrdersModule } from "../../orders/orders.module";
+import { VariantPriceResolverModule } from "../../menus/variant-price-resolver.module";
+import { CareemConnectionService } from "./careem-connection.service";
 import { CareemClientService } from "./careem-client.service";
 import { CareemController } from "./careem.controller";
 import { CareemWebhookController } from "./careem-webhook.controller";
@@ -27,6 +29,9 @@ import { CareemMockController } from "./careem-mock.controller";
 // integration switch, SuperApp visibility including a timed pause, and opening
 // hours split across midnight the way Careem model them.
 //
+// Connections: one branch per brand at a location, connected from the brand
+// page, with its own catalog state and an explicit switch for orders.
+//
 // CA-5 sandbox: Careem's own API answering on our server, so the whole
 // integration can be driven before they issue a client. Off unless
 // CAREEM_SANDBOX=true, and refuses to run against their production.
@@ -40,7 +45,7 @@ import { CareemMockController } from "./careem-mock.controller";
 // outbound sync listens on the order.status_changed event rather than being
 // called, which is what keeps that direction one-way.
 @Module({
-  imports: [ConfigModule, OrdersModule],
+  imports: [ConfigModule, OrdersModule, VariantPriceResolverModule],
   controllers: [
     CareemController,
     CareemWebhookController,
@@ -54,6 +59,7 @@ import { CareemMockController } from "./careem-mock.controller";
     CareemOrderSyncService,
     CareemMenuPublishService,
     CareemStoreService,
+    CareemConnectionService,
     CareemSandboxService,
     CareemItemAvailabilityService,
   ],
@@ -62,6 +68,7 @@ import { CareemMockController } from "./careem-mock.controller";
     CareemOrderService,
     CareemMenuPublishService,
     CareemStoreService,
+    CareemConnectionService,
     CareemItemAvailabilityService,
   ],
 })

@@ -22,13 +22,10 @@
 //
 // ── The one thing that is not verified ──────────────────────────────────────
 //
-// `price` is documented as an integer and the unit is not stated anywhere.
-// Their example shows `"price": 20` for pancakes, which reads as whole
-// dirhams; but an integer in whole dirhams cannot express 11.50, which is what
-// a real menu is full of. Rather than guess and silently put every price out
-// by a factor of a hundred, the transformer REFUSES to emit a price it would
-// have to round, and names the items. Flip CAREEM_PRICE_UNIT once Careem
-// confirms it.
+// Careem confirmed in writing (30 Sep 2026): price is a plain integer in whole
+// currency units, 20 = AED 20.00, not fils. So AED 18.50 cannot be expressed.
+// Rounding it silently would change what a customer pays, so the transformer
+// REFUSES to emit a price it would have to round, and names the items.
 
 export type CareemPriceUnit = "major" | "minor";
 
@@ -296,6 +293,17 @@ export function transformCareemMenu(
     });
   }
 
+  // An outlet with an empty catalog never appears on the SuperApp, and Careem
+  // would report the push as a success.
+  if (menu.items.length === 0) {
+    errors.push({
+      entity: "catalog",
+      id: menu.id,
+      message:
+        "This menu has no items customers can see, so there is nothing to publish.",
+    });
+  }
+
   if (menu.items.length > CAREEM_MAX_ITEMS) {
     errors.push({
       entity: "catalog",
@@ -315,9 +323,8 @@ export function transformCareemMenu(
         entity: "item",
         id: item.id,
         message:
-          `price ${item.basePrice} cannot be sent as a whole number in "${opts.unit}" units. ` +
-          `Careem's schema says integer without stating the unit — confirm with them, ` +
-          `then set CAREEM_PRICE_UNIT.`,
+          `"${item.name}" costs ${item.basePrice}. Careem only accept whole ` +
+          `currency units, so change it to a whole number for this channel.`,
       });
     }
     return {
@@ -376,7 +383,9 @@ export function transformCareemMenu(
         errors.push({
           entity: "option",
           id: option.id,
-          message: `price ${option.priceAdjustment} cannot be sent as a whole number in "${opts.unit}" units`,
+          message:
+            `Option "${option.name}" costs ${option.priceAdjustment}. Careem only ` +
+            `accept whole currency units, so change it to a whole number for this channel.`,
         });
       }
       // A nested group that isn't in the payload would dangle, and Careem

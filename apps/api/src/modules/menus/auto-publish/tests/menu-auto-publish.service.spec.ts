@@ -13,6 +13,7 @@ function setup() {
           : null,
     },
     location: { findUnique: async () => ({ name: "Pizza Planet", country: "GB" }) },
+    brandPlatformConnection: { findMany: async () => [] },
     menuChannelAssignment: {
       findMany: async () => [
         { channel: "JUST_EAT", locationId: "loc-a", brandId: "b1", location: { name: "Tonypandy" } },

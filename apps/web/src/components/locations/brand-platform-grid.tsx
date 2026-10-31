@@ -32,10 +32,12 @@ import { DeliverooManageModal } from "@/components/locations/deliveroo-manage-mo
 import { JustEatManageModal } from "@/components/locations/justeat-manage-modal";
 import { GlovoManageModal } from "@/components/locations/glovo-manage-modal";
 import { KeetaManageModal } from "@/components/locations/keeta-manage-modal";
+import { CareemManageModal } from "@/components/locations/careem-manage-modal";
 import { deliverooClient } from "@/lib/api/deliveroo.client";
 import { justEatClient } from "@/lib/api/justeat.client";
 import { glovoClient } from "@/lib/api/glovo.client";
 import { keetaClient } from "@/lib/api/keeta.client";
+import { careemClient } from "@/lib/api/careem.client";
 import { apiClient } from "@/lib/api/client";
 import { StorePickerModal } from "@/components/locations/store-picker-modal";
 import { EflListingPanel, eflListingQueryKey, eflTileStatus } from "@/components/locations/efl-listing-panel";
@@ -136,13 +138,20 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
   // Tile status. DIRECT_ONLINE's connected-ness lives on the Brand row
   // itself (directOrderingEnabled + onlineOrderingSlug), not on a
   // BrandPlatformConnection — same rule the panel below uses.
+  // A Careem connection belongs to one location: the same brand at another shop
+  // is a different branch, and must not read as connected here.
+  const connFor = (platform: PlatformId) =>
+    platform === "CAREEM"
+      ? conns.find((c) => c.platform === platform && c.locationId === locationId)
+      : conns.find((c) => c.platform === platform);
+
   const statusFor = (platform: PlatformId): ConnectionStatus => {
     if (platform === "DIRECT_ONLINE") {
       return currentBrand.directOrderingEnabled && currentBrand.onlineOrderingSlug
         ? "connected"
         : "not_connected";
     }
-    return conns.find((c) => c.platform === platform)?.status ?? "not_connected";
+    return connFor(platform)?.status ?? "not_connected";
   };
 
 
@@ -167,7 +176,7 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
               />
             );
           }
-          const conn = conns.find((c) => c.platform === platform);
+          const conn = connFor(platform);
           // Uber Eats connects via OAuth — no external id. Connect opens
           // Uber's authorization page; the callback auto-links the store.
           if (platform === "UBER_EATS") {
@@ -219,6 +228,21 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
           if (platform === "KEETA") {
             return (
               <KeetaRow
+                key={platform}
+                brandId={brandId}
+                locationId={locationId}
+                connection={conn ?? null}
+                onChanged={() =>
+                  qc.invalidateQueries({ queryKey: ["brand-connections", brandId] })
+                }
+              />
+            );
+          }
+          // Careem have nothing to paste: connecting registers this brand here,
+          // and their operations team maps the branch to an outlet.
+          if (platform === "CAREEM") {
+            return (
+              <CareemRow
                 key={platform}
                 brandId={brandId}
                 locationId={locationId}
@@ -477,19 +501,6 @@ function ConnectionRow({
   const [editing, setEditing] = useState(false);
   const [storeId, setStoreId] = useState(connection?.externalStoreId ?? "");
 
-  // Careem has no external store ID to enter, and asking for one sends the
-  // operator looking for a value that does not exist.
-  //
-  // Uber and Deliveroo each mint an identifier on their side which we store
-  // and send back. Careem inverts that: their POS API 2.1.0 registers a brand
-  // as POST /brands {id: <our brand id>} and a branch as
-  // PUT /branches/{our location id}. Our ids ARE their ids — there is no
-  // mapping table and nothing to paste. Careem then moves the record from
-  // UNMAPPED to MAPPED on their side.
-  //
-  // So this row points at the Careem page, which runs that registration,
-  // rather than offering a text box that can only ever be wrong.
-  const isCareem = platform === "CAREEM";
   // Talabat vendors carry a chain code, vendor code and our remote ID, set
   // (and published to, and opened/closed) on the Talabat page — a bare store
   // ID box here would create a connection the integration can't use.
@@ -518,12 +529,6 @@ function ConnectionRow({
                 : ""}
               Connected, published and opened/closed on the Talabat page.
             </p>
-          ) : isCareem ? (
-            <p className="text-[10px] text-zinc-500">
-              Careem uses this brand and location&apos;s own IDs — there is no
-              store ID to enter. Register them with &ldquo;Onboard the
-              shop&rdquo; on the Careem page.
-            </p>
           ) : (
             connection?.externalStoreId &&
             !editing && (
@@ -539,13 +544,6 @@ function ConnectionRow({
             className="rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium hover:bg-zinc-50"
           >
             Set up on the Talabat page
-          </a>
-        ) : isCareem ? (
-          <a
-            href="/dashboard/integrations/careem"
-            className="rounded-md border border-zinc-300 px-2 py-1 text-[10px] font-medium hover:bg-zinc-50"
-          >
-            Set up on the Careem page
           </a>
         ) : editing ? (
           <div className="flex items-center gap-1">
@@ -1172,6 +1170,88 @@ function KeetaRow({
       </div>
       {connected && (
         <KeetaManageModal
+          connectionId={connection!.id as string}
+          brandId={brandId}
+          locationId={locationId}
+          open={manageOpen}
+          onClose={() => setManageOpen(false)}
+          onChanged={onChanged}
+        />
+      )}
+    </li>
+  );
+}
+
+function CareemRow({
+  brandId,
+  locationId,
+  connection,
+  onChanged,
+}: {
+  brandId: string;
+  locationId: string;
+  connection: BrandPlatformConnection | null;
+  onChanged: () => void;
+}) {
+  const status = connection?.status ?? "not_connected";
+  const registered = status !== "not_connected" && !!connection?.id;
+  const [manageOpen, setManageOpen] = useState(false);
+
+  const connect = useMutation({
+    mutationFn: () => careemClient.connect({ brandId, locationId }),
+    onSuccess: () => {
+      toast.success("Registered with Careem. Next: Careem operations map the branch.", {
+        duration: 7000,
+      });
+      onChanged();
+      setManageOpen(true);
+    },
+    onError: (e: any) =>
+      toast.error(
+        e?.response?.data?.message ??
+          e?.response?.data?.careemSaid ??
+          e?.message ??
+          "Careem request failed",
+        { duration: 8000 },
+      ),
+  });
+
+  return (
+    <li className="rounded-md border border-zinc-200 px-3 py-2">
+      <div className="flex items-center gap-3">
+        <PlatformLogo platform="CAREEM" size={44} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-zinc-900">Careem</span>
+            <StatusChip status={status} />
+          </div>
+          <p className="text-[10px] text-zinc-500">
+            {status === "connected"
+              ? "Careem orders come to OrderHub."
+              : registered
+                ? "Registered. Open Manage to see the next step."
+                : "There's nothing to enter. Connect registers this brand here, then Careem's operations team maps it to an outlet."}
+          </p>
+        </div>
+        {registered ? (
+          <button
+            onClick={() => setManageOpen(true)}
+            className="flex-shrink-0 rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800"
+          >
+            Manage
+          </button>
+        ) : (
+          <button
+            onClick={() => connect.mutate()}
+            disabled={connect.isPending}
+            className="flex-shrink-0 rounded-md bg-zinc-900 px-3 py-1.5 text-[10px] font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+          >
+            {connect.isPending ? "Connecting…" : "Connect"}
+          </button>
+        )}
+      </div>
+      {registered && (
+        <CareemManageModal
           connectionId={connection!.id as string}
           brandId={brandId}
           locationId={locationId}

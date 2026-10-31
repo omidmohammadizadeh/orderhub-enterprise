@@ -7,6 +7,7 @@ import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 import { UberEatsModule } from "../integrations/ubereats/ubereats.module";
 import { JetModule } from "../integrations/jet/jet.module";
 import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
+import { CareemModule } from '../integrations/careem/careem.module';
 import { UploadsModule } from "../uploads/uploads.module";
 import { PaymentsModule } from "../payments/payments.module";
 
@@ -21,6 +22,7 @@ import { PaymentsModule } from "../payments/payments.module";
     DeliverooModule,
     UberEatsModule,
     JetModule,
+    CareemModule,
     // Rehost inline logos on write instead of storing them in a column.
     UploadsModule,
     // Register each brand's custom domain with Stripe for Apple Pay.

@@ -13,6 +13,7 @@ import { HubRiseModule } from '../integrations/hubrise/hubrise.module';
 import { DeliverooModule } from '../integrations/deliveroo/deliveroo.module';
 import { UberEatsModule } from '../integrations/ubereats/ubereats.module';
 import { JetModule } from '../integrations/jet/jet.module';
+import { CareemModule } from '../integrations/careem/careem.module';
 import { InventoryModule } from '../inventory/inventory.module';
 import { MenuAssignmentsModule } from './menu-assignments.module';
 import { VariantPriceResolverModule } from './variant-price-resolver.module';
@@ -37,6 +38,7 @@ import { MenuAutoPublishController } from "./auto-publish/menu-auto-publish.cont
     DeliverooModule,
     UberEatsModule,
     JetModule,
+    CareemModule,
     forwardRef(() => InventoryModule),
     // Phase BA — serving-assignment resolver (cycle-free: only Prisma).
     MenuAssignmentsModule,

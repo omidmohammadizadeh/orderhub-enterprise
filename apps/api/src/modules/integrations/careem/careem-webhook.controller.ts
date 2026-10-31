@@ -6,12 +6,14 @@ import {
   HttpStatus,
   Logger,
   Post,
+  Optional,
 } from "@nestjs/common";
 import { ApiExcludeController } from "@nestjs/swagger";
 import { timingSafeEqual } from "crypto";
 import { Public } from "../../../common/decorators/public.decorator";
 import { BillingExempt } from "../../../common/guards/billing.guard";
 import { CareemWebhookLogService } from "./careem-webhook-log.service";
+import { CareemMenuPublishService } from "./careem-menu-publish.service";
 import { CareemOrderService } from "./careem-order.service";
 
 // Phase CA-1 — Careem's inbound notifications.
@@ -59,6 +61,7 @@ export class CareemWebhookController {
   constructor(
     private readonly seen: CareemWebhookLogService,
     private readonly orders: CareemOrderService,
+    @Optional() private readonly menus?: CareemMenuPublishService,
   ) {}
 
   @Post()
@@ -128,8 +131,9 @@ export class CareemWebhookController {
         // CATALOG_REQUEST_STATUS_UPDATED. Accept both rather than bet on one.
         case "CATALOG_STATUS_UPDATED":
         case "CATALOG_REQUEST_STATUS_UPDATED":
-          // CA-3. The catalog push is not built yet, so this is recorded for
-          // the diagnostics page rather than acted on.
+          await this.menus?.recordCatalogStatus(
+            (body.details ?? {}) as Record<string, unknown>,
+          );
           this.logger.log(
             `Careem catalog request ${(body.details as Record<string, unknown>)?.request_id} ` +
               `→ ${(body.details as Record<string, unknown>)?.status}`,

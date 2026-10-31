@@ -476,6 +476,12 @@ export default function CareemPage() {
           )}
         </div>
 
+        <p className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-600">
+          Real shops connect from Locations → Brands → Careem, where each brand
+          gets its own branch. These steps are for diagnostics and the first
+          test branch.
+        </p>
+
         {!locationId ? (
           <p className="rounded-lg border border-dashed border-zinc-200 p-4 text-xs text-zinc-600">
             Pick a location in the switcher first — every step below runs
@@ -497,7 +503,7 @@ export default function CareemPage() {
                 {
                   sandboxOnly: false,
                   label: "Onboard the shop",
-                  hint: "Brand, branch, POS integration, opening hours.",
+                  hint: "Brand, branch and opening hours. Orders stay off until you turn them on.",
                   run: () =>
                     apiClient.post(
                       `/v1/integrations/careem/locations/${locationId}/onboard`,
@@ -537,6 +543,16 @@ export default function CareemPage() {
                   run: () =>
                     apiClient.get(
                       `/v1/integrations/careem/locations/${locationId}/menu/preview`,
+                    ),
+                },
+                {
+                  sandboxOnly: false,
+                  label: "Turn orders on",
+                  hint: "Sends this branch's Careem orders to OrderHub. Only once it is mapped and its catalog shows COMPLETED.",
+                  run: () =>
+                    apiClient.post(
+                      `/v1/integrations/careem/locations/${locationId}/pos-integration`,
+                      { active: true },
                     ),
                 },
                 // A pushed catalog is not enough to appear in the SuperApp: the

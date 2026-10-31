@@ -65,6 +65,21 @@ export interface CareemBranch {
   visibility?: string;
 }
 
+/**
+ * One Careem branch, spelled out.
+ *
+ * A brand trading from a location is its own branch on Careem, so a kitchen
+ * with five brands is five branches. Which ids those are comes from the
+ * connection row (see CareemConnectionService); the location-only routes on the
+ * Careem page keep using the location's own id and default brand, which is how
+ * the first staging branch was registered.
+ */
+export interface CareemTarget {
+  branchId: string;
+  brandId: string;
+  locationId: string;
+}
+
 @Injectable()
 export class CareemStoreService {
   private readonly logger = new Logger(CareemStoreService.name);
@@ -77,14 +92,11 @@ export class CareemStoreService {
   /**
    * Which day is 1.
    *
-   * Careem's schema says `day_of_week` is an integer and their examples show
-   * 1 and 5 without ever saying which day either is. ISO (Monday = 1) is the
-   * default; the Gulf trading week starts on Sunday, so their own convention
-   * may well too. Set CAREEM_WEEK_START=sunday if a test branch shows the week
-   * shifted by a day — it cannot be told apart locally.
+   * Careem confirmed in writing (30 Sep 2026): 1 = Sunday ... 7 = Saturday.
+   * CAREEM_WEEK_START=monday remains only as an escape hatch.
    */
   private get weekStart(): CareemWeekStart {
-    return process.env.CAREEM_WEEK_START === "sunday" ? "sunday" : "monday";
+    return process.env.CAREEM_WEEK_START === "monday" ? "monday" : "sunday";
   }
 
   /** Register one of our brands. Careem 409 a duplicate, which for our purposes
@@ -228,13 +240,32 @@ export class CareemStoreService {
     const location = await this.location(tenantId, locationId, {
       id: true,
       brandId: true,
-      openingHours: true,
-      brand: { select: { openingHours: true } },
     });
+    return this.publishHoursFor(tenantId, {
+      branchId: location.id,
+      brandId: location.brandId,
+      locationId: location.id,
+    });
+  }
+
+  /** Location hours first, then the selling brand's, as Deliveroo and HubRise. */
+  async publishHoursFor(tenantId: string, target: CareemTarget) {
+    const [location, brand] = await Promise.all([
+      this.prisma.location.findFirst({
+        where: { id: target.locationId, deletedAt: null, brand: { tenantId } },
+        select: { openingHours: true },
+      }),
+      this.prisma.brand.findFirst({
+        where: { id: target.brandId, tenantId },
+        select: { openingHours: true },
+      }),
+    ]);
+    if (!location) throw new BadRequestException("Location not found");
 
     const raw = hoursConfigured(location.openingHours)
       ? location.openingHours
-      : (location.brand as { openingHours: unknown } | null)?.openingHours;
+      : brand?.openingHours;
+    const locationId = target.locationId;
 
     // A shop with no hours set anywhere is OPEN, not shut.
     //
@@ -256,11 +287,73 @@ export class CareemStoreService {
       : transformCareemHours(ALL_WEEK_OPEN, this.weekStart);
     await this.client.request("/operational-hours", {
       method: "PUT",
-      brandId: location.brandId,
-      branchId: location.id,
+      brandId: target.brandId,
+      branchId: target.branchId,
       body: { operational_hours },
     });
     return { ok: true, days: operational_hours };
+  }
+
+  /** Create or rename a branch. PUT is create-or-update on their side. */
+  async putBranch(target: CareemTarget, name: string): Promise<CareemBranch> {
+    return this.client.request<CareemBranch>(
+      `/branches/${encodeURIComponent(target.branchId)}`,
+      { method: "PUT", brandId: target.brandId, body: { name } },
+    );
+  }
+
+  /** The branch as Careem see it now, or null if they have no such branch. */
+  async readBranch(target: CareemTarget): Promise<
+    (CareemBranch & { catalog_id?: string | null; active?: boolean }) | null
+  > {
+    const rows = await this.paged<
+      CareemBranch & { catalog_id?: string | null; active?: boolean }
+    >("/branches", target.brandId);
+    return rows.find((b) => b.id === target.branchId) ?? null;
+  }
+
+  async setPosIntegrationFor(target: CareemTarget, active: boolean) {
+    return this.client.request(
+      `/branches/${encodeURIComponent(target.branchId)}/status`,
+      { method: "PATCH", brandId: target.brandId, body: { active } },
+    );
+  }
+
+  async setVisibilityFor(target: CareemTarget, canOrder: boolean) {
+    return this.client.request(
+      `/branches/${encodeURIComponent(target.branchId)}/visibility/status`,
+      {
+        method: "POST",
+        brandId: target.brandId,
+        body: { status_id: canOrder ? 1 : 2 },
+      },
+    );
+  }
+
+  async pauseTargetFor(target: CareemTarget, minutes: number) {
+    const till = Math.round(minutes);
+    if (!Number.isFinite(till) || till < 1) {
+      throw new BadRequestException("Pause length must be at least 1 minute");
+    }
+    return this.client.request(
+      `/branches/${encodeURIComponent(target.branchId)}/visibility/status/expiries`,
+      {
+        method: "POST",
+        brandId: target.brandId,
+        body: { status_id: 2, till_time: till },
+      },
+    );
+  }
+
+  async readVisibility(target: CareemTarget) {
+    return this.client.request<{
+      status: "active" | "inactive" | "offline";
+      reason: string | null;
+      can_reactivate: boolean | null;
+    }>(`/branches/${encodeURIComponent(target.branchId)}/visibility/status`, {
+      method: "GET",
+      brandId: target.brandId,
+    });
   }
 
   async listBrands() {
@@ -301,19 +394,13 @@ export class CareemStoreService {
   }
 
   /**
-   * Everything needed to take orders at one location, in their documented
-   * order: brand, branch, POS integration, hours.
+   * Register a location's branch and send its hours.
    *
-   * POS integration goes on here because their integration process puts it at
-   * branch setup — step 4, before mapping and before the catalog. That is safe
-   * precisely because of the step that follows it: an UNMAPPED branch is not
-   * an outlet on the SuperApp, so no customer can order from it and the switch
-   * has nothing to route yet.
-   *
-   * An ALREADY-MAPPED branch is the case where it is not safe, and the switch
-   * is left alone. Turning it on there would take a shop that is trading on
-   * its own Careem tablet and point its live orders at a menu we have not
-   * pushed yet. Re-running onboarding on a working shop must not do that.
+   * Never turns POS integration on. Careem's process puts that at branch setup,
+   * which is safe for a brand-new outlet, but a shop already trading on Careem
+   * would start sending us live orders the moment operations map it, before our
+   * catalog exists there and with item ids we cannot name. Orders go on as a
+   * deliberate last step.
    */
   async onboardLocation(tenantId: string, locationId: string) {
     const { brandId } = await this.location(tenantId, locationId, {
@@ -324,37 +411,20 @@ export class CareemStoreService {
     const branch = await this.registerBranch(tenantId, locationId);
     const mapped = branch?.state === "MAPPED";
 
-    if (!mapped) await this.setPosIntegration(tenantId, locationId, true);
     await this.publishHours(tenantId, locationId);
 
     return {
-      // The branch as PUT returned it, with the POS toggle brought up to date.
-      // Careem answer the PUT before that toggle is flipped, so returning
-      // their body verbatim put pos_integration:false next to our own
-      // posIntegrationEnabled:true — one response contradicting itself.
-      branch: { ...branch, ...(mapped ? {} : { pos_integration: true }) },
+      branch,
       mapped,
-      posIntegrationEnabled: !mapped,
-      nextSteps: mapped
-        ? [
-            "This branch is already mapped and may be trading. POS integration " +
-              "was left as it was — publish the menu first, then switch it on " +
-              "deliberately.",
-            "Publish the menu",
-          ]
-        : [
-            "Ask Careem operations to map this branch to an outlet",
-            "Publish the menu",
-            "Check the catalog on the SuperApp APK Careem share with partners",
-            // Both from their FAQ, and both make a correct integration look
-            // broken. Auto-acceptance is on by default at some branches and
-            // only their operations team can turn it off; and a branch left
-            // logged into the Careem portal has staff accepting orders there,
-            // so nothing reaches us and the statuses disagree.
-            "Ask Careem operations to disable order auto-acceptance for this branch",
-            "Make sure the shop is logged OUT of the Careem partner portal — " +
-              "orders accepted there never reach us",
-          ],
+      nextSteps: [
+        ...(mapped ? [] : ["Ask Careem operations to map this branch to an outlet"]),
+        "Publish the menu",
+        "Turn orders on once the catalog shows COMPLETED",
+        "Ask Careem operations to disable order auto-acceptance for this branch",
+        // From their FAQ: a branch logged into the Careem partner portal has
+        // staff accepting orders there, so nothing reaches us.
+        "Make sure the shop is logged OUT of the Careem partner portal",
+      ],
     };
   }
 

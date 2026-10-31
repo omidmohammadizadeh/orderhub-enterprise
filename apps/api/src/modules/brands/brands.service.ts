@@ -5,6 +5,7 @@ import {
   ConflictException,
   BadRequestException,
   Inject,
+  Optional,
   forwardRef,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -12,6 +13,7 @@ import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-loc
 import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
 import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
 import { JetStoreStatusService } from "../integrations/jet/jet-store-status.service";
+import { CareemConnectionService } from "../integrations/careem/careem-connection.service";
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
@@ -138,6 +140,7 @@ export class BrandsService {
     // Apple Pay has to be told about each brand's custom domain, or its
     // button silently never renders there.
     private readonly payments: PaymentsService,
+    @Optional() private readonly careem?: CareemConnectionService,
   ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
@@ -1129,6 +1132,12 @@ export class BrandsService {
           );
         }
         return { channel, status: "ok", pushed: true };
+      }
+
+      case "CAREEM": {
+        if (!this.careem) throw new BadRequestException("Careem isn't available here.");
+        const res = await this.careem.publishHoursForBrand(tenantId, brandId);
+        return { channel, status: "ok", pushed: true, branches: res.pushed };
       }
 
       case "JUST_EAT": {

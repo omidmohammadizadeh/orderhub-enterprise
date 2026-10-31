@@ -4,9 +4,9 @@ import {
   CareemOrderSyncService,
 } from "../careem-order-sync.service";
 
-// Careem's branch id IS our Location id — their brand and branch endpoints
-// take an id "provided by vendor or restaurant", so we publish our own. No
-// mapping table, nothing to drift.
+// Careem's brand and branch endpoints take an id "provided by vendor or
+// restaurant", so we publish our own: a connection's own id for a brand's branch,
+// or the Location id for the first branch registered from the Careem page.
 
 const order = (over: Record<string, unknown> = {}) => ({
   id: 62503433,
@@ -18,8 +18,12 @@ const order = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
-const buildIngest = (location: unknown) => {
+const buildIngest = (location: unknown, connection: unknown = null) => {
   const prisma = {
+    brandPlatformConnection: {
+      findFirst: jest.fn().mockResolvedValue(connection),
+      update: jest.fn().mockResolvedValue({}),
+    },
     location: { findFirst: jest.fn().mockResolvedValue(location) },
     order: { findFirst: jest.fn().mockResolvedValue(null) },
     menuItem: {
@@ -52,6 +56,65 @@ describe("CareemOrderService.ingest", () => {
     expect(locationId).toBe("loc-1");
     expect(canonical.externalId).toBe("62503433");
     expect(canonical.items[0].name).toBe("Shawarma");
+  });
+
+  it("routes a brand's branch to its location and records the selling brand", async () => {
+    const { svc, prisma, orders } = buildIngest(
+      { id: "kitchen-1", country: "AE", brand: { tenantId: "t1" } },
+      { id: "conn-1", brandId: "brand-9", locationId: "kitchen-1" },
+    );
+    await svc.ingest(order({ branch: { id: "conn-1", brand_id: "brand-9" } }) as never);
+    expect(prisma.location.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ id: "kitchen-1" }) }),
+    );
+    const [canonical, , locationId] = orders.ingestCanonical.mock.calls[0];
+    expect(locationId).toBe("kitchen-1");
+    expect(canonical.brandId).toBe("brand-9");
+  });
+
+  it("names a size option and a per-size copy of an option", async () => {
+    const { svc, prisma, orders } = buildIngest({
+      id: "loc-1",
+      country: "AE",
+      brand: { tenantId: "t1" },
+    });
+    prisma.menuItem.findMany.mockResolvedValue([
+      {
+        id: "pizza",
+        name: "Margherita",
+        productSkus: [{ name: '10"' }, { name: '12"' }],
+      },
+    ]);
+    prisma.modifierOption.findMany.mockResolvedValue([{ id: "ham", name: "Ham" }]);
+    await svc.ingest(
+      order({
+        items: [
+          {
+            id: "pizza",
+            quantity: 1,
+            unit_price: 30,
+            total_price: 43,
+            groups: [
+              {
+                id: "pizza__size",
+                options: [
+                  {
+                    id: "pizza__size1",
+                    total_price: 10,
+                    groups: [
+                      { id: "toppings__12", options: [{ id: "ham__12", total_price: 3 }] },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }) as never,
+    );
+    expect(prisma.modifierOption.findMany.mock.calls[0][0].where.id.in).toEqual(["ham"]);
+    const [canonical] = orders.ingestCanonical.mock.calls[0];
+    expect(canonical.items[0].modifiers.map((m: any) => m.name)).toEqual(['12"', "Ham"]);
   });
 
   it("drops an order for a branch that matches no location, rather than throwing", async () => {
@@ -111,6 +174,18 @@ describe("CareemOrderService.ingest", () => {
 });
 
 describe("CareemOrderService.applyStatus", () => {
+  it("waits for an order still being saved instead of losing the status", async () => {
+    const findFirst = jest
+      .fn()
+      .mockResolvedValueOnce(null)
+      .mockResolvedValue({ id: "o1", tenantId: "t1", status: "PENDING" });
+    const orders = { updateStatus: jest.fn().mockResolvedValue({}) } as any;
+    const svc = new CareemOrderService({ order: { findFirst } } as any, orders);
+    await svc.applyStatus({ id: 1, status: "accepted" } as never);
+    expect(findFirst).toHaveBeenCalledTimes(2);
+    expect(orders.updateStatus).toHaveBeenCalled();
+  });
+
   const buildStatus = (existing: unknown) => {
     const prisma = {
       location: { findFirst: jest.fn() },
