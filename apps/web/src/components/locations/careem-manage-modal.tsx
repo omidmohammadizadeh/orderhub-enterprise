@@ -304,7 +304,7 @@ export function CareemManageModal({
                     )}
                     {h?.branchId && <BranchId id={h.branchId} />}
                   </Step>
-                  <Step done={catalogLive} n={3} title={catalogLive ? "Menu live on Careem" : "Publish the menu"}>
+                  <Step done={catalogLive} n={3} title={catalogLive ? "Menu live on Careem" : "Publish the menu and hours"}>
                     {!catalogLive && <div className="mt-1">{publishButton}</div>}
                   </Step>
                   <Step
@@ -367,7 +367,8 @@ export function CareemManageModal({
                   </button>
                   <button
                     onClick={() => hours.mutate()}
-                    disabled={hours.isPending || h?.wrongEnvironment}
+                    disabled={hours.isPending || h?.wrongEnvironment || !h?.mapped}
+                    title={h?.mapped ? undefined : "Careem must map the branch first"}
                     className="ml-auto flex items-center gap-1.5 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-100 disabled:opacity-50"
                   >
                     {hours.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Clock className="h-3.5 w-3.5" />}

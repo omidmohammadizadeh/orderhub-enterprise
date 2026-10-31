@@ -73,11 +73,21 @@ const build = (over: { items?: unknown[]; snoozed?: string[]; conns?: unknown[];
   };
   const client = { request: jest.fn().mockResolvedValue({ request_id: "req-9" }) };
   const variantResolver = { forBrandChannel: jest.fn().mockResolvedValue(over.variant ?? null) };
+  const activity = { record: jest.fn() };
+  const store = { publishHoursFor: jest.fn().mockResolvedValue({ ok: true }) };
   return {
-    svc: new CareemMenuPublishService(prisma, client as never, variantResolver as never),
+    svc: new CareemMenuPublishService(
+      prisma,
+      client as never,
+      variantResolver as never,
+      activity as never,
+      store as never,
+    ),
     prisma,
     client,
     variantResolver,
+    activity,
+    store,
   };
 };
 
@@ -156,6 +166,31 @@ describe("CareemMenuPublishService.publishMenu", () => {
     );
     const saved = prisma.brandPlatformConnection.update.mock.calls[0][0].data.metadata.careemCatalog;
     expect(saved).toMatchObject({ status: "PROCESSING", requestId: "req-9", itemIds: ["pizza", "coke"] });
+  });
+
+  it("sends the hours with it, the first moment Careem will take them", async () => {
+    const { svc, store } = build();
+    await svc.publishMenu({ tenantId: "t", menuId: "menu-1" });
+    expect(store.publishHoursFor).toHaveBeenCalledWith("t", {
+      branchId: "branch-1",
+      brandId: "brand-1",
+      locationId: "loc-1",
+    });
+  });
+
+  it("still reports the menu as sent if the hours then fail", async () => {
+    const { svc, store, activity } = build();
+    store.publishHoursFor.mockRejectedValue(new Error("nope"));
+    await expect(svc.publishMenu({ tenantId: "t", menuId: "menu-1" })).resolves.toMatchObject({ ok: true });
+    expect(activity.record).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "hours.publish", status: "ERROR" }),
+    );
+  });
+
+  it("does not send hours when the menu itself was refused", async () => {
+    const { svc, store } = build({ items: [hidden] });
+    await svc.publishMenu({ tenantId: "t", menuId: "menu-1" });
+    expect(store.publishHoursFor).not.toHaveBeenCalled();
   });
 
   it("says so when the brand isn't connected here", async () => {

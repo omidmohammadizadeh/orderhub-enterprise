@@ -19,6 +19,7 @@ import {
   type VariantPriceMap,
 } from "../../menus/variant-price-resolver.service";
 import { CareemApiError, CareemClientService } from "./careem-client.service";
+import { CareemStoreService } from "./careem-store.service";
 import {
   transformCareemMenu,
   type CareemMenuProblem,
@@ -62,6 +63,7 @@ export class CareemMenuPublishService {
     private readonly client: CareemClientService,
     @Optional() private readonly variantResolver?: VariantPriceResolverService,
     @Optional() private readonly activity?: ActivityLogService,
+    @Optional() private readonly store?: CareemStoreService,
   ) {}
 
   /**
@@ -349,6 +351,24 @@ export class CareemMenuPublishService {
     this.logger.log(
       `Careem catalog accepted for branch ${branchId} as request ${requestId}`,
     );
+    // The first moment a new branch can take hours: Careem refuse them until it
+    // is mapped, and a catalog push only succeeds once it is. Without this a new
+    // outlet would go live with no hours unless someone remembered the button.
+    // The menu is already away, so a failure here is reported, not thrown.
+    await this.store
+      ?.publishHoursFor(tenantId, {
+        branchId,
+        brandId: conn.brandId,
+        locationId: conn.locationId,
+      })
+      .catch((err: Error) =>
+        this.activity?.record({
+          ...log,
+          action: "hours.publish",
+          status: "ERROR",
+          message: `Menu sent, but opening hours failed: ${err.message}. Push them from Careem → Manage.`,
+        }),
+      );
     return { ok: true as const, requestId, stats };
   }
 

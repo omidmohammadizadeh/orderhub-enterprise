@@ -224,6 +224,13 @@ export class CareemSandboxService {
 
   putHours(branchId: string, body: { operational_hours?: unknown[] }) {
     const branch = this.mustBranch(branchId);
+    // Seen on real staging, 31 Oct 2026: hours are refused until mapped too.
+    if (branch.state !== "MAPPED") {
+      throw new CareemMockError(
+        400,
+        validationError("branch_id", "branch_id is not mapped"),
+      );
+    }
     const hours = body?.operational_hours;
     if (!Array.isArray(hours)) {
       throw new CareemMockError(

@@ -101,7 +101,9 @@ export class CareemConnectionService {
           brandId: brand.id,
           locationId: location.id,
           platform: "CAREEM",
-          status: "pending",
+          // Only pending once Careem have the branch, so a failed attempt
+          // leaves Connect on offer rather than a connection with nothing behind it.
+          status: "not_connected",
         },
       }));
     const branchId = row.externalStoreId ?? row.id;
@@ -120,7 +122,11 @@ export class CareemConnectionService {
         ? brand.name
         : `${brand.name} - ${location.name}`,
     );
-    await this.store.publishHoursFor(tenantId, target);
+    // Careem refuse hours for an unmapped branch ("branch_id is not mapped"), so
+    // a new branch gets them with its first menu publish instead.
+    if (branch?.state === "MAPPED") {
+      await this.store.publishHoursFor(tenantId, target);
+    }
 
     const meta = (row.metadata ?? {}) as Record<string, any>;
     const sameEnvironment = meta.careemEnv === this.client.env;

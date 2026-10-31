@@ -394,7 +394,7 @@ export class CareemStoreService {
   }
 
   /**
-   * Register a location's branch and send its hours.
+   * Register a location's branch, and send its hours if it is already mapped.
    *
    * Never turns POS integration on. Careem's process puts that at branch setup,
    * which is safe for a brand-new outlet, but a shop already trading on Careem
@@ -411,7 +411,8 @@ export class CareemStoreService {
     const branch = await this.registerBranch(tenantId, locationId);
     const mapped = branch?.state === "MAPPED";
 
-    await this.publishHours(tenantId, locationId);
+    // Careem refuse hours for an unmapped branch, and a new branch always is.
+    if (mapped) await this.publishHours(tenantId, locationId);
 
     return {
       branch,

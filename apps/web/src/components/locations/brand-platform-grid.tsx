@@ -151,7 +151,10 @@ export function BrandPlatformGrid({ brand, locationId, country }: Props) {
         ? "connected"
         : "not_connected";
     }
-    return connFor(platform)?.status ?? "not_connected";
+    const conn = connFor(platform);
+    // A Careem row with no branch behind it is a failed attempt, not a connection.
+    if (platform === "CAREEM" && !conn?.externalStoreId) return "not_connected";
+    return conn?.status ?? "not_connected";
   };
 
 
@@ -1194,7 +1197,9 @@ function CareemRow({
   onChanged: () => void;
 }) {
   const status = connection?.status ?? "not_connected";
-  const registered = status !== "not_connected" && !!connection?.id;
+  // An earlier attempt can leave a row with no branch behind it; that still
+  // needs Connect, because Manage has nothing to manage.
+  const registered = status !== "not_connected" && !!connection?.externalStoreId;
   const [manageOpen, setManageOpen] = useState(false);
 
   const connect = useMutation({
@@ -1206,14 +1211,16 @@ function CareemRow({
       onChanged();
       setManageOpen(true);
     },
-    onError: (e: any) =>
+    onError: (e: any) => {
       toast.error(
         e?.response?.data?.message ??
           e?.response?.data?.careemSaid ??
           e?.message ??
           "Careem request failed",
         { duration: 8000 },
-      ),
+      );
+      onChanged();
+    },
   });
 
   return (
@@ -1223,7 +1230,7 @@ function CareemRow({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-zinc-900">Careem</span>
-            <StatusChip status={status} />
+            <StatusChip status={registered ? status : "not_connected"} />
           </div>
           <p className="text-[10px] text-zinc-500">
             {status === "connected"

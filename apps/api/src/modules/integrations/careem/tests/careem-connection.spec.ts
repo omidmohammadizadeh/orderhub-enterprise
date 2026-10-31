@@ -72,10 +72,31 @@ describe("CareemConnectionService.connect", () => {
       { branchId: "new-conn", brandId: "brand-1", locationId: "loc-1" },
       "Pizza Uno - Dubai Marina",
     );
-    expect(store.publishHoursFor).toHaveBeenCalled();
     expect(store.setPosIntegrationFor).not.toHaveBeenCalled();
     expect(current().externalStoreId).toBe("new-conn");
     expect(current().metadata).toMatchObject({ careemEnv: "production", posIntegration: false });
+  });
+
+  it("holds back hours until mapped, because Careem refuse them before that", async () => {
+    const { svc, store } = build({ row: null });
+    await svc.connect("t", { brandId: "brand-1", locationId: "loc-1" });
+    expect(store.publishHoursFor).not.toHaveBeenCalled();
+  });
+
+  it("sends hours straight away when the branch is already mapped", async () => {
+    const { svc, store } = build({ row: null });
+    store.putBranch.mockResolvedValue({ state: "MAPPED" });
+    await svc.connect("t", { brandId: "brand-1", locationId: "loc-1" });
+    expect(store.publishHoursFor).toHaveBeenCalled();
+  });
+
+  it("stays not connected if registering fails, leaving Connect on offer", async () => {
+    const { svc, store, current } = build({ row: null });
+    store.putBranch.mockRejectedValue(new Error("Careem is down"));
+    await expect(
+      svc.connect("t", { brandId: "brand-1", locationId: "loc-1" }),
+    ).rejects.toThrow("Careem is down");
+    expect(current().status).toBe("not_connected");
   });
 
   it("reuses the branch on reconnect, so Careem need not map it twice", async () => {
