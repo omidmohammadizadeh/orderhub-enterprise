@@ -113,6 +113,19 @@ export class DispatchController {
   }
 
   // ── Driver pay + cash-up (Phase BG) ──────────────────────────────────────
+  @Patch("locations/:locationId/pay-on-dispatch")
+  @Roles(...DISPATCH_ROLES)
+  @ApiOperation({
+    summary: "Count a shop's dispatched orders in driver pay and cash-up at dispatch, without waiting for the driver to deliver",
+  })
+  setPayOnDispatch(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param("locationId") locationId: string,
+    @Body() body: { enabled: boolean },
+  ) {
+    return this.dispatch.setPayOnDispatch(user, locationId, body.enabled === true);
+  }
+
   @Patch("drivers/:driverId/earnings")
   @Roles(...DISPATCH_ROLES)
   @ApiOperation({ summary: "Set a driver's home location + pay (start-up fee + per-postcode fees)" })

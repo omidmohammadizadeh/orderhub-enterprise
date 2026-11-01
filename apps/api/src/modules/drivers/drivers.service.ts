@@ -298,6 +298,15 @@ export class DriversService {
     // Validate driver belongs to tenant
     await this.assertAccess(dto.driverId, tenantId);
 
+    // Shops with "count on dispatch" on credit the driver from this moment.
+    const creditingShop = order.locationId
+      ? await this.prisma.location.findFirst({
+          where: { id: order.locationId, payOnDispatch: true },
+          select: { id: true },
+        })
+      : null;
+    const creditedAt = creditingShop ? new Date() : null;
+
     // Upsert assignment (re-assign overrides previous)
     const assignment = await this.prisma.driverAssignment.upsert({
       where: { orderId: dto.orderId },
@@ -305,6 +314,7 @@ export class DriversService {
         orderId: dto.orderId,
         driverId: dto.driverId,
         status: "ASSIGNED",
+        creditedAt,
       },
       update: {
         driverId: dto.driverId,
@@ -313,6 +323,7 @@ export class DriversService {
         acceptedAt: null,
         pickedUpAt: null,
         deliveredAt: null,
+        creditedAt,
       },
       include: {
         driver: { select: { id: true, firstName: true, lastName: true, phone: true } },

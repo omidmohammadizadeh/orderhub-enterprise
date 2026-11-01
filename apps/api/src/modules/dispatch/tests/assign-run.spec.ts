@@ -21,7 +21,7 @@ const order = (id: string, over: Record<string, any> = {}) => ({
   ...over,
 });
 
-function svcWith(orders: any[], accessible: string[] = ["loc-1"]) {
+function svcWith(orders: any[], accessible: string[] = ["loc-1"], creditingShops: string[] = []) {
   const upserts: any[] = [];
   const orderUpdates: any[] = [];
   const tx = {
@@ -43,6 +43,11 @@ function svcWith(orders: any[], accessible: string[] = ["loc-1"]) {
     order: {
       findMany: jest.fn(async ({ where }: any) =>
         orders.filter((o) => where.id.in.includes(o.id)),
+      ),
+    },
+    location: {
+      findMany: jest.fn(async ({ where }: any) =>
+        creditingShops.filter((id) => where.id.in.includes(id)).map((id) => ({ id })),
       ),
     },
     driverPresence: {
@@ -166,5 +171,16 @@ describe("assignToDriver — merchant-delivered marketplace orders", () => {
       /marketplace's own rider/,
     );
     expect(upserts).toHaveLength(0);
+  });
+
+  it("credits the driver at dispatch only for shops with the rule on", async () => {
+    const orders = [order("a"), order("b", { locationId: "loc-2" })];
+    const { s: svc, upserts } = svcWith(orders, ["loc-1", "loc-2"], ["loc-1"]);
+    await svc.assignToDriver(manager, "d1", ["a", "b"]);
+    const byOrder = (id: string) => upserts.find((u) => u.where.orderId === id);
+    expect(byOrder("a").create.creditedAt).toBeInstanceOf(Date);
+    expect(byOrder("a").update.creditedAt).toBeInstanceOf(Date);
+    expect(byOrder("b").create.creditedAt).toBeNull();
+    expect(byOrder("b").update.creditedAt).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import { isCashPayment, matchPostcodeFee, normalizePostcode } from "../driver-earnings.service";
+import { creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee, normalizePostcode } from "../driver-earnings.service";
 
 describe("isCashPayment", () => {
   it("counts every cash spelling as cash", () => {
@@ -58,5 +58,39 @@ describe("postcode fees", () => {
     expect(matchPostcodeFee([{ postcode: "B12 9", fee: 6 }], "B12 8AA")).toBe(0);
     expect(matchPostcodeFee([{ postcode: "B1", fee: 3 }], "b1")).toBe(3);
     expect(matchPostcodeFee([{ postcode: "SW1A", fee: 4 }], "SW1A 1AA")).toBe(4);
+  });
+});
+
+describe("when a stop counts towards pay", () => {
+  const at = new Date("2026-11-01T18:00:00Z");
+  const later = new Date("2026-11-01T20:00:00Z");
+
+  it("counts a normal stop only once delivered", () => {
+    expect(creditedOn({ status: "ASSIGNED" as any })).toBeNull();
+    expect(creditedOn({ status: "PICKED_UP" as any })).toBeNull();
+    expect(creditedOn({ status: "DELIVERED" as any, deliveredAt: later })).toBe(later);
+  });
+
+  it("counts a credited stop from dispatch, even if never started", () => {
+    expect(creditedOn({ status: "ASSIGNED" as any, creditedAt: at })).toBe(at);
+    expect(creditedOn({ status: "PICKED_UP" as any, creditedAt: at })).toBe(at);
+  });
+
+  // The stop must keep its one counting moment, or a cash-up settled between
+  // dispatch and delivery would pay it twice.
+  it("keeps the dispatch moment when a credited stop is delivered later", () => {
+    expect(creditedOn({ status: "DELIVERED" as any, creditedAt: at, deliveredAt: later })).toBe(at);
+  });
+
+  it("drops a credited stop that was cancelled or returned to the board", () => {
+    expect(creditedOn({ status: "CANCELLED" as any, creditedAt: at })).toBeNull();
+  });
+
+  it("selects credited stops by creditedAt and the rest by deliveredAt", () => {
+    const range = { gt: at, lte: later };
+    const { OR } = creditedStopsIn(range) as any;
+    expect(OR[0].creditedAt).toBe(range);
+    expect(OR[0].status.in).not.toContain("CANCELLED");
+    expect(OR[1]).toMatchObject({ creditedAt: null, status: "DELIVERED", deliveredAt: range });
   });
 });

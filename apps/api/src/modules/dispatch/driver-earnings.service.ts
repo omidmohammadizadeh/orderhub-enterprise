@@ -53,6 +53,41 @@ export function isCashPayment(paymentMethod: string | null | undefined): boolean
   return method === "" || CASH_METHODS.some((m) => method.includes(m));
 }
 
+type DateRange = { gt?: Date; gte?: Date; lte?: Date };
+
+const CREDITED_STOP_STATUSES: DriverAssignmentStatus[] = [
+  DriverAssignmentStatus.ASSIGNED,
+  DriverAssignmentStatus.ACCEPTED,
+  DriverAssignmentStatus.PICKED_UP,
+  DriverAssignmentStatus.DELIVERED,
+];
+
+/**
+ * Which stops count towards pay and cash-up in a period. Normally a stop counts
+ * when delivered. A stop credited at dispatch (Location.payOnDispatch) counts at
+ * creditedAt instead, whether or not the driver ever slid "start", unless it was
+ * cancelled or returned to the board. Each stop has exactly one counting moment,
+ * so one credited in a settled period can't reappear when it's delivered later.
+ */
+export function creditedStopsIn(range: DateRange) {
+  return {
+    OR: [
+      { creditedAt: range, status: { in: CREDITED_STOP_STATUSES } },
+      { creditedAt: null, status: DriverAssignmentStatus.DELIVERED, deliveredAt: range },
+    ],
+  };
+}
+
+/** The moment a stop counts, or null if it doesn't (yet). */
+export function creditedOn(a: {
+  status: DriverAssignmentStatus;
+  creditedAt?: Date | null;
+  deliveredAt?: Date | null;
+}): Date | null {
+  if (a.creditedAt) return CREDITED_STOP_STATUSES.includes(a.status) ? a.creditedAt : null;
+  return a.status === DriverAssignmentStatus.DELIVERED ? (a.deliveredAt ?? null) : null;
+}
+
 export function normalizePostcode(pc: unknown): string {
   return String(pc ?? "").toUpperCase().replace(/\s+/g, "");
 }
@@ -185,12 +220,10 @@ export class DriverEarningsService {
   ): Promise<EarningsBreakdown> {
     const rules = coercePostcodeFees(driver.postcodeFees);
     const assignments = await this.prisma.driverAssignment.findMany({
-      where: {
-        driverId,
-        status: DriverAssignmentStatus.DELIVERED,
-        deliveredAt: { ...(from ? { gt: from } : {}), lte: to },
-      },
+      where: { driverId, ...creditedStopsIn({ ...(from ? { gt: from } : {}), lte: to }) },
       select: {
+        status: true,
+        creditedAt: true,
         deliveredAt: true,
         order: { select: { total: true, paymentMethod: true, postcode: true } },
       },
@@ -214,7 +247,8 @@ export class DriverEarningsService {
         cardCollected += total;
       }
       deliveryFeeTotal += matchPostcodeFee(rules, a.order.postcode);
-      if (a.deliveredAt) days.add(a.deliveredAt.toISOString().slice(0, 10));
+      const countedOn = creditedOn(a);
+      if (countedOn) days.add(countedOn.toISOString().slice(0, 10));
     }
 
     const daysWorked = days.size;
@@ -278,16 +312,17 @@ export class DriverEarningsService {
     if (b.deliveries === 0) {
       throw new BadRequestException("Nothing to cash up — no deliveries since the last cash-up.");
     }
-    const first = await this.prisma.driverAssignment.findFirst({
-      where: {
-        driverId,
-        status: DriverAssignmentStatus.DELIVERED,
-        deliveredAt: { ...(from ? { gt: from } : {}), lte: to },
-      },
-      orderBy: { deliveredAt: "asc" },
-      select: { deliveredAt: true },
-    });
-    const periodStart = from ?? first?.deliveredAt ?? to;
+    let periodStart = from;
+    if (!periodStart) {
+      const stops = await this.prisma.driverAssignment.findMany({
+        where: { driverId, ...creditedStopsIn({ lte: to }) },
+        select: { status: true, creditedAt: true, deliveredAt: true },
+      });
+      periodStart = stops.reduce<Date>((earliest, stop) => {
+        const countedOn = creditedOn(stop);
+        return countedOn && countedOn < earliest ? countedOn : earliest;
+      }, to);
+    }
     return (this.prisma as any).driverCashUp.create({
       data: {
         tenantId: user.tenantId,

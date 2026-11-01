@@ -715,6 +715,9 @@ model Location {
   // Phase AN — structured busy-mode metadata. The boolean below stays
   // (used by AM); this carries reason + until + affected platforms.
   busyModeJson Json @default("{}")
+  // Count a dispatched order in the driver's pay and cash-up as soon as it is
+  // sent to them, for shops whose drivers don't reliably slide "start".
+  payOnDispatch Boolean @default(false)
 
   shopCode   String? @unique
   // Bearer token presented by the legacy Flutter printer app as
@@ -3287,6 +3290,10 @@ model DriverAssignment {
   pickedUpAt  DateTime?
   arrivedAt   DateTime?
   deliveredAt DateTime?
+  // Set at dispatch when the shop has Location.payOnDispatch on: this stop counts
+  // in the driver's pay and cash-up from this moment, not from deliveredAt, and
+  // only this moment — so delivering it later can't count it a second time.
+  creditedAt  DateTime?
 
   tracking DeliveryTracking[]
 

@@ -184,6 +184,8 @@ export interface OperatorDriverJob {
   status: DriverAssignmentStatus;
   sequence: number | null;
   address: string | null;
+  /** Already counted in the driver's pay (shop's count-on-dispatch rule). */
+  credited: boolean;
 }
 export interface PostcodeFee {
   postcode: string;
@@ -212,8 +214,14 @@ export interface OperatorFailedRow {
   reason: string | null;
   at: string;
 }
+export interface OperatorShopRule {
+  id: string;
+  name: string;
+  payOnDispatch: boolean;
+}
 export interface OperatorDashboard {
   scope: string[];
+  shops: OperatorShopRule[];
   stats: OperatorStats;
   attention: OperatorOrderRow[];
   outForDelivery: OperatorOrderRow[];
@@ -225,6 +233,18 @@ export async function getOperatorDashboard(location?: string): Promise<OperatorD
   const res = await apiClient.get<OperatorDashboard>("/v1/dispatch/operator", {
     params: location ? { location } : undefined,
   });
+  return res.data;
+}
+
+/** Count a shop's dispatched orders in driver pay and cash-up at dispatch. */
+export async function setPayOnDispatch(
+  locationId: string,
+  enabled: boolean,
+): Promise<{ creditedNow: number }> {
+  const res = await apiClient.patch<{ creditedNow: number }>(
+    `/v1/dispatch/locations/${locationId}/pay-on-dispatch`,
+    { enabled },
+  );
   return res.data;
 }
 
