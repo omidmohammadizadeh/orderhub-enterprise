@@ -71,6 +71,7 @@ export const TICKET_FIELD_GROUPS: ReadonlyArray<{
       ["customerName", "Customer name"],
       ["customerPhone", "Customer phone"],
       ["deliveryAddress", "Delivery address"],
+      ["specialInstructions", "Order note"],
     ],
   },
   {
@@ -99,7 +100,6 @@ export const TICKET_FIELD_GROUPS: ReadonlyArray<{
     title: "Footer",
     fields: [
       ["payment", "Payment (paid / cash due)"],
-      ["specialInstructions", "Special instructions"],
     ],
   },
 ];
@@ -135,6 +135,55 @@ export function readTextSize(v: unknown): number | null {
  */
 export function textSizeToPx(size: number): number {
   return Math.max(10, Math.round(size * 2.4));
+}
+
+// Size and bold for the single lines above and below the items. Saved as
+// `printer.defaults.lineStyles`, holding only what the shop changed, so an
+// untouched printer keeps printing these lines exactly as it always has.
+export type TicketLineKey =
+  | "channel"
+  | "orderType"
+  | "table"
+  | "readyTime"
+  | "customerName"
+  | "customerPhone"
+  | "deliveryAddress"
+  | "specialInstructions"
+  | "payment";
+
+export type TicketLineStyle = { size?: number; bold?: boolean };
+export type TicketLineStyles = Partial<Record<TicketLineKey, TicketLineStyle>>;
+
+export const TICKET_LINES: ReadonlyArray<{
+  key: TicketLineKey;
+  label: string;
+  size: number;
+  bold: boolean;
+}> = [
+  { key: "channel", label: "Channel", size: TEXT_SIZE_NATIVE, bold: false },
+  { key: "orderType", label: "Order type", size: TEXT_SIZE_NATIVE, bold: false },
+  { key: "table", label: "Table", size: TEXT_SIZE_NATIVE, bold: false },
+  { key: "readyTime", label: "Deliver / collect time", size: TEXT_SIZE_NATIVE, bold: true },
+  { key: "customerName", label: "Customer name", size: TEXT_SIZE_NATIVE, bold: false },
+  { key: "customerPhone", label: "Customer phone", size: TEXT_SIZE_NATIVE, bold: false },
+  { key: "deliveryAddress", label: "Delivery address", size: TEXT_SIZE_NATIVE, bold: true },
+  { key: "specialInstructions", label: "Order note", size: TEXT_SIZE_NATIVE, bold: true },
+  { key: "payment", label: "Payment (cash / card)", size: 20, bold: false },
+];
+
+export function readLineStyles(printer: any): TicketLineStyles {
+  const raw = printer?.defaults?.lineStyles;
+  const out: TicketLineStyles = {};
+  for (const { key } of TICKET_LINES) {
+    const size = readTextSize(raw?.[key]?.size);
+    const bold = raw?.[key]?.bold;
+    if (size == null && typeof bold !== "boolean") continue;
+    out[key] = {
+      ...(size != null ? { size } : {}),
+      ...(typeof bold === "boolean" ? { bold } : {}),
+    };
+  }
+  return out;
 }
 
 /** The nearest built-in height multiplier, for printers that can't print images (Star). */

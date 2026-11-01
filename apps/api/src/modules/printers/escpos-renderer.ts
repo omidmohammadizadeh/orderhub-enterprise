@@ -375,14 +375,20 @@ export function renderToEscPos(
     }
   }
 
+  // The note on the whole order: the same black bar as an item note. Each row
+  // is padded to the paper's width so the bar is a rectangle, and the highlight
+  // closes before the line feed (see the payment banner below).
   if (payload.specialInstructions) {
     hr();
+    const note = `ORDER NOTE: ${String(payload.specialInstructions).replace(/\s+/g, " ").trim()}`;
     out.push(...boldOn());
-    write("NOTE");
-    newline();
+    for (let at = 0; at < note.length; at += width) {
+      out.push(...reverseOn());
+      write(note.slice(at, at + width).padEnd(width, " "));
+      out.push(...reverseOff());
+      newline();
+    }
     out.push(...boldOff());
-    write(String(payload.specialInstructions));
-    newline();
   }
 
   if (payload.paymentLabel) {

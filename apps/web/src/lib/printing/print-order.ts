@@ -24,7 +24,7 @@ import {
   buildDrawerKick,
 } from "./bridge";
 import { getBrowserPrinterLink } from "./browser-printers";
-import { readTextSize, readTicketHide } from "./ticket-layout";
+import { readLineStyles, readTextSize, readTicketHide } from "./ticket-layout";
 import { buildPrintPayload } from "./order-receipt";
 import {
   readPrintFilter,
@@ -238,6 +238,7 @@ export function printerRenderOptions(p: any) {
     hide: readTicketHide(p),
     itemSize: readTextSize(p?.defaults?.itemSize),
     modifierSize: readTextSize(p?.defaults?.modifierSize),
+    lineStyles: readLineStyles(p),
     // Saved since the toggle existed, but never reached the renderer —
     // items printed bold whatever it said.
     boldItems: p?.defaults?.boldItems !== false,

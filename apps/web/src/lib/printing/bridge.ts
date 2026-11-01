@@ -4,6 +4,9 @@ import {
   textSizeToMultiplier,
   textSizeToPx,
   TEXT_SIZE_NATIVE,
+  TICKET_LINES,
+  type TicketLineKey,
+  type TicketLineStyles,
 } from "./ticket-layout";
 import {
   getBrowserPrinterLink,
@@ -91,6 +94,8 @@ export type TicketStyle = {
   modifierSize?: number | null;
   /** Item headlines bold (default true). */
   boldItems?: boolean;
+  /** Size and bold of the lines around the items (see TICKET_LINES). */
+  lineStyles?: TicketLineStyles;
 };
 
 function ticketStyleOf(o: TicketStyle | undefined): TicketStyle {
@@ -99,6 +104,26 @@ function ticketStyleOf(o: TicketStyle | undefined): TicketStyle {
     itemSize: o?.itemSize,
     modifierSize: o?.modifierSize,
     boldItems: o?.boldItems,
+    lineStyles: o?.lineStyles,
+  };
+}
+
+/** A line's size and weight: what the printer saved, else how it has always printed. */
+function lineStyleOf(
+  styles: TicketLineStyles | undefined,
+  key: TicketLineKey,
+  fallbackSize?: number,
+) {
+  const line = TICKET_LINES.find((l) => l.key === key)!;
+  const saved = styles?.[key];
+  const usual = fallbackSize ?? line.size;
+  const size = saved?.size ?? usual;
+  return {
+    size,
+    bold: saved?.bold ?? line.bold,
+    // The size this line has always printed at stays plain text; only a size
+    // the shop chose has to be drawn.
+    drawn: size !== usual && size !== TEXT_SIZE_NATIVE,
   };
 }
 
@@ -691,6 +716,9 @@ export function rasterTextBlock(
     right?: string;
     rightPx?: number;
     rightBold?: boolean;
+    /** White on black, the whole width of the paper. */
+    reverse?: boolean;
+    center?: boolean;
   },
 ): number[] | null {
   if (typeof document === "undefined") return null;
@@ -745,12 +773,15 @@ export function rasterTextBlock(
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = opts.reverse ? "#000" : "#fff";
   ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "#000";
+  ctx.fillStyle = opts.reverse ? "#fff" : "#000";
   ctx.textBaseline = "alphabetic";
   ctx.font = textFont;
-  lines.forEach((l, i) => ctx.fillText(l, indent, (i + 1) * lineH - fontPx * 0.22));
+  if (opts.center) ctx.textAlign = "center";
+  const textX = opts.center ? w / 2 : indent;
+  lines.forEach((l, i) => ctx.fillText(l, textX, (i + 1) * lineH - fontPx * 0.22));
+  ctx.textAlign = "left";
 
   if (right) {
     ctx.font = priceFont;
@@ -1247,35 +1278,81 @@ export function buildOrderReceipt(
   }
 
   // ── Order meta ────────────────────────────────────────────────────
+  // One line at the shop's chosen size and weight. Text the printer's font
+  // can't carry is drawn as well, so an Arabic address isn't a row of "?".
+  const styledLine = (
+    key: TicketLineKey,
+    text: string,
+    o?: { fallbackSize?: number; indent?: string; reverse?: boolean; center?: boolean },
+  ) => {
+    const style = lineStyleOf(opts?.lineStyles, key, o?.fallbackSize);
+    const raster =
+      style.drawn || needsRaster(text)
+        ? rasterTextBlock(text, lineDots, {
+            fontPx: textSizeToPx(style.size),
+            bold: style.bold,
+            // A black bar needs a margin or the text touches its edge.
+            indentPx: o?.indent ? o.indent.length * (font === "B" ? 9 : 12) : o?.reverse ? 8 : 0,
+            reverse: o?.reverse,
+            center: o?.center,
+          })
+        : null;
+    if (raster) {
+      buf.push(...ALIGN_LEFT, ...raster);
+      return;
+    }
+    // Height only, never double width: a wrapped postcode is worse than a
+    // small one, and a band has to keep its full column count.
+    const h = textSizeToMultiplier(style.size);
+    if (style.bold) buf.push(...BOLD_ON);
+    if (h > 1) buf.push(...sizeOn(1, h));
+    if (o?.reverse) buf.push(...reverseOn());
+    const prefix = o?.indent ?? "";
+    // wrap() collapses the spaces that line the labels up, so only long lines go through it.
+    const fits = o?.center || text.length + prefix.length <= cols;
+    for (const w of fits ? [text] : wrap(text, cols - prefix.length)) {
+      const shown = o?.center ? centreOn(w, cols) : prefix + w;
+      line(buf, o?.reverse ? shown.padEnd(cols, " ") : shown);
+    }
+    // Close the highlight before anything else, so the feed can't invert.
+    if (o?.reverse) buf.push(...reverseOff());
+    if (h > 1) buf.push(...DOUBLE_OFF);
+    if (style.bold) buf.push(...BOLD_OFF);
+  };
+
   buf.push(...ALIGN_LEFT);
   if ((payload?.platform || payload?.orderSource) && show("channel"))
-    line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
+    styledLine("channel", `Channel : ${payload?.platform ?? payload?.orderSource}`);
   if (payload?.fulfillmentType && show("orderType"))
-    line(buf, `Type    : ${payload.fulfillmentType}`);
+    styledLine("orderType", `Type    : ${payload.fulfillmentType}`);
   // Table Tabs — dine-in prints name the table.
-  if (payload?.tableName && show("table")) line(buf, `TABLE   : ${payload.tableName}`);
+  if (payload?.tableName && show("table")) styledLine("table", `TABLE   : ${payload.tableName}`);
   // The expected delivery / collection time, unless this printer hides it.
   if (show("readyTime")) {
     const isDelivery = /DELIV/i.test(String(payload?.fulfillmentType ?? ""));
     const label = isDelivery ? "Deliver " : "Collect ";
     const when = payload?.scheduledFor ?? payload?.estimatedReadyAt ?? null;
-    buf.push(...BOLD_ON);
-    line(buf, `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
-    buf.push(...BOLD_OFF);
+    styledLine("readyTime", `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
   }
   if (payload?.customerName && show("customerName"))
-    line(buf, `Customer: ${String(payload.customerName).slice(0, cols - 10)}`);
+    styledLine("customerName", `Customer: ${payload.customerName}`);
   if (payload?.customerPhone && show("customerPhone"))
-    line(buf, `Phone   : ${payload.customerPhone}`);
+    styledLine("customerPhone", `Phone   : ${payload.customerPhone}`);
   // Delivery address gets the same height bump as the items — it's read
-  // at arm's length in a car, in the dark. Height only, never double
-  // width: a wrapped postcode is worse than a small one.
+  // at arm's length in a car, in the dark.
   if (payload?.deliveryAddress && show("deliveryAddress")) {
     line(buf, "Address :");
-    buf.push(...BOLD_ON, ...sizeOn(1, itemH));
-    for (const w of wrap(String(payload.deliveryAddress), cols - 2))
-      line(buf, `  ${w}`);
-    buf.push(...DOUBLE_OFF, ...BOLD_OFF);
+    styledLine("deliveryAddress", String(payload.deliveryAddress), {
+      fallbackSize: itemH * TEXT_SIZE_NATIVE,
+      indent: "  ",
+    });
+  }
+  // The customer's note on the whole order, in the same black bar as an item
+  // note. It used to sit under the totals, below everything the kitchen reads.
+  if (payload?.specialInstructions && show("specialInstructions")) {
+    styledLine("specialInstructions", `ORDER NOTE: ${payload.specialInstructions}`, {
+      reverse: true,
+    });
   }
   line(buf, "-".repeat(cols));
 
@@ -1417,9 +1494,7 @@ export function buildOrderReceipt(
     // is the path the POS prints through, so it is the one the counter
     // actually sees — it printed plain bold while the server renderers were
     // already inverting, which is why tickets looked unhighlighted.
-    buf.push(...ALIGN_LEFT, ...sizeOn(1, 2), ...reverseOn());
-    line(buf, centreOn(String(payload.paymentLabel).trim(), cols));
-    buf.push(...reverseOff(), ...DOUBLE_OFF);
+    styledLine("payment", String(payload.paymentLabel).trim(), { reverse: true, center: true });
   } else if (payload?.paymentMethod && show("payment")) {
     buf.push(...ALIGN_CENTER, ...BOLD_ON);
     line(
@@ -1429,16 +1504,6 @@ export function buildOrderReceipt(
       }`,
     );
     buf.push(...BOLD_OFF, ...ALIGN_LEFT);
-  }
-
-  // ── Special instructions ──────────────────────────────────────────
-  if (payload?.specialInstructions && show("specialInstructions")) {
-    line(buf, "");
-    buf.push(...BOLD_ON);
-    line(buf, "Special instructions:");
-    buf.push(...BOLD_OFF);
-    for (const w of wrap(String(payload.specialInstructions), cols))
-      line(buf, w);
   }
 
   // ── QR code (reorder link + live marketing caption) ──────────────
@@ -1632,31 +1697,59 @@ export function buildOrderReceiptStar(
   }
 
   // ── Order meta ────────────────────────────────────────────────────
+  // Star Line Mode has no raster here, so a size rounds to the nearest whole
+  // height multiplier.
+  const styledLine = (
+    key: TicketLineKey,
+    text: string,
+    o?: { fallbackSize?: number; indent?: string; reverse?: boolean; center?: boolean },
+  ) => {
+    const style = lineStyleOf(opts?.lineStyles, key, o?.fallbackSize);
+    const h = textSizeToMultiplier(style.size);
+    if (style.bold) buf.push(...STAR_BOLD_ON);
+    if (h > 1) buf.push(...starSize(1, h));
+    if (o?.reverse) buf.push(...STAR_REVERSE_ON);
+    const prefix = o?.indent ?? "";
+    // wrap() collapses the spaces that line the labels up, so only long lines go through it.
+    const fits = o?.center || text.length + prefix.length <= cols;
+    for (const w of fits ? [text] : wrap(text, cols - prefix.length)) {
+      const shown = o?.center ? centreOn(w, cols) : prefix + w;
+      line(buf, o?.reverse ? shown.padEnd(cols, " ") : shown);
+    }
+    if (o?.reverse) buf.push(...STAR_REVERSE_OFF);
+    if (h > 1) buf.push(...STAR_EXPAND_OFF);
+    if (style.bold) buf.push(...STAR_BOLD_OFF);
+  };
+
   buf.push(...STAR_ALIGN_LEFT);
   if ((payload?.platform || payload?.orderSource) && show("channel"))
-    line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
+    styledLine("channel", `Channel : ${payload?.platform ?? payload?.orderSource}`);
   if (payload?.fulfillmentType && show("orderType"))
-    line(buf, `Type    : ${payload.fulfillmentType}`);
+    styledLine("orderType", `Type    : ${payload.fulfillmentType}`);
   // Table Tabs — dine-in prints name the table.
-  if (payload?.tableName && show("table")) line(buf, `TABLE   : ${payload.tableName}`);
+  if (payload?.tableName && show("table")) styledLine("table", `TABLE   : ${payload.tableName}`);
   if (show("readyTime")) {
     const isDelivery = /DELIV/i.test(String(payload?.fulfillmentType ?? ""));
     const label = isDelivery ? "Deliver " : "Collect ";
     const when = payload?.scheduledFor ?? payload?.estimatedReadyAt ?? null;
-    buf.push(...STAR_BOLD_ON);
-    line(buf, `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
-    buf.push(...STAR_BOLD_OFF);
+    styledLine("readyTime", `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
   }
   if (payload?.customerName && show("customerName"))
-    line(buf, `Customer: ${String(payload.customerName).slice(0, cols - 10)}`);
-  if (payload?.customerPhone && show("customerPhone")) line(buf, `Phone   : ${payload.customerPhone}`);
+    styledLine("customerName", `Customer: ${payload.customerName}`);
+  if (payload?.customerPhone && show("customerPhone"))
+    styledLine("customerPhone", `Phone   : ${payload.customerPhone}`);
   if (payload?.deliveryAddress && show("deliveryAddress")) {
     line(buf, "Address :");
-    buf.push(...STAR_BOLD_ON, ...starSize(1, itemH));
-    for (const w of wrap(String(payload.deliveryAddress), cols - 2))
-      line(buf, `  ${w}`);
-    if (itemH > 1) buf.push(...STAR_EXPAND_OFF);
-    buf.push(...STAR_BOLD_OFF);
+    styledLine("deliveryAddress", String(payload.deliveryAddress), {
+      fallbackSize: itemH * TEXT_SIZE_NATIVE,
+      indent: "  ",
+    });
+  }
+  // The order note, as a black bar under the address. See the ESC/POS variant.
+  if (payload?.specialInstructions && show("specialInstructions")) {
+    styledLine("specialInstructions", `ORDER NOTE: ${payload.specialInstructions}`, {
+      reverse: true,
+    });
   }
   line(buf, "-".repeat(cols));
 
@@ -1734,9 +1827,7 @@ export function buildOrderReceiptStar(
   if (payload?.paymentLabel && show("payment")) {
     // Same band on Star hardware. Star Line Mode has no `GS B`, so this uses
     // ESC 4 / ESC 5 — the ESC/POS bytes would print as stray characters.
-    buf.push(...STAR_ALIGN_LEFT, ...STAR_REVERSE_ON);
-    line(buf, centreOn(String(payload.paymentLabel).trim(), cols));
-    buf.push(...STAR_REVERSE_OFF);
+    styledLine("payment", String(payload.paymentLabel).trim(), { reverse: true, center: true });
   } else if (payload?.paymentMethod && show("payment")) {
     buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON);
     line(
@@ -1746,16 +1837,6 @@ export function buildOrderReceiptStar(
       }`,
     );
     buf.push(...STAR_BOLD_OFF, ...STAR_ALIGN_LEFT);
-  }
-
-  // ── Special instructions ──────────────────────────────────────────
-  if (payload?.specialInstructions && show("specialInstructions")) {
-    line(buf, "");
-    buf.push(...STAR_BOLD_ON);
-    line(buf, "Special instructions:");
-    buf.push(...STAR_BOLD_OFF);
-    for (const w of wrap(String(payload.specialInstructions), cols))
-      line(buf, w);
   }
 
   buf.push(LF, LF, LF, LF);

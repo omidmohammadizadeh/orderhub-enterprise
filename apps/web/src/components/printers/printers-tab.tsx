@@ -22,8 +22,21 @@ import {
   type BrowserPrinterLink,
 } from "@/lib/printing/browser-printers";
 import { LinkPrinterDialog } from "./link-printer-dialog";
-import { ShowOnTicket, TextSizeControl, TicketPreview, presetToSize } from "./ticket-design";
-import { readTextSize, readTicketHide, type TicketFieldKey } from "@/lib/printing/ticket-layout";
+import {
+  LineStyleControls,
+  ShowOnTicket,
+  TextSizeControl,
+  TicketPreview,
+  presetToSize,
+} from "./ticket-design";
+import {
+  readLineStyles,
+  readTextSize,
+  readTicketHide,
+  textSizeToMultiplier,
+  type TicketFieldKey,
+  type TicketLineStyles,
+} from "@/lib/printing/ticket-layout";
 import { useCurrency } from "@/hooks/use-currency";
 import {
   Plus,
@@ -977,6 +990,7 @@ function PrinterSettingsDrawer({
     readTextSize(d.modifierSize),
   );
   const [ticketHide, setTicketHide] = useState<Set<TicketFieldKey>>(() => readTicketHide(printer));
+  const [lineStyles, setLineStyles] = useState<TicketLineStyles>(() => readLineStyles(printer));
   const { currency } = useCurrency(printer.locationId);
   // Item headlines have always printed bold. Kept opt-OUT so no existing
   // printer changes behaviour on save; shops that want a flat ticket untick it.
@@ -1017,6 +1031,7 @@ function PrinterSettingsDrawer({
           itemSize,
           modifierSize,
           ticketHide: [...ticketHide],
+          lineStyles,
           boldItems,
           // Keep the legacy flag consistent for any older reader.
           largeFont: fontScale !== "NORMAL",
@@ -1196,6 +1211,27 @@ function PrinterSettingsDrawer({
             </p>
           </Section>
 
+          <Section title="Order details and payment text">
+            <LineStyleControls
+              styles={lineStyles}
+              addressFallback={
+                itemSize != null
+                  ? textSizeToMultiplier(itemSize) * 10
+                  : fontScale === "NORMAL"
+                    ? 10
+                    : 20
+              }
+              onChange={setLineStyles}
+            />
+            <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
+              1 to 30. 10 is the printer&rsquo;s normal font. The order note
+              prints in a black bar under the address.
+              {brand === "star"
+                ? " Star printers round this to their nearest built-in size."
+                : ""}
+            </p>
+          </Section>
+
           <Section title="Show on ticket">
             <ShowOnTicket hidden={ticketHide} onChange={setTicketHide} />
           </Section>
@@ -1245,6 +1281,7 @@ function PrinterSettingsDrawer({
             itemSize={itemSize}
             modifierSize={modifierSize}
             boldItems={boldItems}
+            lineStyles={lineStyles}
             hidden={ticketHide}
             currency={currency}
           />

@@ -16,7 +16,10 @@ import {
   TEXT_SIZE_MIN,
   TEXT_SIZE_NATIVE,
   TICKET_FIELD_GROUPS,
+  TICKET_LINES,
   type TicketFieldKey,
+  type TicketLineKey,
+  type TicketLineStyles,
 } from "@/lib/printing/ticket-layout";
 
 const SIZE_PRESETS: ReadonlyArray<readonly [number, string]> = [
@@ -143,6 +146,58 @@ export function ShowOnTicket({
   );
 }
 
+export function LineStyleControls({
+  styles,
+  addressFallback,
+  onChange,
+}: {
+  styles: TicketLineStyles;
+  /** The address follows the item size until it is given its own. */
+  addressFallback: number;
+  onChange: (next: TicketLineStyles) => void;
+}) {
+  const set = (key: TicketLineKey, patch: { size?: number; bold?: boolean }) =>
+    onChange({ ...styles, [key]: { ...styles[key], ...patch } });
+  return (
+    <div className="divide-y divide-zinc-100 rounded-md border border-zinc-200">
+      {TICKET_LINES.map((row) => {
+        const usual = row.key === "deliveryAddress" ? addressFallback : row.size;
+        const size = styles[row.key]?.size ?? usual;
+        const bold = styles[row.key]?.bold ?? row.bold;
+        return (
+          <div key={row.key} className="flex items-center gap-2 px-2.5 py-1.5">
+            <span className="min-w-0 flex-1 text-xs text-zinc-700">{row.label}</span>
+            <input
+              type="number"
+              min={TEXT_SIZE_MIN}
+              max={TEXT_SIZE_MAX}
+              value={size}
+              aria-label={`${row.label} text size (1 to 30)`}
+              onChange={(e) => {
+                const n = Math.round(Number(e.target.value));
+                if (Number.isFinite(n) && n > 0) {
+                  set(row.key, { size: Math.min(TEXT_SIZE_MAX, Math.max(TEXT_SIZE_MIN, n)) });
+                }
+              }}
+              className="w-14 rounded-md border border-zinc-300 px-1.5 py-1 text-center text-xs tabular-nums"
+            />
+            <label className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-zinc-700">
+              <input
+                type="checkbox"
+                checked={bold}
+                aria-label={`${row.label} bold`}
+                onChange={(e) => set(row.key, { bold: e.target.checked })}
+                className="h-4 w-4 accent-violet-600"
+              />
+              Bold
+            </label>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // A busy sample order, so every switch above has something to show.
 function sampleOrder(currency: string) {
   return {
@@ -197,6 +252,7 @@ export function TicketPreview({
   itemSize,
   modifierSize,
   boldItems,
+  lineStyles,
   hidden,
   currency,
 }: {
@@ -208,6 +264,7 @@ export function TicketPreview({
   itemSize: number | null;
   modifierSize: number | null;
   boldItems: boolean;
+  lineStyles: TicketLineStyles;
   hidden: ReadonlySet<TicketFieldKey>;
   currency: string;
 }) {
@@ -217,10 +274,11 @@ export function TicketPreview({
 
   // Hidden list as a stable dependency (a Set is a new object every render).
   const hiddenKey = useMemo(() => [...hidden].sort().join(","), [hidden]);
+  const lineStylesKey = JSON.stringify(lineStyles);
 
   useEffect(() => {
     // Rasters need a canvas, so this only runs in the browser.
-    const style = { hide: hidden, itemSize, modifierSize, boldItems };
+    const style = { hide: hidden, itemSize, modifierSize, boldItems, lineStyles };
     const width = paperWidth === 58 ? 58 : 80;
     const bytes = star
       ? buildOrderReceiptStar(sampleOrder(currency), width, { fontScale, modifierScale, ...style })
@@ -232,7 +290,7 @@ export function TicketPreview({
         });
     setHtml(ticketsToHtml(receiptBytesToTickets(bytes, star), width));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paperWidth, star, printFont, fontScale, modifierScale, itemSize, modifierSize, boldItems, hiddenKey, currency]);
+  }, [paperWidth, star, printFont, fontScale, modifierScale, itemSize, modifierSize, boldItems, lineStylesKey, hiddenKey, currency]);
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-zinc-100 p-3">
