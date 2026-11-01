@@ -145,6 +145,60 @@ export function coercePostcodeFees(value: unknown): PostcodeFee[] {
   return out;
 }
 
+/**
+ * The figures for a set of counted stops. One calculation for the Cash up window,
+ * the settled snapshot and the operator's driver card, so they can't disagree.
+ */
+export function summariseStops(
+  driver: { startupFee: unknown; postcodeFees: unknown },
+  stops: {
+    status: DriverAssignmentStatus;
+    creditedAt?: Date | null;
+    deliveredAt?: Date | null;
+    order: { total: unknown; paymentMethod: string | null; postcode: string | null };
+  }[],
+): EarningsBreakdown {
+  const rules = coercePostcodeFees(driver.postcodeFees);
+  let cashOrders = 0;
+  let cashCollected = 0;
+  let cardOrders = 0;
+  let cardCollected = 0;
+  let deliveryFeeTotal = 0;
+  const days = new Set<string>();
+
+  for (const a of stops) {
+    const total = Number(a.order.total) || 0;
+    const isCash = isCashPayment(a.order.paymentMethod);
+    if (isCash) {
+      cashOrders += 1;
+      cashCollected += total;
+    } else {
+      cardOrders += 1;
+      cardCollected += total;
+    }
+    deliveryFeeTotal += matchPostcodeFee(rules, a.order.postcode);
+    const countedOn = creditedOn(a);
+    if (countedOn) days.add(countedOn.toISOString().slice(0, 10));
+  }
+
+  const daysWorked = days.size;
+  const startupFeeTotal = Number(driver.startupFee) * daysWorked;
+  const driverEarning = round2(startupFeeTotal + deliveryFeeTotal);
+  const cashHandover = round2(cashCollected - driverEarning);
+  return {
+    deliveries: stops.length,
+    cashOrders,
+    cashCollected: round2(cashCollected),
+    cardOrders,
+    cardCollected: round2(cardCollected),
+    daysWorked,
+    startupFeeTotal: round2(startupFeeTotal),
+    deliveryFeeTotal: round2(deliveryFeeTotal),
+    driverEarning,
+    cashHandover,
+  };
+}
+
 @Injectable()
 export class DriverEarningsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -218,7 +272,6 @@ export class DriverEarningsService {
     from: Date | null,
     to: Date,
   ): Promise<EarningsBreakdown> {
-    const rules = coercePostcodeFees(driver.postcodeFees);
     const assignments = await this.prisma.driverAssignment.findMany({
       where: { driverId, ...creditedStopsIn({ ...(from ? { gt: from } : {}), lte: to }) },
       select: {
@@ -229,44 +282,7 @@ export class DriverEarningsService {
       },
     });
 
-    let cashOrders = 0;
-    let cashCollected = 0;
-    let cardOrders = 0;
-    let cardCollected = 0;
-    let deliveryFeeTotal = 0;
-    const days = new Set<string>();
-
-    for (const a of assignments) {
-      const total = Number(a.order.total) || 0;
-      const isCash = isCashPayment(a.order.paymentMethod);
-      if (isCash) {
-        cashOrders += 1;
-        cashCollected += total;
-      } else {
-        cardOrders += 1;
-        cardCollected += total;
-      }
-      deliveryFeeTotal += matchPostcodeFee(rules, a.order.postcode);
-      const countedOn = creditedOn(a);
-      if (countedOn) days.add(countedOn.toISOString().slice(0, 10));
-    }
-
-    const daysWorked = days.size;
-    const startupFeeTotal = Number(driver.startupFee) * daysWorked;
-    const driverEarning = round2(startupFeeTotal + deliveryFeeTotal);
-    const cashHandover = round2(cashCollected - driverEarning);
-    return {
-      deliveries: assignments.length,
-      cashOrders,
-      cashCollected: round2(cashCollected),
-      cardOrders,
-      cardCollected: round2(cardCollected),
-      daysWorked,
-      startupFeeTotal: round2(startupFeeTotal),
-      deliveryFeeTotal: round2(deliveryFeeTotal),
-      driverEarning,
-      cashHandover,
-    };
+    return summariseStops(driver, assignments);
   }
 
   /**

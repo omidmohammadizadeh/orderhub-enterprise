@@ -1,4 +1,4 @@
-import { creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee, normalizePostcode } from "../driver-earnings.service";
+import { creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee, normalizePostcode, summariseStops } from "../driver-earnings.service";
 
 describe("isCashPayment", () => {
   it("counts every cash spelling as cash", () => {
@@ -92,5 +92,44 @@ describe("when a stop counts towards pay", () => {
     expect(OR[0].creditedAt).toBe(range);
     expect(OR[0].status.in).not.toContain("CANCELLED");
     expect(OR[1]).toMatchObject({ creditedAt: null, status: "DELIVERED", deliveredAt: range });
+  });
+});
+
+describe("summariseStops", () => {
+  const driver = { startupFee: "10", postcodeFees: [{ postcode: "B1", fee: 3 }] };
+  const stop = (total: number, paymentMethod: string, deliveredAt: string) => ({
+    status: "DELIVERED" as any,
+    deliveredAt: new Date(deliveredAt),
+    order: { total, paymentMethod, postcode: "B1 2HF" },
+  });
+
+  // A fully cashed-up driver has no stops left in their period, and the card
+  // the operator looks at has to read zero, not today's takings.
+  it("is all zero with nothing outstanding", () => {
+    expect(summariseStops(driver, [])).toMatchObject({
+      deliveries: 0,
+      cashCollected: 0,
+      cardCollected: 0,
+      driverEarning: 0,
+      cashHandover: 0,
+    });
+  });
+
+  it("charges the start-up fee once per day worked", () => {
+    const owed = summariseStops(driver, [
+      stop(20, "CASH", "2026-11-01T18:00:00Z"),
+      stop(5, "CARD", "2026-11-01T19:00:00Z"),
+      stop(10, "CASH", "2026-11-02T18:00:00Z"),
+    ]);
+    expect(owed).toMatchObject({
+      deliveries: 3,
+      cashCollected: 30,
+      cardCollected: 5,
+      daysWorked: 2,
+      startupFeeTotal: 20,
+      deliveryFeeTotal: 9,
+      driverEarning: 29,
+      cashHandover: 1,
+    });
   });
 });

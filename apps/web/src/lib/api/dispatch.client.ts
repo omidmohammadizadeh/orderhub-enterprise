@@ -204,7 +204,8 @@ export interface OperatorDriverRow {
   homeLocationId: string | null;
   startupFee: string;
   postcodeFees: PostcodeFee[];
-  earningToday: string;
+  /** Owed since the driver's last cash-up, like the rest of the row's figures. */
+  earning: string;
 }
 export interface OperatorFailedRow {
   id: string;

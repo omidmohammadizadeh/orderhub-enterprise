@@ -708,12 +708,14 @@ function DriverCard({
         </button>
       </div>
 
-      {/* Today: deliveries, takings split, driver pay */}
-      <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">
+      {/* Owed since the last cash-up: the same figures the Cash up tab settles,
+          so settling takes this to zero. */}
+      <p className="mt-3 text-[11px] font-medium text-zinc-500">Since last cash-up</p>
+      <div className="mt-1 grid grid-cols-4 gap-1.5 text-center">
         <Mini label="Jobs" value={String(d.delivered)} />
         <Mini label="Cash" value={money(d.cashTotal)} icon={<Banknote className="h-3 w-3" />} />
         <Mini label="Card" value={money(d.cardTotal)} icon={<CreditCard className="h-3 w-3" />} />
-        <Mini label="Earned" value={money(d.earningToday)} accent />
+        <Mini label="Earned" value={money(d.earning)} accent />
       </div>
 
       {/* Active run */}
