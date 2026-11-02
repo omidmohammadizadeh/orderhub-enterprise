@@ -69,7 +69,8 @@ export function TabletLoginsPanel({ search }: { search: string }) {
       <p className="max-w-3xl text-sm text-zinc-600">
         Each shop can have its own login for the counter tablet. Staff sign in
         with the shop's username and password and see only that shop's Orders,
-        POS, Inventory, Store status, Printers, Loyalty scan and Caller ID —
+        POS, Tables, Reservations, Inventory, Store status, Printers, Loyalty
+        scan and Caller ID —
         plus Analytics if you allow it. Staff can still sign in with their own
         accounts as before.
       </p>
@@ -255,7 +256,7 @@ function CopyableUsername({ username }: { username: string }) {
           /* clipboard blocked — the username is still on screen */
         }
       }}
-      className="inline-flex items-center gap-1.5 rounded bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-800 hover:bg-zinc-200"
+      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-800 hover:bg-zinc-200"
       title="Copy username"
     >
       {username}

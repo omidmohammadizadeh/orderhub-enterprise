@@ -44,7 +44,10 @@ export interface TabletLoginRow {
   login: TabletLoginView | null;
 }
 
-/** "Monster Burgerz", "High St" → "monster-burgerz-high-st" (max ~24 chars). */
+/**
+ * "Monster Burgerz", "High St" → "monster-burgerz-high-st". Long enough (32)
+ * to keep the branch's own words, so two shops of one brand don't look alike.
+ */
 export function usernameStem(brandName: string | null, locationName: string): string {
   const words = `${brandName ?? ""} ${locationName}`
     .toLowerCase()
@@ -58,7 +61,7 @@ export function usernameStem(brandName: string | null, locationName: string): st
   let stem = "";
   for (const w of unique) {
     const next = stem ? `${stem}-${w}` : w;
-    if (next.length > 24) break;
+    if (next.length > 32) break;
     stem = next;
   }
   return stem || "shop";

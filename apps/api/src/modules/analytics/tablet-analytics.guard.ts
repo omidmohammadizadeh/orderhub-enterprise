@@ -22,8 +22,10 @@ import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface
  *   2. Only the reports the Analytics page actually draws. Overview scopes
  *      itself to the caller's locations; the rest of this controller trusts a
  *      locationId that may be left out, which would mean the whole tenant.
- *   3. Walk-in and dine-in must name a location — DeviceLocationGuard has
- *      already refused any location that isn't the tablet's own.
+ *   3. Walk-in and dine-in always run for the tablet's own shop. The page
+ *      leaves locationId out on "All locations", which for those two reports
+ *      would mean the whole tenant, so the tablet's location is filled in;
+ *      one it names itself has already been checked by DeviceLocationGuard.
  */
 const OVERVIEW_SCOPED = new Set(["getOverview"]);
 const NEEDS_LOCATION = new Set(["getWalkInReport", "getDineInReport"]);
@@ -41,10 +43,6 @@ export class TabletAnalyticsGuard implements CanActivate {
     if (!OVERVIEW_SCOPED.has(handler) && !NEEDS_LOCATION.has(handler)) {
       throw new ForbiddenException("Not available on the shop tablet");
     }
-    if (NEEDS_LOCATION.has(handler) && !req.query?.locationId) {
-      throw new ForbiddenException("Pick this shop's location first");
-    }
-
     const row = await this.prisma.user.findUnique({
       where: { id: user.userId },
       select: { permissions: true, isActive: true },
@@ -53,6 +51,16 @@ export class TabletAnalyticsGuard implements CanActivate {
       throw new ForbiddenException(
         "Analytics is switched off for this tablet. An owner can turn it on in Team → Tablet logins.",
       );
+    }
+
+    if (NEEDS_LOCATION.has(handler) && !req.query?.locationId) {
+      const own = await this.prisma.userLocation.findFirst({
+        where: { userId: user.userId },
+        select: { locationId: true },
+      });
+      if (!own) throw new ForbiddenException("This tablet has no shop assigned");
+      // Express 4: @Query() reads req.query after the guards have run.
+      req.query.locationId = own.locationId;
     }
     return true;
   }

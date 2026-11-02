@@ -43,7 +43,11 @@ describe("tablet login — username + password rules", () => {
       "monster-burgerz-high-st",
     );
     expect(usernameStem(null, "!!!")).toBe("shop");
-    expect(usernameStem("A Very Long Brand Name Indeed", "Somewhere Far").length).toBeLessThanOrEqual(24);
+    expect(usernameStem("A Very Long Brand Name Indeed", "Somewhere Far").length).toBeLessThanOrEqual(32);
+    // Two branches of one brand must still read differently.
+    expect(usernameStem("Driver Test Kitchen", "Driver Test Kitchen – Birmingham")).toBe(
+      "driver-test-kitchen-birmingham",
+    );
   });
 
   it("matches Uber's reset rule: 8+ chars, a number and a non-digit", () => {
@@ -67,7 +71,10 @@ describe("TabletAnalyticsGuard", () => {
       getHandler: () => ({ name: handler }),
     }) as any;
   const prisma = (permissions: string[], isActive = true) =>
-    ({ user: { findUnique: jest.fn().mockResolvedValue({ permissions, isActive }) } }) as any;
+    ({
+      user: { findUnique: jest.fn().mockResolvedValue({ permissions, isActive }) },
+      userLocation: { findFirst: jest.fn().mockResolvedValue({ locationId: "own" }) },
+    }) as any;
 
   it("never touches anyone who isn't a tablet", async () => {
     const p = prisma([]);
@@ -93,9 +100,14 @@ describe("TabletAnalyticsGuard", () => {
     await expect(
       new TabletAnalyticsGuard(on).canActivate(ctx("LOCATION_TABLET", "getLocationComparison")),
     ).rejects.toBeInstanceOf(ForbiddenException);
-    await expect(
-      new TabletAnalyticsGuard(on).canActivate(ctx("LOCATION_TABLET", "getWalkInReport")),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    // "All locations" on the page sends no id: pinned to the tablet's own shop.
+    const query: Record<string, string> = {};
+    const c = ctx("LOCATION_TABLET", "getWalkInReport");
+    c.switchToHttp = () => ({
+      getRequest: () => ({ user: { userId: "u1", tenantId: "t1", role: "LOCATION_TABLET" }, query }),
+    });
+    await expect(new TabletAnalyticsGuard(on).canActivate(c)).resolves.toBe(true);
+    expect(query.locationId).toBe("own");
     await expect(
       new TabletAnalyticsGuard(on).canActivate(
         ctx("LOCATION_TABLET", "getWalkInReport", { locationId: "loc1" }),
