@@ -285,7 +285,22 @@ export const eflPartnerClient = {
     apiClient.post<{ id: string; reference: string }>("/v1/efl/applications", input).then((r) => r.data),
 };
 
+/** Getting paid: the shop's Express account on Eat For Less's own Stripe. */
+export interface EflPayoutSetup {
+  /** Eat For Less's Stripe is switched on, so this flow is live. */
+  configured: boolean;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "READY";
+  /** What Stripe still needs, in Stripe's field names. */
+  due: string[];
+}
+
 export const eflClient = {
+  payouts: (locationId: string) =>
+    apiClient.get<EflPayoutSetup>(`/v1/efl/listing/${locationId}/payouts`).then((r) => r.data),
+  startPayouts: (locationId: string) =>
+    apiClient.post<{ url: string }>(`/v1/efl/listing/${locationId}/payouts/start`).then((r) => r.data),
+  payoutsDashboard: (locationId: string) =>
+    apiClient.post<{ url: string }>(`/v1/efl/listing/${locationId}/payouts/dashboard`).then((r) => r.data),
   getListing: (locationId: string) =>
     apiClient.get<EflShopListing>(`/v1/efl/listing/${locationId}`).then((r) => r.data),
 

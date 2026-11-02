@@ -1,7 +1,8 @@
-// Paying for an order. Eat For Less orders are DIRECT charges on the shop's
-// own Stripe account, so the payment sheet is opened against that connected
-// account (stripeAccountId from checkout) with the platform's publishable key.
-// Apple Pay and Google Pay appear inside the same sheet.
+// Paying for an order. Once Eat For Less has its own Stripe the order is
+// charged there (no stripeAccountId, Eat For Less's key); before that it was
+// a direct charge on the shop's account (stripeAccountId set, OrderHub's key).
+// The checkout response names the key either way. Apple Pay and Google Pay
+// appear inside the same sheet.
 
 import { initPaymentSheet, initStripe, presentPaymentSheet } from "@stripe/stripe-react-native";
 import * as Linking from "expo-linking";
@@ -28,7 +29,7 @@ export async function payForOrder(result: CheckoutResult, customer: { name: stri
     return "paid";
   }
   if (result.clientSecret) {
-    const key = await publishableKey();
+    const key = result.publishableKey || (await publishableKey());
     if (!key) throw new Error("Card payments aren't available right now. Please try again in a moment.");
     await initStripe({
       publishableKey: key,

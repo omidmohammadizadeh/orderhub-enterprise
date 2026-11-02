@@ -19,6 +19,7 @@ import { EflCallsController } from "./efl-calls.controller";
 import { EflAdsService } from "./efl-ads.service";
 import { EflStatementsService } from "./efl-statements.service";
 import { EflCampaignsService } from "./efl-campaigns.service";
+import { EflPayoutsService } from "./efl-payouts.service";
 
 @Module({
   // Ordering: the menu and the checkout are the storefront's. Delivery zones:
@@ -28,7 +29,7 @@ import { EflCampaignsService } from "./efl-campaigns.service";
   providers: [EflService, EflApplicationsService, EflChecksService, EflHygieneService, EflAccountService, EflPresenceService,
     // Its own instance: config only, and the private line shares nothing with
     // the AI phone line but the HTTP client.
-    TelnyxCallControlService, EflCallsService, EflAdsService, EflStatementsService, EflCampaignsService],
+    TelnyxCallControlService, EflCallsService, EflAdsService, EflStatementsService, EflCampaignsService, EflPayoutsService],
   exports: [EflService],
 })
 export class EflModule {}

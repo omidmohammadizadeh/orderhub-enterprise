@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import { PlatformLogo } from "@/components/ui/platform-logo";
 import { EflAdsSection } from "@/components/locations/efl-ads-section";
 import { EflStatementsSection } from "@/components/locations/efl-statements-section";
+import { EflPayoutsSection } from "@/components/locations/efl-payouts-section";
 import {
   EFL_CUISINES,
   eflClient,
@@ -276,6 +277,7 @@ export function EflListingPanel({
 
       {listing.exists && (
         <>
+          <EflPayoutsSection locationId={locationId} />
           <EflAdsSection locationId={locationId} />
           <EflStatementsSection locationId={locationId} listing={listing} />
         </>

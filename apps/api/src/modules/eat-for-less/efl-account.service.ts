@@ -33,7 +33,10 @@ export class EflAccountService {
     return {
       // The publishable key is meant to be public; serving it here keeps it
       // out of the binary so test and live builds can't get crossed.
-      stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? null,
+      // Eat For Less's own account once its keys are set (orders are then
+      // charged there); the OrderHub key until then.
+      stripePublishableKey:
+        (process.env.EFL_STRIPE_SECRET_KEY ? process.env.EFL_STRIPE_PUBLISHABLE_KEY : process.env.STRIPE_PUBLISHABLE_KEY) ?? null,
     };
   }
 

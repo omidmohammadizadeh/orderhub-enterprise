@@ -2188,6 +2188,8 @@ exports.Prisma.EflListingScalarFieldEnum = {
   lastDeviceSeenAt: 'lastDeviceSeenAt',
   offlineSince: 'offlineSince',
   statementEmail: 'statementEmail',
+  stripeAccountId: 'stripeAccountId',
+  stripePayoutsEnabled: 'stripePayoutsEnabled',
   approvedAt: 'approvedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -4451,7 +4453,8 @@ exports.Prisma.EflListingOrderByRelevanceFieldEnum = {
   cuisines: 'cuisines',
   fsaEstablishmentId: 'fsaEstablishmentId',
   hygieneRating: 'hygieneRating',
-  statementEmail: 'statementEmail'
+  statementEmail: 'statementEmail',
+  stripeAccountId: 'stripeAccountId'
 };
 
 exports.Prisma.EflAdCampaignOrderByRelevanceFieldEnum = {

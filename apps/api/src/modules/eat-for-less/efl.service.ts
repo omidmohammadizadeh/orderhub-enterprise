@@ -270,6 +270,12 @@ export class EflService {
   async checkout(customer: { id: string }, listingId: string, body: CheckoutDto, viewerKeys: string[] = []) {
     const { listing, location, slug, brandId } = await this.liveListing(listingId);
 
+    // Refused before an order exists: a shop Stripe can't pay would leave an
+    // unpayable order on its board.
+    if (this.payments?.eflStripeClient?.() && !(listing as any).stripePayoutsEnabled) {
+      throw new BadRequestException("This shop can't take orders through Eat For Less just yet.");
+    }
+
     if (body.fulfillmentType === "DELIVERY" && !listing.acceptsDelivery) {
       throw new BadRequestException("This shop isn't delivering through Eat For Less right now.");
     }
@@ -381,6 +387,9 @@ export class EflService {
       total: Number(result.total),
       clientSecret: result.clientSecret ?? null,
       stripeAccountId: result.stripeAccountId ?? null,
+      // Which Stripe account the secret belongs to decides which key can
+      // confirm it, so the order says, rather than the app guessing.
+      publishableKey: result.publishableKey ?? null,
       amountPence: result.amountPence ?? null,
       // A shop on a hosted-only provider: the app opens this instead of
       // the payment sheet.
@@ -709,6 +718,19 @@ export class EflService {
    * neither is approved until that changes.
    */
   private async assertPayableThroughStripe(listing: { locationId: string; brandId: string | null }) {
+    // Once Eat For Less has its own Stripe, a shop is paid by transfer to
+    // its Express account there — the shop's own card provider no longer
+    // matters, only that Stripe can pay it.
+    if (this.payments?.eflStripeClient?.()) {
+      const row = await this.prisma.eflListing.findUnique({
+        where: { locationId: listing.locationId },
+        select: { stripePayoutsEnabled: true },
+      });
+      if (!row?.stripePayoutsEnabled) {
+        throw new BadRequestException("This shop hasn't finished its Eat For Less payout setup, so it couldn't be paid yet.");
+      }
+      return;
+    }
     const location = await this.prisma.location.findUnique({
       where: { id: listing.locationId },
       select: { id: true, country: true, brandId: true, brand: { select: { tenantId: true } } },

@@ -179,6 +179,8 @@ export type CheckoutResult = {
   total: number;
   clientSecret: string | null;
   stripeAccountId: string | null;
+  /** The key that can confirm this order's secret (Eat For Less's own, or OrderHub's). */
+  publishableKey?: string | null;
   amountPence: number | null;
   checkoutUrl: string | null;
 };

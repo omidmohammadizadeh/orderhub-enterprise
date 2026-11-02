@@ -4,7 +4,7 @@
 //
 // The last 12 weeks of a shop's Eat For Less money, one row a week, each
 // downloadable as a PDF or emailed again. A statement is a record only:
-// card money lands in the shop's own Stripe account as each order is paid.
+// card money reaches the shop as its Stripe payouts arrive.
 
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

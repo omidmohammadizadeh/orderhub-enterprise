@@ -148733,6 +148733,8 @@ export namespace Prisma {
     lastDeviceSeenAt: Date | null
     offlineSince: Date | null
     statementEmail: string | null
+    stripeAccountId: string | null
+    stripePayoutsEnabled: boolean | null
     approvedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -148758,6 +148760,8 @@ export namespace Prisma {
     lastDeviceSeenAt: Date | null
     offlineSince: Date | null
     statementEmail: string | null
+    stripeAccountId: string | null
+    stripePayoutsEnabled: boolean | null
     approvedAt: Date | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -148784,6 +148788,8 @@ export namespace Prisma {
     lastDeviceSeenAt: number
     offlineSince: number
     statementEmail: number
+    stripeAccountId: number
+    stripePayoutsEnabled: number
     approvedAt: number
     createdAt: number
     updatedAt: number
@@ -148819,6 +148825,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: true
     offlineSince?: true
     statementEmail?: true
+    stripeAccountId?: true
+    stripePayoutsEnabled?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148844,6 +148852,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: true
     offlineSince?: true
     statementEmail?: true
+    stripeAccountId?: true
+    stripePayoutsEnabled?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148870,6 +148880,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: true
     offlineSince?: true
     statementEmail?: true
+    stripeAccountId?: true
+    stripePayoutsEnabled?: true
     approvedAt?: true
     createdAt?: true
     updatedAt?: true
@@ -148983,6 +148995,8 @@ export namespace Prisma {
     lastDeviceSeenAt: Date | null
     offlineSince: Date | null
     statementEmail: string | null
+    stripeAccountId: string | null
+    stripePayoutsEnabled: boolean
     approvedAt: Date | null
     createdAt: Date
     updatedAt: Date
@@ -149028,6 +149042,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: boolean
     offlineSince?: boolean
     statementEmail?: boolean
+    stripeAccountId?: boolean
+    stripePayoutsEnabled?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -149056,6 +149072,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: boolean
     offlineSince?: boolean
     statementEmail?: boolean
+    stripeAccountId?: boolean
+    stripePayoutsEnabled?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -149083,6 +149101,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: boolean
     offlineSince?: boolean
     statementEmail?: boolean
+    stripeAccountId?: boolean
+    stripePayoutsEnabled?: boolean
     approvedAt?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -149158,6 +149178,17 @@ export namespace Prisma {
        * Where the Monday statement goes. Null = the account's own email.
        */
       statementEmail: string | null
+      /**
+       * The shop's Express account on Eat For Less's own Stripe. Customers pay
+       * Eat For Less; each order's share is transferred here and paid out
+       * weekly. Null until the shop starts payout setup.
+       */
+      stripeAccountId: string | null
+      /**
+       * From Stripe (account.updated): the shop finished the form and Stripe
+       * can send it money. Orders go through only once this is true.
+       */
+      stripePayoutsEnabled: boolean
       approvedAt: Date | null
       createdAt: Date
       updatedAt: Date
@@ -149576,6 +149607,8 @@ export namespace Prisma {
     readonly lastDeviceSeenAt: FieldRef<"EflListing", 'DateTime'>
     readonly offlineSince: FieldRef<"EflListing", 'DateTime'>
     readonly statementEmail: FieldRef<"EflListing", 'String'>
+    readonly stripeAccountId: FieldRef<"EflListing", 'String'>
+    readonly stripePayoutsEnabled: FieldRef<"EflListing", 'Boolean'>
     readonly approvedAt: FieldRef<"EflListing", 'DateTime'>
     readonly createdAt: FieldRef<"EflListing", 'DateTime'>
     readonly updatedAt: FieldRef<"EflListing", 'DateTime'>
@@ -213893,6 +213926,8 @@ export namespace Prisma {
     lastDeviceSeenAt: 'lastDeviceSeenAt',
     offlineSince: 'offlineSince',
     statementEmail: 'statementEmail',
+    stripeAccountId: 'stripeAccountId',
+    stripePayoutsEnabled: 'stripePayoutsEnabled',
     approvedAt: 'approvedAt',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -216708,7 +216743,8 @@ export namespace Prisma {
     cuisines: 'cuisines',
     fsaEstablishmentId: 'fsaEstablishmentId',
     hygieneRating: 'hygieneRating',
-    statementEmail: 'statementEmail'
+    statementEmail: 'statementEmail',
+    stripeAccountId: 'stripeAccountId'
   };
 
   export type EflListingOrderByRelevanceFieldEnum = (typeof EflListingOrderByRelevanceFieldEnum)[keyof typeof EflListingOrderByRelevanceFieldEnum]
@@ -231280,6 +231316,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     offlineSince?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     statementEmail?: StringNullableFilter<"EflListing"> | string | null
+    stripeAccountId?: StringNullableFilter<"EflListing"> | string | null
+    stripePayoutsEnabled?: BoolFilter<"EflListing"> | boolean
     approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
@@ -231308,6 +231346,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: SortOrderInput | SortOrder
     offlineSince?: SortOrderInput | SortOrder
     statementEmail?: SortOrderInput | SortOrder
+    stripeAccountId?: SortOrderInput | SortOrder
+    stripePayoutsEnabled?: SortOrder
     approvedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -231319,6 +231359,7 @@ export namespace Prisma {
   export type EflListingWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     locationId?: string
+    stripeAccountId?: string
     AND?: EflListingWhereInput | EflListingWhereInput[]
     OR?: EflListingWhereInput[]
     NOT?: EflListingWhereInput | EflListingWhereInput[]
@@ -231340,12 +231381,13 @@ export namespace Prisma {
     lastDeviceSeenAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     offlineSince?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     statementEmail?: StringNullableFilter<"EflListing"> | string | null
+    stripePayoutsEnabled?: BoolFilter<"EflListing"> | boolean
     approvedAt?: DateTimeNullableFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     adCampaign?: XOR<EflAdCampaignNullableRelationFilter, EflAdCampaignWhereInput> | null
-  }, "id" | "locationId">
+  }, "id" | "locationId" | "stripeAccountId">
 
   export type EflListingOrderByWithAggregationInput = {
     id?: SortOrder
@@ -231368,6 +231410,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: SortOrderInput | SortOrder
     offlineSince?: SortOrderInput | SortOrder
     statementEmail?: SortOrderInput | SortOrder
+    stripeAccountId?: SortOrderInput | SortOrder
+    stripePayoutsEnabled?: SortOrder
     approvedAt?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -231402,6 +231446,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     offlineSince?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     statementEmail?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    stripeAccountId?: StringNullableWithAggregatesFilter<"EflListing"> | string | null
+    stripePayoutsEnabled?: BoolWithAggregatesFilter<"EflListing"> | boolean
     approvedAt?: DateTimeNullableWithAggregatesFilter<"EflListing"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EflListing"> | Date | string
@@ -252146,6 +252192,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
     statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -252174,6 +252222,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
     statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -252200,6 +252250,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -252228,6 +252280,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -252255,6 +252309,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
     statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -252280,6 +252336,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -252306,6 +252364,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -269357,6 +269417,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: SortOrder
     offlineSince?: SortOrder
     statementEmail?: SortOrder
+    stripeAccountId?: SortOrder
+    stripePayoutsEnabled?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -269386,6 +269448,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: SortOrder
     offlineSince?: SortOrder
     statementEmail?: SortOrder
+    stripeAccountId?: SortOrder
+    stripePayoutsEnabled?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -269411,6 +269475,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: SortOrder
     offlineSince?: SortOrder
     statementEmail?: SortOrder
+    stripeAccountId?: SortOrder
+    stripePayoutsEnabled?: SortOrder
     approvedAt?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -294694,6 +294760,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
     statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -294720,6 +294788,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
     statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -296267,6 +296337,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -296293,6 +296365,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -328574,6 +328648,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
     statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -328601,6 +328677,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: Date | string | null
     offlineSince?: Date | string | null
     statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -328642,6 +328720,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -328669,6 +328749,8 @@ export namespace Prisma {
     lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

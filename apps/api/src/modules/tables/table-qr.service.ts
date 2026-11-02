@@ -568,7 +568,8 @@ export class TableQrService {
       orderId: order.id,
       tableName: table.name,
       clientSecret,
-      stripeAccountId,
+      // Always set here: only Eat For Less orders charge on a platform.
+      stripeAccountId: stripeAccountId ?? undefined,
       amountPence,
       subtotal: Number(order.subtotal ?? subtotal),
       serviceCharge,

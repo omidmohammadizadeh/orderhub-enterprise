@@ -152,10 +152,31 @@ const PLATFORM_FEE_RATE = new Decimal("0.015");
 const PROCESSING_FEE_RATE = new Decimal("0.014");
 const PROCESSING_FEE_FLAT = new Decimal("0.20");
 
+/**
+ * Refunding an Eat For Less platform charge: take the shop's share back from
+ * its Express account and hand back our commission, so a refund costs each
+ * side what it earned rather than leaving Eat For Less to fund it.
+ */
+const EFL_REFUND_REVERSAL = { reverse_transfer: true, refund_application_fee: true };
+const EFL_WEBHOOK_EVENTS = new Set([
+  "payment_intent.succeeded",
+  "payment_intent.payment_failed",
+  "payment_intent.canceled",
+  "charge.refunded",
+]);
+
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
   private readonly stripe: any | null;
+  /**
+   * Eat For Less Ltd's own Stripe account — a different company from the
+   * OrderHub platform. Its orders are charged HERE (Eat For Less is the
+   * merchant the customer sees) and each shop's share is transferred to the
+   * shop's Express account on this platform. Null until the keys are set,
+   * and then Eat For Less orders keep using the shop's OrderHub account.
+   */
+  private readonly eflStripe: any | null;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -179,6 +200,38 @@ export class PaymentsService {
         "STRIPE_SECRET_KEY not set — Stripe calls will use mock data",
       );
     }
+    const eflKey = this.config.get<string>("EFL_STRIPE_SECRET_KEY");
+    this.eflStripe = eflKey && Stripe ? new Stripe(eflKey, { apiVersion: "2024-06-20" }) : null;
+  }
+
+  /** Eat For Less's own Stripe, when its keys are set. */
+  eflStripeClient(): any | null {
+    return this.eflStripe;
+  }
+
+  /**
+   * Which Stripe client a payment lives on, and the per-call options for it.
+   * Eat For Less charges sit on the Eat For Less platform itself (no
+   * stripeAccount); everything else is a direct charge on a connected
+   * account of the OrderHub platform.
+   */
+  private async stripeTarget(payment: any): Promise<{ client: any; opts: any; efl: boolean } | null> {
+    // Some callers pass a slim payment ({ id, orderId, intent id }). Only
+    // worth looking up when an Eat For Less charge could exist at all.
+    let metadata = payment?.metadata;
+    if (metadata === undefined && payment?.id && this.eflStripe) {
+      const row = await (this.prisma as any).payment.findUnique({
+        where: { id: payment.id },
+        select: { metadata: true },
+      });
+      metadata = row?.metadata;
+    }
+    if ((metadata as any)?.platform === "efl") {
+      return this.eflStripe ? { client: this.eflStripe, opts: undefined, efl: true } : null;
+    }
+    if (!this.stripe) return null;
+    const stripeAccount = await this.stripeAccountForPayment(payment);
+    return stripeAccount ? { client: this.stripe, opts: { stripeAccount }, efl: false } : null;
   }
 
   /**
@@ -754,16 +807,17 @@ export class PaymentsService {
     if (!Number.isInteger(amountMinor) || amountMinor <= 0) {
       throw new BadRequestException("Nothing to refund");
     }
-    const stripeAccount = await this.stripeAccountForPayment(payment);
+    const target = await this.stripeTarget(payment);
     try {
-      const refund = await this.stripe.refunds.create(
+      const refund = await (target?.client ?? this.stripe).refunds.create(
         {
           payment_intent: payment.stripePaymentIntentId,
           amount: amountMinor,
           reason: "requested_by_customer",
           metadata: { orderId: payment.orderId, ...metadata },
+          ...(target?.efl ? EFL_REFUND_REVERSAL : {}),
         },
-        stripeAccount ? { stripeAccount } : undefined,
+        target?.opts,
       );
       return refund.id as string;
     } catch (err: any) {
@@ -1374,8 +1428,16 @@ export class PaymentsService {
   }): Promise<{
     clientSecret: string;
     amountPence: number;
-    stripeAccountId: string;
+    stripeAccountId: string | null;
+    publishableKey?: string | null;
   }> {
+    if (this.eflStripe) {
+      const source = await this.prisma.order.findFirst({
+        where: { id: params.orderId, tenantId: params.tenantId },
+        select: { orderSource: true },
+      });
+      if ((source?.orderSource as string) === "EAT_FOR_LESS") return this.createEflPaymentIntent(params);
+    }
     if (!this.stripe) {
       throw new BadRequestException("Card payments aren't configured.");
     }
@@ -1521,6 +1583,115 @@ export class PaymentsService {
       amountPence,
       stripeAccountId: connect.stripeAccountId,
     };
+  }
+
+  /**
+   * An Eat For Less order, charged the Uber way: on Eat For Less's own Stripe
+   * (the customer's statement reads EAT FOR LESS), with the shop's share
+   * sent to its Express account by transfer_data and our commission plus
+   * any ad spend kept back as the application fee. Payouts to the shop run
+   * weekly from that account.
+   */
+  private async createEflPaymentIntent(params: { tenantId: string; orderId: string }) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: params.orderId, tenantId: params.tenantId },
+    });
+    if (!order) throw new NotFoundException("Order not found");
+    if (!order.locationId) throw new BadRequestException("Order has no location");
+    const listing = await (this.prisma as any).eflListing.findUnique({
+      where: { locationId: order.locationId },
+      select: { stripeAccountId: true, stripePayoutsEnabled: true },
+    });
+    if (!listing?.stripeAccountId || !listing.stripePayoutsEnabled) {
+      throw new BadRequestException("This shop can't take Eat For Less orders until its payout setup is finished.");
+    }
+
+    const totalGbp = Number(order.total);
+    const amountPence = Math.round(totalGbp * 100);
+    // Never more than the charge: a tiny order with a big ad balance owed
+    // must still leave the shop something to transfer.
+    const applicationFeePence = Math.min(eflApplicationFeePence(order as any), amountPence);
+
+    let intent: any;
+    try {
+      intent = await this.eflStripe.paymentIntents.create({
+        amount: amountPence,
+        currency: "gbp",
+        capture_method: "automatic",
+        // Card only, as on the storefront: Apple Pay and Google Pay ride it.
+        payment_method_types: ["card"],
+        ...(applicationFeePence > 0 && { application_fee_amount: applicationFeePence }),
+        transfer_data: { destination: listing.stripeAccountId },
+        // Ties the transfer to this charge in the shop's Express dashboard.
+        transfer_group: `order_${order.id}`,
+        metadata: {
+          orderId: order.id,
+          tenantId: params.tenantId,
+          locationId: order.locationId,
+          platform: "efl",
+        },
+      });
+    } catch (err: any) {
+      const msg = String(err?.message ?? "");
+      this.logger.error(`EFL PaymentIntent create failed for order ${order.id}: ${msg}`);
+      throw new BadRequestException(`Couldn't start card payment: ${msg}`);
+    }
+    if (!intent.client_secret) throw new BadRequestException("Stripe didn't return a client secret.");
+
+    // The webhook finds the order through this row, as for the storefront.
+    // metadata.platform routes every later capture/refund/lookup to the
+    // Eat For Less client (see stripeTarget).
+    const totalDecimal = new Decimal(totalGbp.toFixed(2));
+    const platformFeeDecimal = new Decimal(applicationFeePence).div(100);
+    const processingFeeDecimal = totalDecimal.mul(PROCESSING_FEE_RATE).add(PROCESSING_FEE_FLAT).toDecimalPlaces(2);
+    await (this.prisma as any).payment.create({
+      data: {
+        tenantId: params.tenantId,
+        orderId: order.id,
+        stripeConnectAccountId: null,
+        stripePaymentIntentId: intent.id,
+        amount: totalDecimal,
+        currency: "gbp",
+        status: PaymentRecordStatus.PENDING,
+        method: "CARD",
+        tipAmount: new Decimal(0),
+        platformFee: platformFeeDecimal,
+        processingFee: processingFeeDecimal,
+        netAmount: totalDecimal.sub(platformFeeDecimal).toDecimalPlaces(2),
+        metadata: { platform: "efl", destination: listing.stripeAccountId },
+      },
+    });
+
+    this.logger.log(
+      `EFL PaymentIntent ${intent.id} for order ${order.id}: ${amountPence}p fee=${applicationFeePence}p to=${listing.stripeAccountId}`,
+    );
+    return {
+      clientSecret: intent.client_secret as string,
+      amountPence,
+      stripeAccountId: null,
+      publishableKey: this.config.get<string>("EFL_STRIPE_PUBLISHABLE_KEY") ?? null,
+    };
+  }
+
+  /** Eat For Less's webhook: its own endpoint secret, same handlers. */
+  async handleEflStripeWebhook(rawBody: Buffer, signature: string) {
+    const secret = this.config.get<string>("EFL_STRIPE_WEBHOOK_SECRET");
+    if (!this.eflStripe || !secret) throw new BadRequestException("Eat For Less payments aren't configured");
+    let event: any;
+    try {
+      event = this.eflStripe.webhooks.constructEvent(rawBody, signature, secret);
+    } catch (err: any) {
+      this.logger.error(`EFL Stripe webhook signature verification failed: ${err.message}`);
+      throw new BadRequestException("Invalid webhook signature");
+    }
+    if (event.type === "account.updated") {
+      this.events.emit("efl.stripe_account.updated", event.data.object);
+      return { received: true };
+    }
+    // Only the payment events: payout.* here would be the SHOPS' payouts,
+    // which the OrderHub payout ledger has no business recording.
+    if (EFL_WEBHOOK_EVENTS.has(event.type)) await this.dispatchStripeEvent(event);
+    return { received: true };
   }
 
   async createCheckoutSession(params: {
@@ -2099,8 +2270,10 @@ export class PaymentsService {
     // capture / cancel / refund call must include the {stripeAccount}
     // option so it operates on the connected account where the charge
     // actually lives. Without it Stripe will look in the platform's
-    // account and 404 ("No such payment_intent").
-    const stripeAccount = await this.stripeAccountForPayment(payment);
+    // account and 404 ("No such payment_intent"). Eat For Less charges are
+    // the exception: they live on the Eat For Less platform itself.
+    const target = await this.stripeTarget(payment);
+    const stripeAccount = target?.opts?.stripeAccount ?? null;
 
     // Backfill the PaymentIntent ID if the webhook hasn't landed yet.
     let piId: string | null = payment.stripePaymentIntentId;
@@ -2142,8 +2315,8 @@ export class PaymentsService {
     ) {
       return; // already terminal
     }
-    if (!this.stripe) return;
-    if (!stripeAccount) {
+    if (!this.stripe && !target) return;
+    if (!target) {
       this.logger.error(
         `captureForOrder ${orderId}: couldn't resolve stripeAccount for direct-charge capture.`,
       );
@@ -2152,11 +2325,9 @@ export class PaymentsService {
       );
     }
     try {
-      await this.stripe.paymentIntents.capture(piId, undefined, {
-        stripeAccount,
-      });
+      await target.client.paymentIntents.capture(piId, undefined, target.opts);
       this.logger.log(
-        `Stripe capture invoked for order ${orderId} (PI ${piId} on ${stripeAccount})`,
+        `Stripe capture invoked for order ${orderId} (PI ${piId} on ${stripeAccount ?? "Eat For Less"})`,
       );
 
       // Optimistic local flip. The payment_intent.succeeded webhook
@@ -2227,22 +2398,21 @@ export class PaymentsService {
     ) {
       return; // already done
     }
-    if (!this.stripe) return;
-    const stripeAccount = await this.stripeAccountForPayment(payment);
-    if (!stripeAccount) {
+    const target = await this.stripeTarget(payment);
+    if (!target) {
       this.logger.error(
         `cancelAuthForOrder ${orderId}: no stripeAccount; direct-charge cancel impossible.`,
       );
       return;
     }
     try {
-      await this.stripe.paymentIntents.cancel(
+      await target.client.paymentIntents.cancel(
         payment.stripePaymentIntentId,
         { cancellation_reason: "requested_by_customer" },
-        { stripeAccount },
+        target.opts,
       );
       this.logger.log(
-        `Stripe PI cancelled for order ${orderId} on ${stripeAccount} (reason: ${reason ?? "n/a"})`,
+        `Stripe PI cancelled for order ${orderId} on ${target.opts?.stripeAccount ?? "Eat For Less"} (reason: ${reason ?? "n/a"})`,
       );
       // payment_intent.canceled webhook will flip statuses.
       // Phase LG — dashboard Logs page.
@@ -2274,9 +2444,8 @@ export class PaymentsService {
       orderBy: { createdAt: "desc" },
     });
     if (!payment || !payment.stripePaymentIntentId) return;
-    if (!this.stripe) return;
-    const stripeAccount = await this.stripeAccountForPayment(payment);
-    if (!stripeAccount) {
+    const target = await this.stripeTarget(payment);
+    if (!target) {
       this.logger.error(
         `refundForOrder ${orderId}: no stripeAccount; direct-charge refund impossible.`,
       );
@@ -2289,9 +2458,10 @@ export class PaymentsService {
       // whether to cancel the auth or issue a refund — the wrong call
       // gets a 400 from Stripe and the customer keeps their money.
       try {
-        const pi = await this.stripe.paymentIntents.retrieve(
+        const pi = await target.client.paymentIntents.retrieve(
           payment.stripePaymentIntentId,
-          { stripeAccount },
+          {},
+          target.opts,
         );
         if (pi.status === "succeeded") {
           // Already captured — fall through to the refund path.
@@ -2316,17 +2486,18 @@ export class PaymentsService {
     }
     try {
       const total = new Decimal(payment.amount).add(new Decimal(payment.tipAmount));
-      await this.stripe.refunds.create(
+      await target.client.refunds.create(
         {
           payment_intent: payment.stripePaymentIntentId,
           amount: Math.round(total.toNumber() * 100),
           reason: "requested_by_customer",
           metadata: { orderId, reason: reason ?? "" },
+          ...(target.efl ? EFL_REFUND_REVERSAL : {}),
         },
-        { stripeAccount },
+        target.opts,
       );
       this.logger.log(
-        `Stripe refund created for order ${orderId} on ${stripeAccount} (PI ${payment.stripePaymentIntentId})`,
+        `Stripe refund created for order ${orderId} on ${target.opts?.stripeAccount ?? "Eat For Less"} (PI ${payment.stripePaymentIntentId})`,
       );
       // Optimistic local flip — same reasoning as capture above.
       // Don't rely on charge.refunded webhook (Connected-account scope).
@@ -2390,7 +2561,7 @@ export class PaymentsService {
    * Best-effort and idempotent — safe to call on every poll.
    */
   async reconcileOrderPayment(orderId: string): Promise<void> {
-    if (!this.stripe) return;
+    if (!this.stripe && !this.eflStripe) return;
     const payment = await (this.prisma as any).payment.findFirst({
       where: { orderId, method: "CARD", provider: "STRIPE" },
       orderBy: { createdAt: "desc" },
@@ -2400,8 +2571,9 @@ export class PaymentsService {
 
     const sessionId = (payment.metadata as any)?.stripeCheckoutSessionId;
 
-    const stripeAccount = await this.stripeAccountForPayment(payment);
-    if (!stripeAccount) return;
+    const target = await this.stripeTarget(payment);
+    if (!target) return;
+    const stripeAccount = target.opts?.stripeAccount;
 
     // Embedded storefront payments have no Checkout Session — the Payment
     // Element confirms a PaymentIntent directly — so retrieve that instead.
@@ -2412,10 +2584,10 @@ export class PaymentsService {
       if (!payment.stripePaymentIntentId) return;
       let pi: any;
       try {
-        pi = await this.stripe.paymentIntents.retrieve(
+        pi = await target.client.paymentIntents.retrieve(
           payment.stripePaymentIntentId,
           {},
-          { stripeAccount },
+          target.opts,
         );
       } catch (err: any) {
         this.logger.warn(
@@ -2643,12 +2815,19 @@ export class PaymentsService {
    * cancelled an already-captured order; reflect REFUNDED on both
    * Payment and Order.
    */
-  async markRefunded(chargeId: string, refundAmountPence: number): Promise<void> {
+  async markRefunded(chargeId: string, refundAmountPence: number, paymentIntentId?: string | null): Promise<void> {
     // Look up by charge ID via the Payment.stripeChargeId column, OR by
     // resolving the charge -> PaymentIntent if our row only has the PI.
+    // The event's charge already names its PaymentIntent; it's the only
+    // route for an Eat For Less charge, which the OrderHub client can't read.
     let payment = await (this.prisma as any).payment.findFirst({
       where: { stripeChargeId: chargeId },
     });
+    if (!payment && paymentIntentId) {
+      payment = await (this.prisma as any).payment.findFirst({
+        where: { stripePaymentIntentId: paymentIntentId },
+      });
+    }
     if (!payment && this.stripe) {
       try {
         const charge = await this.stripe.charges.retrieve(chargeId);
@@ -3491,7 +3670,8 @@ export class PaymentsService {
         // was extended. Reflect into our Payment + Order state.
         const charge = event.data.object;
         const refunded = charge.amount_refunded ?? 0;
-        await this.markRefunded(charge.id, refunded).catch((err: any) =>
+        const piRef = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+        await this.markRefunded(charge.id, refunded, piRef ?? null).catch((err: any) =>
           this.logger.error(`markRefunded failed: ${err.message}`),
         );
         break;

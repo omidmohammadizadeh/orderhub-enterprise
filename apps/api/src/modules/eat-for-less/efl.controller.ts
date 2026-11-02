@@ -29,6 +29,7 @@ import { EflAccountService } from "./efl-account.service";
 import { EflAdsService } from "./efl-ads.service";
 import { EflStatementsService } from "./efl-statements.service";
 import { EflCampaignsService } from "./efl-campaigns.service";
+import { EflPayoutsService } from "./efl-payouts.service";
 import { londonDateKey, londonWeekStart, weekStartFromKey } from "./efl-ads-rules";
 
 
@@ -189,6 +190,8 @@ class LinkHygieneDto {
 // Roles that may change a shop's own listing — the same people who can edit
 // the location's settings.
 const LISTING_WRITE = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER", "MANAGER", "DARK_KITCHEN_MANAGER"] as const;
+/** Where a shop's money goes: its owners only, never a shift manager. */
+const PAYOUT_WRITE = ["PLATFORM_ADMIN", "TENANT_OWNER", "OWNER"] as const;
 
 /** The Eat For Less app — browsing is public, ordering needs a customer. */
 @ApiTags("eat-for-less")
@@ -422,7 +425,29 @@ export class EflListingController {
     private readonly efl: EflService,
     private readonly ads: EflAdsService,
     private readonly statements: EflStatementsService,
+    private readonly payouts: EflPayoutsService,
   ) {}
+
+  /** Getting paid: the shop's Express account on Eat For Less's Stripe. */
+  @Get(":locationId/payouts")
+  async payoutStatus(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return this.payouts.status(locationId);
+  }
+
+  @Post(":locationId/payouts/start")
+  @Roles(...PAYOUT_WRITE)
+  async startPayouts(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return this.payouts.start(locationId);
+  }
+
+  @Post(":locationId/payouts/dashboard")
+  @Roles(...PAYOUT_WRITE)
+  async payoutsDashboard(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return this.payouts.dashboardLink(locationId);
+  }
 
   @Get(":locationId/statements")
   async listStatements(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {

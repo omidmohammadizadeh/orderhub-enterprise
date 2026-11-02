@@ -2445,15 +2445,16 @@ export class OrderingService {
       // than waiting on an authorisation staff have to Accept. Rejecting
       // one is therefore a refund, not a lapsed hold.
       if (dto.embedded) {
-        const { clientSecret, amountPence, stripeAccountId } =
+        const { clientSecret, amountPence, stripeAccountId, publishableKey } =
           await this.payments.createStorefrontPaymentIntent({
             tenantId: location.brand.tenantId,
             orderId: order.id,
           });
         // stripeAccountId is not decoration: this is a direct charge on the
         // restaurant's account, so the browser has to construct Stripe.js
-        // with it or the secret won't confirm.
-        return { ...order, clientSecret, amountPence, stripeAccountId } as any;
+        // with it or the secret won't confirm. (Null for an Eat For Less
+        // platform charge, which confirms with Eat For Less's own key.)
+        return { ...order, clientSecret, amountPence, stripeAccountId, publishableKey } as any;
       }
 
       const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");

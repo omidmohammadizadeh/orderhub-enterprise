@@ -4569,6 +4569,14 @@ model EflListing {
   /// Where the Monday statement goes. Null = the account's own email.
   statementEmail String?
 
+  /// The shop's Express account on Eat For Less's own Stripe. Customers pay
+  /// Eat For Less; each order's share is transferred here and paid out
+  /// weekly. Null until the shop starts payout setup.
+  stripeAccountId      String? @unique
+  /// From Stripe (account.updated): the shop finished the form and Stripe
+  /// can send it money. Orders go through only once this is true.
+  stripePayoutsEnabled Boolean @default(false)
+
   approvedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
