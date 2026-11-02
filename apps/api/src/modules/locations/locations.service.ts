@@ -16,6 +16,7 @@ import { CredentialEncryptionService } from "../integrations/credential-encrypti
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
 import { isBusinessType, type BusinessType } from "../retail/retail.logic";
+import { guardMoneyFields, LOCATION_MONEY_FIELDS, MONEY_FIELD_ROLE } from "../../common/access/money-fields";
 
 // Phase AN — Locations service: full general-tab CRUD + opening-hours +
 // busy-mode + Stripe-fee setters + slug generator. Brand and platform-
@@ -556,6 +557,15 @@ export class LocationsService {
           `Managers can't change: ${forbidden.join(", ")}. Ask an owner.`,
         );
       }
+    }
+    // Payout account + fee columns: OrderHub only. Read raw — the pos*
+    // columns are written by raw SQL below to survive a stale Prisma client.
+    if (role !== MONEY_FIELD_ROLE && LOCATION_MONEY_FIELDS.some((f) => (dto as any)[f] !== undefined)) {
+      const rows = await (this.prisma as any).$queryRawUnsafe(
+        `SELECT ${LOCATION_MONEY_FIELDS.map((f) => `"${f}"`).join(", ")} FROM "locations" WHERE id = $1`,
+        locationId,
+      );
+      guardMoneyFields(dto as any, rows?.[0], LOCATION_MONEY_FIELDS, role);
     }
     // Dashboard access (which sidebar tabs this shop's staff can see) is
     // written ONLY by PUT /admin/dashboard-access. Hiding the toggles from

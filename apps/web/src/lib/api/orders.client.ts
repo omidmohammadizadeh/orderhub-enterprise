@@ -42,6 +42,9 @@ export interface Order {
   displayId: string | null;
   /** Phase AM — sequential per-tenant POS/DIRECT order number ("#1"). */
   orderNumber?: number | null;
+  /** Short per-shop number for calling out; restarts each trading day. Null on
+   *  older orders. Doesn't replace displayId, which stays the unique reference. */
+  ticketNumber?: number | null;
   status: string;
   /** Phase AM payment fields. */
   paymentMethod?: string | null;

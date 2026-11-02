@@ -14,7 +14,7 @@ import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-s
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
 import { CustomerPushService } from "../customer-push/customer-push.service";
-import { coercePostcodeFees, isCashPayment, matchPostcodeFee } from "../dispatch/driver-earnings.service";
+import { coercePostcodeFees, creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee, stopPostcode } from "../dispatch/driver-earnings.service";
 import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
 import { ensureCallLine, eflCallNumber } from "../eat-for-less/efl-calls.service";
 import { MAX_PIN_ATTEMPTS, callLineOpen, checkDeliveryPin } from "../eat-for-less/efl-rules";
@@ -438,12 +438,10 @@ export class DriverAppService {
     const history = withDeadline.filter((a) => !ACTIVE.includes(a.status));
 
     // Cash-up: today's delivered jobs, split by cash vs card.
-    const deliveredToday = assignments.filter(
-      (a) =>
-        a.status === DriverAssignmentStatus.DELIVERED &&
-        a.deliveredAt &&
-        a.deliveredAt >= startOfDay,
-    );
+    const deliveredToday = assignments.filter((a) => {
+      const countedOn = creditedOn(a);
+      return !!countedOn && countedOn >= startOfDay;
+    });
     let cashTotal = 0;
     let cardTotal = 0;
     let deliveryFees = 0;
@@ -452,7 +450,7 @@ export class DriverAppService {
       const total = Number(a.order.total);
       if (isCashPayment(a.order.paymentMethod)) cashTotal += total;
       else cardTotal += total;
-      deliveryFees += matchPostcodeFee(rules, a.order.postcode);
+      deliveryFees += matchPostcodeFee(rules, stopPostcode(a.order as any));
     }
     // Phase BG — the driver's own live earning: start-up fee (once, when
     // they've done at least one delivery today) + per-postcode delivery fees.
@@ -490,10 +488,9 @@ export class DriverAppService {
     const delivered = await this.prisma.driverAssignment.findMany({
       where: {
         driverId: driver.id,
-        status: DriverAssignmentStatus.DELIVERED,
-        deliveredAt: { gte: start, lte: end },
+        ...creditedStopsIn({ gte: start, lte: end }),
       },
-      include: { order: { select: { total: true, paymentMethod: true, postcode: true } } },
+      include: { order: { select: { total: true, paymentMethod: true, postcode: true, deliveryAddress: true } } },
     });
 
     let cashCount = 0;
@@ -512,7 +509,7 @@ export class DriverAppService {
         cardCount += 1;
         cardTotal += t;
       }
-      deliveryFees += matchPostcodeFee(rules, a.order.postcode);
+      deliveryFees += matchPostcodeFee(rules, stopPostcode(a.order as any));
       if (a.deliveredAt) workedDays.add(new Date(a.deliveredAt).toISOString().slice(0, 10));
     }
     // Phase BG — start-up fee is charged once per day the driver worked in

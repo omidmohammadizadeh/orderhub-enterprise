@@ -62,7 +62,11 @@ import { cn } from "@/lib/utils";
 import { SidebarLocationSwitcher } from "./sidebar-location-switcher";
 import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth.store";
-import { deviceHomeFor } from "@/components/dashboard/kiosk-route-guard";
+import {
+  deviceHomeFor,
+  tabletMayOpen,
+  TABLET_ROLE,
+} from "@/components/dashboard/kiosk-route-guard";
 import { humaniseRole } from "@/lib/api/team.client";
 import { getInitials } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -462,8 +466,12 @@ function _Sidebar({
               // Phase AP — items with a `roles` array are hidden from
               // users without that role. Server enforces too — this is
               // UI cleanliness.
-              (!item.roles ||
-                (user?.role && item.roles.includes(user.role))) &&
+              // The shop tablet reads its tabs from one shared list instead
+              // of being added to a dozen role arrays (kiosk-route-guard).
+              (user?.role === TABLET_ROLE
+                ? tabletMayOpen(item.href, user.permissions, true)
+                : !item.roles ||
+                  (user?.role && item.roles.includes(user.role))) &&
               (!item.requiresTableService || tableServiceOn) &&
               (!item.requiresShop || isShop) &&
               (!item.requiresSalon || isSalon) &&

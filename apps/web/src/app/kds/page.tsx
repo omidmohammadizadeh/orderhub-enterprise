@@ -79,6 +79,7 @@ interface KdsTicket {
     id: string;
     displayId: string | null;
     orderNumber?: number | null;
+    ticketNumber?: number | null;
     orderSource: string;
     platform: string;
     fulfillmentType: string;
@@ -858,6 +859,7 @@ function TicketCard({
       )}
       <div className={cn("px-3 py-2 flex items-center justify-between", headerCls)}>
         <span className="font-bold text-lg leading-none">
+          {order.ticketNumber != null && <span className="mr-1.5">T{order.ticketNumber} ·</span>}
           #{order.displayId ?? order.orderNumber ?? order.id.slice(-4).toUpperCase()}
           {order.customerName ? (
             <span className="font-medium text-sm opacity-70">
@@ -1063,6 +1065,7 @@ function CancelledCard({
       </div>
       <div className="px-3 py-2 flex items-center justify-between bg-red-950 text-red-100">
         <span className="font-bold text-lg leading-none">
+          {order.ticketNumber != null && <span className="mr-1.5">T{order.ticketNumber} ·</span>}
           #{order.displayId ?? order.orderNumber ?? order.id.slice(-4).toUpperCase()}
           {order.customerName ? (
             <span className="font-medium text-sm opacity-70">

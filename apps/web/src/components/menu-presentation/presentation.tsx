@@ -5,7 +5,7 @@
 // printing prints them 1:1, one page per sheet.
 
 import { useEffect, useRef, useState } from "react";
-import { Bungee, Luckiest_Guy, Open_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import {
   buildPages,
   buildSections,
@@ -17,9 +17,10 @@ import {
 } from "@/lib/menu-presentations";
 import type { PresentationMenu } from "@/lib/api/assembly-charts.client";
 
-const word = Bungee({ weight: "400", subsets: ["latin"], variable: "--mp-word", display: "block" });
-const head = Luckiest_Guy({ weight: "400", subsets: ["latin"], variable: "--mp-head", display: "block" });
-const body = Open_Sans({ weight: ["400", "600"], subsets: ["latin"], variable: "--mp-body", display: "block" });
+const word = localFont({ src: "../../fonts/bungee-latin-400.woff2", weight: "400", variable: "--mp-word", display: "block" });
+const head = localFont({ src: "../../fonts/luckiest-guy-latin-400.woff2", weight: "400", variable: "--mp-head", display: "block" });
+// Open Sans is one variable file; Google served it for both 400 and 600.
+const body = localFont({ src: "../../fonts/open-sans-latin-var.woff2", weight: "400 600", variable: "--mp-body", display: "block" });
 export const PRESENTATION_FONTS = `${word.variable} ${head.variable} ${body.variable}`;
 
 const GREY = "#d9d3d2";

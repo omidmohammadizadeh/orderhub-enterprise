@@ -21,6 +21,7 @@ import {
 import { CareemWebhookLogService } from "./careem-webhook-log.service";
 import { CareemStoreService } from "./careem-store.service";
 import { CareemMenuPublishService } from "./careem-menu-publish.service";
+import { CareemConnectionService } from "./careem-connection.service";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import type { AuthenticatedUser } from "../../auth/interfaces/jwt-payload.interface";
 
@@ -50,7 +51,144 @@ export class CareemController {
     private readonly seen: CareemWebhookLogService,
     private readonly store: CareemStoreService,
     private readonly menu: CareemMenuPublishService,
+    private readonly connections: CareemConnectionService,
   ) {}
+
+  // ── Brand × location connections: what the brand page uses ──
+
+  @Post("connect")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Register this brand at this location with Careem" })
+  connect(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { brandId: string; locationId: string },
+  ) {
+    return this.explain("connect", () =>
+      this.connections.connect(user.tenantId, body),
+    );
+  }
+
+  @Get("connections/:connectionId/health")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  connectionHealth(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.explain("read connection", () =>
+      this.connections.health(user.tenantId, connectionId),
+    );
+  }
+
+  @Post("connections/:connectionId/orders")
+  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Send Careem orders to OrderHub, or back to the Careem tablet",
+  })
+  connectionOrders(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { active: boolean },
+  ) {
+    return this.explain("switch orders", () =>
+      this.connections.setOrders(user.tenantId, connectionId, !!body?.active),
+    );
+  }
+
+  @Post("connections/:connectionId/pause")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  connectionPause(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { minutes: number },
+  ) {
+    return this.explain("pause", () =>
+      this.connections.pause(user.tenantId, connectionId, Number(body?.minutes)),
+    );
+  }
+
+  @Post("connections/:connectionId/resume")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  connectionResume(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.explain("resume", () =>
+      this.connections.resume(user.tenantId, connectionId),
+    );
+  }
+
+  @Post("connections/:connectionId/publish-hours")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  connectionPublishHours(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.explain("publish hours", () =>
+      this.connections.publishHours(user.tenantId, connectionId),
+    );
+  }
+
+  @Post("connections/:connectionId/publish-menu")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  connectionPublishMenu(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.explain("publish menu", () =>
+      this.menu.publishAssigned(user.tenantId, connectionId),
+    );
+  }
+
+  @Get("connections/:connectionId/menu-preview")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @ApiOperation({ summary: "The catalog a publish would send. Sends nothing." })
+  connectionMenuPreview(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.explain("preview menu", () =>
+      this.menu.previewConnection(user.tenantId, connectionId),
+    );
+  }
+
+  @Post("connections/:connectionId/disconnect")
+  @Roles("TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  connectionDisconnect(
+    @Param("connectionId") connectionId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.explain("disconnect", () =>
+      this.connections.disconnect(user.tenantId, connectionId),
+    );
+  }
+
+  @Post("menus/:menuId/publish")
+  @Roles("MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Publish a menu to a brand's Careem branch" })
+  publishMenuToBrand(
+    @Param("menuId") menuId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body?: { locationId?: string; brandId?: string },
+  ) {
+    return this.explain("publish menu", () =>
+      this.menu.publishMenu({
+        tenantId: user.tenantId,
+        menuId,
+        locationId: body?.locationId,
+        brandId: body?.brandId,
+      }),
+    );
+  }
+
+  // ── Diagnostics and the location-only steps on the Careem page ──
 
   @Get("diagnostics")
   @Roles("PLATFORM_ADMIN", "TENANT_OWNER")

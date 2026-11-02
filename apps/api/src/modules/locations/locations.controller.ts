@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  Put,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import {
@@ -22,6 +23,10 @@ import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
 import { Public } from "../../common/decorators/public.decorator";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+import {
+  LocationHygieneService,
+  type HygieneUpdate,
+} from "../hygiene/location-hygiene.service";
 
 // Who may change a shop's settings.
 //
@@ -43,7 +48,10 @@ const LOCATION_WRITE = [
 @ApiBearerAuth()
 @Controller({ path: "locations", version: "1" })
 export class LocationsController {
-  constructor(private readonly locations: LocationsService) {}
+  constructor(
+    private readonly locations: LocationsService,
+    private readonly hygiene: LocationHygieneService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: "List locations for the tenant" })
@@ -172,6 +180,43 @@ export class LocationsController {
     return this.locations
       .copyHoursToLocations(locationId, user.tenantId, body.locationIds)
       .then((count) => ({ applied: count }));
+  }
+
+  // ── Food hygiene rating (FSA) ───────────────────────────────────────────
+  // Two-segment paths, so `:locationId` alone can't swallow them; declared
+  // before the public/by-slug route all the same.
+
+  @Get(":locationId/hygiene")
+  @Roles(...LOCATION_WRITE)
+  @ApiOperation({ summary: "Get the linked FSA food hygiene rating" })
+  getHygiene(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.hygiene.get(locationId, user.tenantId).then((hygiene) => ({ hygiene }));
+  }
+
+  @Put(":locationId/hygiene")
+  @Roles(...LOCATION_WRITE)
+  @ApiOperation({ summary: "Link an FSA record (link, id, or search) and/or toggle the storefront badge" })
+  setHygiene(
+    @Param("locationId") locationId: string,
+    @Body() body: HygieneUpdate,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.hygiene
+      .update(locationId, user.tenantId, body ?? {})
+      .then((hygiene) => ({ hygiene }));
+  }
+
+  @Post(":locationId/hygiene/refresh")
+  @Roles(...LOCATION_WRITE)
+  @ApiOperation({ summary: "Re-fetch the FSA rating now" })
+  refreshHygiene(
+    @Param("locationId") locationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.hygiene.refresh(locationId, user.tenantId).then((hygiene) => ({ hygiene }));
   }
 
   // ── Public storefront ───────────────────────────────────────────────────

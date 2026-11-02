@@ -9,7 +9,7 @@
 // so an em dash or a curly quote comes out as "?".
 
 import {
-  hasNativeBridge,
+  hasAnyPrintPath,
   bridgeSupportsPrinter,
   writeToPrinter,
 } from "./bridge";
@@ -146,13 +146,11 @@ export async function printBookingViaBridge(
   locationId: string,
   booking: BookingChit,
 ): Promise<number> {
-  if (!hasNativeBridge()) return 0;
+  if (!hasAnyPrintPath()) return 0;
   const printers = await printersClient.list(locationId);
   const targets = printers.filter(
     (p: any) =>
       p.locationId === locationId &&
-      (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
-      p.ipAddress &&
       p.isActive !== false &&
       bridgeSupportsPrinter(p),
   );

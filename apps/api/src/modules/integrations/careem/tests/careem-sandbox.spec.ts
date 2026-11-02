@@ -92,10 +92,19 @@ describe("CareemSandboxService — the rules that block a real integration", () 
     expect(err(() => s.putBranch("loc-1", "brand-1", { name: "Marina" })).status).toBe(400);
   });
 
+  it("refuses hours for a branch that isn't mapped, as real Careem do", () => {
+    const s = sandbox();
+    s.createBrand({ id: "brand-1", name: "Pizza Uno" });
+    s.putBranch("loc-1", "brand-1", { name: "Marina" });
+    const e = err(() => s.putHours("loc-1", { operational_hours: [] }));
+    expect(JSON.stringify(e.payload)).toContain("branch_id is not mapped");
+  });
+
   it("rejects 00:00 as an end time", () => {
     const s = sandbox();
     s.createBrand({ id: "brand-1", name: "Pizza Uno" });
     s.putBranch("loc-1", "brand-1", { name: "Marina" });
+    s.mapBranch("loc-1");
     const e = err(() =>
       s.putHours("loc-1", {
         operational_hours: [
@@ -110,6 +119,7 @@ describe("CareemSandboxService — the rules that block a real integration", () 
     const s = sandbox();
     s.createBrand({ id: "brand-1", name: "Pizza Uno" });
     s.putBranch("loc-1", "brand-1", { name: "Marina" });
+    s.mapBranch("loc-1");
     expect(
       s.putHours("loc-1", {
         operational_hours: [

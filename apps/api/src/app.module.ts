@@ -78,6 +78,7 @@ import { KdsModule } from "./modules/kds/kds.module";
 import { LogsModule } from "./modules/logs/logs.module";
 import { PrintersModule } from "./modules/printers/printers.module";
 import { AdminModule } from "./modules/admin/admin.module";
+import { ProspectsModule } from "./modules/prospects/prospects.module";
 import { OrderingModule } from "./modules/ordering/ordering.module";
 import { EflModule } from "./modules/eat-for-less/efl.module";
 import { StoreStatusModule } from "./modules/store-status/store-status.module";
@@ -248,6 +249,7 @@ function bullRedisOptions(raw: string | undefined): Record<string, unknown> {
     // ── Operational ──────────────────────────────────────
     HealthModule,
     AdminModule,
+    ProspectsModule,
 
     // ── Domain ───────────────────────────────────────────
     AuthModule,

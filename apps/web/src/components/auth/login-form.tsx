@@ -14,7 +14,15 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth.store";
 
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  // A shop tablet signs in with the username from Team → Tablet logins,
+  // which has no "@". Anything else must still be a real email.
+  email: z
+    .string()
+    .trim()
+    .refine(
+      (v) => z.string().email().safeParse(v).success || /^[a-z0-9][a-z0-9-]{2,62}$/i.test(v),
+      "Please enter a valid email address or shop username",
+    ),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -83,11 +91,15 @@ export function LoginForm() {
 
       {/* Email */}
       <div className="space-y-1.5">
-        <Label htmlFor="email">Email address</Label>
+        <Label htmlFor="email">Email or shop username</Label>
         <Input
           id="email"
-          type="email"
-          autoComplete="email"
+          type="text"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          autoComplete="username"
           autoFocus
           placeholder="you@restaurant.com"
           error={!!errors.email}

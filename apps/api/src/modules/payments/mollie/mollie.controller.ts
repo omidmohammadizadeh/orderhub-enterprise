@@ -35,9 +35,9 @@ export class MollieController {
 
   @Get("status")
   @Roles("TENANT_OWNER", "FINANCIAL_AGENT")
-  @ApiOperation({ summary: "Mollie state of every brand" })
-  status(@CurrentUser() user: AuthenticatedUser) {
-    return this.mollie.listStatus(user.tenantId);
+  @ApiOperation({ summary: "Mollie state of every brand; ?locationId= scopes to that location's brands" })
+  status(@CurrentUser() user: AuthenticatedUser, @Query("locationId") locationId?: string) {
+    return this.mollie.listStatus(user.tenantId, locationId);
   }
 
   @Post("brands/:brandId/connect")

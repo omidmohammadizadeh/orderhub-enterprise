@@ -13,7 +13,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { X, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import { brandsClient, type Brand } from "@/lib/api/locations.client";
+import { channelsForCountry } from "@orderhub/shared";
+import { brandsClient, locationsClient, type Brand } from "@/lib/api/locations.client";
 import { PlatformLogo } from "@/components/ui/platform-logo";
 
 interface Props {
@@ -49,6 +50,12 @@ const BRAND_CHANNELS = [
     wired: true,
     note: "Pushes this brand's opening hours + prep time to Deliveroo.",
   },
+  {
+    id: "CAREEM",
+    title: "Careem",
+    wired: true,
+    note: "Pushes this location's opening hours to each of this brand's Careem branches. No prep time — Careem has no endpoint for it.",
+  },
 ];
 
 export function PublishHoursModal({ open, locationId, onClose }: Props) {
@@ -61,6 +68,20 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
     enabled: open,
   });
   const brands = brandsQuery.data ?? [];
+
+  // Every channel here needs a shop in its country: a Dubai shop is never shown
+  // Just Eat, and a UK shop is never shown Careem.
+  const locationQuery = useQuery({
+    queryKey: ["location", locationId],
+    queryFn: () => locationsClient.get(locationId!),
+    enabled: open && !!locationId,
+  });
+  const country = locationQuery.data?.country;
+  const channels = country
+    ? BRAND_CHANNELS.filter((c) =>
+        channelsForCountry(country).some((known) => known.id === c.id),
+      )
+    : BRAND_CHANNELS.filter((c) => c.id !== "CAREEM");
 
   useEffect(() => {
     if (open) setBrand(null);
@@ -202,7 +223,7 @@ export function PublishHoursModal({ open, locationId, onClose }: Props) {
               )}
             </>
           ) : (
-            BRAND_CHANNELS.map((c) => (
+            channels.map((c) => (
               <div
                 key={c.id}
                 className="flex items-center gap-3 rounded-xl border border-zinc-200 p-3"

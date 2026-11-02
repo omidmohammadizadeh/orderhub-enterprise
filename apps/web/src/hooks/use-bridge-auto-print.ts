@@ -22,9 +22,10 @@ import {
   bridgeSupportsPrinter,
   renderReceiptParts,
   joinReceiptAndQr,
-  hasNativeBridge,
+  hasAnyPrintPath,
   repeatReceipt,
 } from "../lib/printing/bridge";
+import { BROWSER_PRINTERS_CHANGED } from "../lib/printing/browser-printers";
 import { buildPrintPayload } from "../lib/printing/order-receipt";
 import {
   resolveReceiptOffer,
@@ -81,7 +82,16 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
     lastMessage: null,
   });
 
-  const inApp = typeof window !== "undefined" && hasNativeBridge();
+  // The tablet app, or a desktop browser with a printer linked to it. A
+  // plain browser with nothing linked stays false and never fetches.
+  // Re-render (and so re-read hasAnyPrintPath) when a printer is linked.
+  const [, setLinksVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setLinksVersion((v) => v + 1);
+    window.addEventListener(BROWSER_PRINTERS_CHANGED, bump);
+    return () => window.removeEventListener(BROWSER_PRINTERS_CHANGED, bump);
+  }, []);
+  const inApp = typeof window !== "undefined" && hasAnyPrintPath();
 
   const printersQuery = useQuery({
     queryKey: queryKeys.printers(locationId),
@@ -106,8 +116,6 @@ export function useBridgeAutoPrint(locationId?: string): AutoPrintStatus {
     const btPrinters = (printersRef.current ?? []).filter(
       (p: any) =>
         (!locationId || p.locationId === locationId) &&
-        (p.connectionType === "BLUETOOTH" || p.connectionType === "LAN") &&
-        p.ipAddress &&
         p.isActive !== false &&
         p.defaults?.autoPrint &&
         bridgeSupportsPrinter(p),

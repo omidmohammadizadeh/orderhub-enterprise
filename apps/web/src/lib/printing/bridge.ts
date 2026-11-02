@@ -1,4 +1,18 @@
 import { formatMoney } from "@orderhub/shared";
+import {
+  readTextSize,
+  textSizeToMultiplier,
+  textSizeToPx,
+  TEXT_SIZE_NATIVE,
+  TICKET_LINES,
+  type TicketLineKey,
+  type TicketLineStyles,
+} from "./ticket-layout";
+import {
+  getBrowserPrinterLink,
+  hasBrowserPrinterLinks,
+  printViaBrowserLink,
+} from "./browser-printers";
 // Browser-side ESC/POS rendering + native Bluetooth bridge.
 //
 // When the dashboard is loaded inside the OrderHub Solutions Android
@@ -70,6 +84,55 @@ export function resolveModifierScale(printer: any): FontScale {
   return normaliseFontScale(printer?.defaults?.modifierScale);
 }
 
+// Per-printer ticket content and sizing (see ticket-layout.ts). Optional on
+// every builder, so a caller that passes none prints exactly as before.
+export type TicketStyle = {
+  /** TICKET_FIELDS keys this printer leaves off. */
+  hide?: ReadonlySet<string> | readonly string[];
+  /** 1–30; null/undefined = the Standard/Large/XL preset. */
+  itemSize?: number | null;
+  modifierSize?: number | null;
+  /** Item headlines bold (default true). */
+  boldItems?: boolean;
+  /** Size and bold of the lines around the items (see TICKET_LINES). */
+  lineStyles?: TicketLineStyles;
+};
+
+function ticketStyleOf(o: TicketStyle | undefined): TicketStyle {
+  return {
+    hide: o?.hide,
+    itemSize: o?.itemSize,
+    modifierSize: o?.modifierSize,
+    boldItems: o?.boldItems,
+    lineStyles: o?.lineStyles,
+  };
+}
+
+/** A line's size and weight: what the printer saved, else how it has always printed. */
+function lineStyleOf(
+  styles: TicketLineStyles | undefined,
+  key: TicketLineKey,
+  fallbackSize?: number,
+) {
+  const line = TICKET_LINES.find((l) => l.key === key)!;
+  const saved = styles?.[key];
+  const usual = fallbackSize ?? line.size;
+  const size = saved?.size ?? usual;
+  return {
+    size,
+    bold: saved?.bold ?? line.bold,
+    // The size this line has always printed at stays plain text; only a size
+    // the shop chose has to be drawn.
+    drawn: size !== usual && size !== TEXT_SIZE_NATIVE,
+  };
+}
+
+function shownOn(hide: TicketStyle["hide"]): (key: string) => boolean {
+  if (!hide) return () => true;
+  const set = hide instanceof Set ? hide : new Set(hide as readonly string[]);
+  return (key) => !set.has(key);
+}
+
 // Typeface. ESC/POS thermal printers carry two built-in fonts and no more —
 // they are ROM bitmaps, not scalable outlines, so "any font you like" is not
 // physically available. What you can choose is:
@@ -99,7 +162,7 @@ function colsForFont(paperWidth: number, font: PrintFont): number {
   return font === "B" ? Math.floor(base * 1.33) : base;
 }
 
-function colsFor(paperWidth: number): number {
+export function colsFor(paperWidth: number): number {
   return paperWidth === 58 ? 32 : 42;
 }
 
@@ -160,13 +223,13 @@ function strBytes(s: string): number[] {
  * truncated rather than wrapped — a band that runs onto a second line stops
  * reading as a band. Mirrors centreOn() in the two server renderers.
  */
-function centreOn(s: string, width: number): string {
+export function centreOn(s: string, width: number): string {
   const text = s.length > width ? s.slice(0, width) : s;
   const left = Math.floor((width - text.length) / 2);
   return " ".repeat(left) + text + " ".repeat(width - text.length - left);
 }
 
-function line(buf: number[], text: string) {
+export function line(buf: number[], text: string) {
   for (const b of strBytes(text)) buf.push(b);
   buf.push(LF);
 }
@@ -180,7 +243,7 @@ function indented(text: string, prefix: string, width: number): string[] {
   );
 }
 
-function padBetween(left: string, right: string, width: number): string {
+export function padBetween(left: string, right: string, width: number): string {
   const total = left.length + right.length;
   if (total >= width) return (left + " " + right).slice(0, width);
   return left + " ".repeat(width - total) + right;
@@ -200,7 +263,25 @@ export type BridgeWindow = Window & {
       port: number,
       base64Bytes: string,
     ): Promise<{ ok: true }>;
+    // USB cable printer (Android USB host), addressed by vendor + product id.
+    // Only present on APKs that ship the usb-printer module.
+    listUsbDevices?(): Promise<UsbBridgeDevice[]>;
+    printUsb?(
+      vendorId: number,
+      productId: number,
+      base64Bytes: string,
+    ): Promise<{ ok: true }>;
   };
+};
+
+export type UsbBridgeDevice = {
+  deviceName: string;
+  vendorId: number;
+  productId: number;
+  manufacturer: string | null;
+  product: string | null;
+  isPrinterClass: boolean;
+  hasPermission: boolean;
 };
 
 export function hasNativeBridge(): boolean {
@@ -214,6 +295,27 @@ export function hasLanBridge(): boolean {
   if (typeof window === "undefined") return false;
   const bt = (window as BridgeWindow).OrderHubBT;
   return !!bt?.isReady && typeof bt.printLan === "function";
+}
+
+// True if the installed app build can print over a USB cable.
+export function hasUsbBridge(): boolean {
+  if (typeof window === "undefined") return false;
+  const bt = (window as BridgeWindow).OrderHubBT;
+  return !!bt?.isReady && typeof bt.printUsb === "function";
+}
+
+export async function listUsbBridgeDevices(): Promise<UsbBridgeDevice[]> {
+  const bt = (window as BridgeWindow).OrderHubBT;
+  if (!bt?.isReady || typeof bt.listUsbDevices !== "function") return [];
+  return bt.listUsbDevices();
+}
+
+// Anything on THIS device that can put a ticket on paper: the tablet app,
+// or a desktop browser with a printer linked to it (browser-printers.ts).
+// Gates auto-print and the print buttons, so a plain browser with nothing
+// linked still never fetches orders for printing.
+export function hasAnyPrintPath(): boolean {
+  return hasNativeBridge() || hasBrowserPrinterLinks();
 }
 
 /**
@@ -275,14 +377,66 @@ export async function bridgeLanPrint(
   );
 }
 
-// Route a print to the right transport based on the printer's
-// connectionType: BLUETOOTH → bridgePrint(mac), LAN → bridgeLanPrint(ip).
-// `ipAddress` holds the MAC for Bluetooth and the IP for LAN.
-export async function writeToPrinter(
-  printer: { connectionType?: string; ipAddress?: string | null; port?: number | null },
+export async function bridgeUsbPrint(
+  vendorId: number,
+  productId: number,
   bytes: Uint8Array,
 ): Promise<void> {
+  const bt = (window as BridgeWindow).OrderHubBT;
+  if (!bt?.isReady || typeof bt.printUsb !== "function") {
+    throw new Error(
+      "USB printing needs the latest tablet app — please update the app.",
+    );
+  }
+  const b64 = bytesToBase64(bytes);
+  await enqueueForPrinter(`usb:${vendorId}:${productId}`, () =>
+    bt.printUsb!(vendorId, productId, b64),
+  );
+}
+
+type PrintTarget = {
+  id?: string;
+  connectionType?: string;
+  ipAddress?: string | null;
+  port?: number | null;
+  usbVendor?: number | null;
+  usbProduct?: number | null;
+  paperWidth?: number | null;
+  defaults?: any;
+  model?: string | null;
+};
+
+// A printer linked to this browser (desktop Chrome/Edge). Never inside the
+// tablet app — the native transports own printing there.
+function browserLinkFor(printer: PrintTarget) {
+  if (hasNativeBridge()) return null;
+  return getBrowserPrinterLink(printer?.id);
+}
+
+// Route a print to the right transport:
+//   linked in this browser → WebUSB / Web Serial / print dialog
+//   BLUETOOTH → bridgePrint(mac)   (`ipAddress` holds the MAC)
+//   LAN       → bridgeLanPrint(ip)
+//   USB       → bridgeUsbPrint(vendor, product)
+export async function writeToPrinter(
+  printer: PrintTarget,
+  bytes: Uint8Array,
+): Promise<void> {
+  const link = browserLinkFor(printer);
+  if (link) {
+    await enqueueForPrinter(`browser:${printer.id}`, () =>
+      printViaBrowserLink(link, bytes, printer),
+    );
+    return;
+  }
   const conn = String(printer?.connectionType ?? "").toUpperCase();
+  if (conn === "USB") {
+    if (!printer.usbVendor || !printer.usbProduct) {
+      throw new Error("USB printer has no vendor/product id saved");
+    }
+    await bridgeUsbPrint(printer.usbVendor, printer.usbProduct, bytes);
+    return;
+  }
   if (!printer?.ipAddress) throw new Error("Printer has no address configured");
   if (conn === "LAN") {
     await bridgeLanPrint(printer.ipAddress, printer.port ?? 9100, bytes);
@@ -291,12 +445,17 @@ export async function writeToPrinter(
   }
 }
 
-// Can the current app build print to this printer?
-export function bridgeSupportsPrinter(printer: {
-  connectionType?: string;
-}): boolean {
+// Can THIS device print to this printer right now? Checks both that a
+// transport exists here and that the printer has the address it needs.
+export function bridgeSupportsPrinter(printer: PrintTarget): boolean {
+  if (browserLinkFor(printer)) return true;
   const conn = String(printer?.connectionType ?? "").toUpperCase();
-  return conn === "LAN" ? hasLanBridge() : hasNativeBridge();
+  if (conn === "USB") {
+    return hasUsbBridge() && !!printer.usbVendor && !!printer.usbProduct;
+  }
+  if (conn === "LAN") return hasLanBridge() && !!printer.ipAddress;
+  if (conn === "BLUETOOTH") return hasNativeBridge() && !!printer.ipAddress;
+  return false;
 }
 
 // Repeat a fully-rendered receipt N times into one buffer. Each copy
@@ -364,7 +523,7 @@ export function buildTestReceipt(paperWidth: number = 80): Uint8Array {
   line(buf, "");
   buf.push(...ALIGN_LEFT);
   line(buf, "-".repeat(colsFor(paperWidth)));
-  line(buf, "Connected via Bluetooth bridge");
+  line(buf, "Connected to Order Hub");
   line(buf, "Status: OK");
   line(buf, "-".repeat(colsFor(paperWidth)));
   line(buf, "");
@@ -392,7 +551,7 @@ function fmtWhen(iso: any): string {
   return `${date} ${time}`;
 }
 
-function moneyIn(n: any, currency?: string | null): string {
+export function moneyIn(n: any, currency?: string | null): string {
   const v = typeof n === "number" ? n : Number(n);
   if (!Number.isFinite(v)) return "";
   // £ is encoded to its CP437 byte (0x9C) by strBytes so it prints. Other
@@ -404,7 +563,7 @@ function moneyIn(n: any, currency?: string | null): string {
 
 // Word-wrap a long string at column boundaries. Thermal printers
 // don't auto-wrap — long lines just truncate at the column count.
-function wrap(text: string, width: number): string[] {
+export function wrap(text: string, width: number): string[] {
   const words = String(text).split(/\s+/);
   const lines: string[] = [];
   let cur = "";
@@ -532,6 +691,149 @@ export function rasterTextLine(
   }
   ctx.fillText(shown, 0, h / 2);
   return { bytes: packRaster(ctx, w, h), rightDrawn };
+}
+
+/**
+ * A wrapped block of text drawn as ONE raster bitmap, at any pixel size — how
+ * the 1–30 text sizes print. The printer itself only knows whole multiples of
+ * its ROM font (1×, 2×, 3×…), so every size in between has to be pixels.
+ *
+ * The price is drawn at `rightPx` on the last line, right-aligned, whatever
+ * size the text is: turning item names up must not turn the money up with
+ * them. If the last line has no room left for it, the price gets a short row
+ * of its own rather than costing the name characters.
+ *
+ * `indentPx` hangs every line (first and continuations) under its item, like
+ * the text-mode "  - " prefix does for options.
+ */
+export function rasterTextBlock(
+  text: string,
+  dotWidth: number,
+  opts: {
+    fontPx: number;
+    bold?: boolean;
+    indentPx?: number;
+    right?: string;
+    rightPx?: number;
+    rightBold?: boolean;
+    /** White on black, the whole width of the paper. */
+    reverse?: boolean;
+    center?: boolean;
+  },
+): number[] | null {
+  if (typeof document === "undefined") return null;
+  const w = Math.floor(dotWidth / 8) * 8;
+  const indent = opts.indentPx ?? 0;
+  const fontPx = opts.fontPx;
+  const rightPx = opts.rightPx ?? 24;
+  const textFont = `${opts.bold ? "bold " : ""}${fontPx}px sans-serif`;
+  const priceFont = `${opts.rightBold ? "bold " : ""}${rightPx}px monospace`;
+
+  const measure = document.createElement("canvas").getContext("2d");
+  if (!measure) return null;
+  measure.font = textFont;
+  const avail = w - indent;
+  const fits = (s: string) => measure.measureText(s).width <= avail;
+
+  // Greedy word wrap; a single word wider than the line breaks by character.
+  const lines: string[] = [];
+  let cur = "";
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    const next = cur ? `${cur} ${word}` : word;
+    if (fits(next)) {
+      cur = next;
+      continue;
+    }
+    if (cur) lines.push(cur);
+    cur = "";
+    let rest = word;
+    while (!fits(rest)) {
+      let n = rest.length - 1;
+      while (n > 1 && !fits(rest.slice(0, n))) n--;
+      lines.push(rest.slice(0, n));
+      rest = rest.slice(n);
+    }
+    cur = rest;
+  }
+  if (cur || lines.length === 0) lines.push(cur);
+
+  const right = (opts.right ?? "").trim();
+  measure.font = priceFont;
+  const rightW = right ? measure.measureText(right).width + rightPx * 0.5 : 0;
+  measure.font = textFont;
+  const lastW = measure.measureText(lines[lines.length - 1]!).width;
+  const priceOwnRow = !!right && lastW + rightW > avail;
+
+  const lineH = Math.ceil(fontPx * 1.25);
+  const priceRowH = Math.ceil(rightPx * 1.35);
+  const h = Math.ceil((lines.length * lineH + (priceOwnRow ? priceRowH : 0) + 4) / 8) * 8;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.fillStyle = opts.reverse ? "#000" : "#fff";
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = opts.reverse ? "#fff" : "#000";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = textFont;
+  if (opts.center) ctx.textAlign = "center";
+  const textX = opts.center ? w / 2 : indent;
+  lines.forEach((l, i) => ctx.fillText(l, textX, (i + 1) * lineH - fontPx * 0.22));
+  ctx.textAlign = "left";
+
+  if (right) {
+    ctx.font = priceFont;
+    ctx.textAlign = "right";
+    // Same baseline as the last text line, so a small price sits on the line
+    // it belongs to instead of floating at the top of a tall one.
+    const baseline = priceOwnRow
+      ? lines.length * lineH + priceRowH - rightPx * 0.3
+      : lines.length * lineH - fontPx * 0.22;
+    ctx.fillText(right, w, baseline);
+    ctx.textAlign = "left";
+  }
+  return packRaster(ctx, w, h);
+}
+
+/**
+ * Text-mode version of the same rule: the name prints at w×h, the price stays
+ * at 1×1 on the last line. ESC/POS lets the size change mid-line, so the money
+ * column lines up with every other price on the ticket instead of doubling.
+ * Column maths counts each enlarged character as `w` columns.
+ */
+function nativeSizedLines(
+  buf: number[],
+  text: string,
+  right: string,
+  cols: number,
+  w: number,
+  h: number,
+  prefix = "",
+) {
+  const sized = w > 1 || h > 1;
+  const SIZE = sized ? sizeOn(w, h) : [];
+  const RESET = sized ? DOUBLE_OFF : [];
+  const perLine = Math.max(4, Math.floor(cols / w));
+  const lines = prefix ? indented(text, prefix, perLine) : wrap(text, perLine);
+  if (lines.length === 0) lines.push(prefix);
+  const last = lines.pop()!;
+  for (const l of lines) {
+    buf.push(...SIZE);
+    line(buf, l);
+    buf.push(...RESET);
+  }
+  const used = last.length * w;
+  if (right && used + 1 + right.length <= cols) {
+    buf.push(...SIZE, ...strBytes(last), ...RESET);
+    line(buf, " ".repeat(cols - used - right.length) + right);
+    return;
+  }
+  buf.push(...SIZE);
+  line(buf, last);
+  buf.push(...RESET);
+  if (right) line(buf, padBetween("", right, cols));
 }
 
 // Cache rastered logos per (url|width) so we don't re-decode the image
@@ -875,27 +1177,36 @@ export function buildOrderReceipt(
     fontScale?: FontScale;
     modifierScale?: FontScale;
     printFont?: PrintFont;
-  },
+  } & TicketStyle,
 ): Uint8Array {
   // Bound to this order's currency; shadows the module-level helper so every
   // price below prints in the shop's own money.
   const money = (n: any) => moneyIn(n, (payload as any)?.currency);
+  const show = shownOn(opts?.hide);
+  const itemSize = readTextSize(opts?.itemSize);
+  const modSize = readTextSize(opts?.modifierSize);
+  const itemBold = opts?.boldItems !== false;
   const font = normalisePrintFont(opts?.printFont);
   const cols = colsForFont(paperWidth, font);
   const scale = normaliseFontScale(opts?.fontScale);
   const modScale = normaliseFontScale(opts?.modifierScale);
-  const modH = modScale === "NORMAL" ? 1 : 2;
-  const modW = modScale === "XLARGE" ? 2 : 1;
+  // A 1–30 size wins over the old preset. In text mode (notes, and the
+  // native size-10 path) it rounds to the nearest whole multiplier.
+  const modH = modSize != null ? textSizeToMultiplier(modSize) : modScale === "NORMAL" ? 1 : 2;
+  const modW = modSize != null ? 1 : modScale === "XLARGE" ? 2 : 1;
   const modCols = Math.floor(cols / modW);
-  const MOD_ON = modScale === "NORMAL" ? [] : sizeOn(modW, modH);
-  const MOD_OFF = modScale === "NORMAL" ? [] : DOUBLE_OFF;
+  const MOD_ON = modW === 1 && modH === 1 ? [] : sizeOn(modW, modH);
+  const MOD_OFF = MOD_ON.length ? DOUBLE_OFF : [];
   // Item lines: taller on LARGE, taller AND wider on XLARGE. Double
-  // width halves the columns we have to lay a line out in, so every
-  // scaled block measures itself against `itemCols`, not `cols`.
-  const itemH = scale === "NORMAL" ? 1 : 2;
-  const itemW = scale === "XLARGE" ? 2 : 1;
-  const itemCols = Math.floor(cols / itemW);
-  const ITEM_ON = sizeOn(itemW, itemH);
+  // width halves the columns we have to lay a line out in.
+  const itemH = itemSize != null ? textSizeToMultiplier(itemSize) : scale === "NORMAL" ? 1 : 2;
+  const itemW = itemSize != null ? 1 : scale === "XLARGE" ? 2 : 1;
+  // Raster rows span exactly the text columns (42 × 12 dots = 504 on 80mm),
+  // so a drawn price ends where every text price does — and it stays inside
+  // the 512-dot heads some 80mm printers have.
+  const lineDots = cols * (font === "B" ? 9 : 12);
+  const ITEM_BOLD_ON = itemBold ? BOLD_ON : [];
+  const ITEM_BOLD_OFF = itemBold ? BOLD_OFF : [];
   const buf: number[] = [];
   buf.push(...INIT);
   // Select the typeface once, straight after INIT — INIT resets it, so
@@ -921,19 +1232,19 @@ export function buildOrderReceipt(
   // ── Header ────────────────────────────────────────────────────────
   buf.push(...ALIGN_CENTER, ...BOLD_ON, ...DOUBLE_ON);
   const brandName = String(payload?.brandName ?? payload?.locationName ?? "");
-  if (brandName) line(buf, brandName.slice(0, Math.floor(cols / 2)));
+  if (brandName && show("brandName")) line(buf, brandName.slice(0, Math.floor(cols / 2)));
   buf.push(...DOUBLE_OFF);
-  if (payload?.locationAddress) {
+  if (payload?.locationAddress && show("locationAddress")) {
     for (const w of wrap(String(payload.locationAddress), cols))
       line(buf, w);
   }
-  if (payload?.locationPhone)
+  if (payload?.locationPhone && show("locationPhone"))
     line(buf, `Tel: ${payload.locationPhone}`);
   buf.push(...BOLD_OFF);
   line(buf, "");
 
   // ── Returning-customer banner ─────────────────────────────────────
-  if (payload?.customerVisitTag) {
+  if (payload?.customerVisitTag && show("customerVisitTag")) {
     buf.push(...BOLD_ON, ...reverseOn());
     for (const w of wrap(String(payload.customerVisitTag), cols))
       line(buf, w);
@@ -941,17 +1252,19 @@ export function buildOrderReceipt(
     line(buf, "");
   }
 
-  // ── Order number (big and bold) ───────────────────────────────────
+  // ── Ticket number + Order ID (big and bold) ───────────────────────
   buf.push(...BOLD_ON, ...DOUBLE_ON);
+  if (payload?.ticketNumber != null && show("ticketNumber"))
+    line(buf, `TICKET ${payload.ticketNumber}`);
   const orderNo = String(
     payload?.displayId ?? payload?.orderNumber ?? "",
   );
-  if (orderNo) line(buf, `#${orderNo}`);
+  if (orderNo && show("orderNumber")) line(buf, `#${orderNo}`);
   buf.push(...DOUBLE_OFF, ...BOLD_OFF);
   const received = payload?.receivedAt
     ? new Date(payload.receivedAt).toLocaleString()
     : new Date().toLocaleString();
-  line(buf, received);
+  if (show("receivedAt")) line(buf, received);
   line(buf, "");
 
   // ── SCHEDULED banner (bold, with date + time) ─────────────────────
@@ -965,35 +1278,81 @@ export function buildOrderReceipt(
   }
 
   // ── Order meta ────────────────────────────────────────────────────
+  // One line at the shop's chosen size and weight. Text the printer's font
+  // can't carry is drawn as well, so an Arabic address isn't a row of "?".
+  const styledLine = (
+    key: TicketLineKey,
+    text: string,
+    o?: { fallbackSize?: number; indent?: string; reverse?: boolean; center?: boolean },
+  ) => {
+    const style = lineStyleOf(opts?.lineStyles, key, o?.fallbackSize);
+    const raster =
+      style.drawn || needsRaster(text)
+        ? rasterTextBlock(text, lineDots, {
+            fontPx: textSizeToPx(style.size),
+            bold: style.bold,
+            // A black bar needs a margin or the text touches its edge.
+            indentPx: o?.indent ? o.indent.length * (font === "B" ? 9 : 12) : o?.reverse ? 8 : 0,
+            reverse: o?.reverse,
+            center: o?.center,
+          })
+        : null;
+    if (raster) {
+      buf.push(...ALIGN_LEFT, ...raster);
+      return;
+    }
+    // Height only, never double width: a wrapped postcode is worse than a
+    // small one, and a band has to keep its full column count.
+    const h = textSizeToMultiplier(style.size);
+    if (style.bold) buf.push(...BOLD_ON);
+    if (h > 1) buf.push(...sizeOn(1, h));
+    if (o?.reverse) buf.push(...reverseOn());
+    const prefix = o?.indent ?? "";
+    // wrap() collapses the spaces that line the labels up, so only long lines go through it.
+    const fits = o?.center || text.length + prefix.length <= cols;
+    for (const w of fits ? [text] : wrap(text, cols - prefix.length)) {
+      const shown = o?.center ? centreOn(w, cols) : prefix + w;
+      line(buf, o?.reverse ? shown.padEnd(cols, " ") : shown);
+    }
+    // Close the highlight before anything else, so the feed can't invert.
+    if (o?.reverse) buf.push(...reverseOff());
+    if (h > 1) buf.push(...DOUBLE_OFF);
+    if (style.bold) buf.push(...BOLD_OFF);
+  };
+
   buf.push(...ALIGN_LEFT);
-  if (payload?.platform || payload?.orderSource)
-    line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
-  if (payload?.fulfillmentType)
-    line(buf, `Type    : ${payload.fulfillmentType}`);
+  if ((payload?.platform || payload?.orderSource) && show("channel"))
+    styledLine("channel", `Channel : ${payload?.platform ?? payload?.orderSource}`);
+  if (payload?.fulfillmentType && show("orderType"))
+    styledLine("orderType", `Type    : ${payload.fulfillmentType}`);
   // Table Tabs — dine-in prints name the table.
-  if (payload?.tableName) line(buf, `TABLE   : ${payload.tableName}`);
-  // Always show the expected delivery / collection time.
-  {
+  if (payload?.tableName && show("table")) styledLine("table", `TABLE   : ${payload.tableName}`);
+  // The expected delivery / collection time, unless this printer hides it.
+  if (show("readyTime")) {
     const isDelivery = /DELIV/i.test(String(payload?.fulfillmentType ?? ""));
     const label = isDelivery ? "Deliver " : "Collect ";
     const when = payload?.scheduledFor ?? payload?.estimatedReadyAt ?? null;
-    buf.push(...BOLD_ON);
-    line(buf, `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
-    buf.push(...BOLD_OFF);
+    styledLine("readyTime", `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
   }
-  if (payload?.customerName)
-    line(buf, `Customer: ${String(payload.customerName).slice(0, cols - 10)}`);
-  if (payload?.customerPhone)
-    line(buf, `Phone   : ${payload.customerPhone}`);
+  if (payload?.customerName && show("customerName"))
+    styledLine("customerName", `Customer: ${payload.customerName}`);
+  if (payload?.customerPhone && show("customerPhone"))
+    styledLine("customerPhone", `Phone   : ${payload.customerPhone}`);
   // Delivery address gets the same height bump as the items — it's read
-  // at arm's length in a car, in the dark. Height only, never double
-  // width: a wrapped postcode is worse than a small one.
-  if (payload?.deliveryAddress) {
+  // at arm's length in a car, in the dark.
+  if (payload?.deliveryAddress && show("deliveryAddress")) {
     line(buf, "Address :");
-    buf.push(...BOLD_ON, ...sizeOn(1, itemH));
-    for (const w of wrap(String(payload.deliveryAddress), cols - 2))
-      line(buf, `  ${w}`);
-    buf.push(...DOUBLE_OFF, ...BOLD_OFF);
+    styledLine("deliveryAddress", String(payload.deliveryAddress), {
+      fallbackSize: itemH * TEXT_SIZE_NATIVE,
+      indent: "  ",
+    });
+  }
+  // The customer's note on the whole order, in the same black bar as an item
+  // note. It used to sit under the totals, below everything the kitchen reads.
+  if (payload?.specialInstructions && show("specialInstructions")) {
+    styledLine("specialInstructions", `ORDER NOTE: ${payload.specialInstructions}`, {
+      reverse: true,
+    });
   }
   line(buf, "-".repeat(cols));
 
@@ -1022,49 +1381,35 @@ export function buildOrderReceipt(
         : typeof it?.price === "number"
           ? it.price * (it?.quantity ?? 1)
           : NaN;
-    const priceStr = Number.isFinite(lineTotal) ? money(lineTotal) : "";
+    const priceStr =
+      Number.isFinite(lineTotal) && show("itemPrices") ? money(lineTotal) : "";
 
-    buf.push(...BOLD_ON, ...ITEM_ON);
+    buf.push(...ITEM_BOLD_ON);
     const head = `${qty}x ${name}`;
-    // CP437 cannot represent CJK — strBytes would turn the whole name into
-    // question marks — so a translated line is drawn as pixels instead, the
-    // same way the QR code and logo already are. Falls through to normal text
-    // when there is no canvas (a headless render), which prints English.
-    const rastered = needsRaster(head)
-      // Same dot widths the QR raster uses for each paper size.
-      ? rasterTextLine(head, paperWidth === 58 ? 280 : 384, {
-          bold: true,
-          // A raster is pixels, so the printer's double-height command does
-          // nothing to it — the size setting has to be applied to the FONT.
-          // Without this, turning item text up enlarged the price and left the
-          // Chinese name exactly as it was.
-          fontPx: 30 * itemH,
-          right: priceStr,
-        })
-      : null;
-    if (rastered) {
-      buf.push(...ALIGN_LEFT, ...rastered.bytes);
-      // Too wide to share the row — the price keeps its own line rather than
-      // costing the name characters.
-      if (!rastered.rightDrawn && priceStr)
-        line(buf, padBetween("", priceStr, itemCols));
-    } else if (head.length + 1 + priceStr.length <= itemCols) {
-      line(buf, padBetween(head, priceStr, itemCols));
-    } else {
-      // Item name too long for one line at this size — wrap the name,
-      // then right-align the price on the last line so the money column
-      // still reads straight down the ticket.
-      const wrapped = wrap(head, itemCols);
-      wrapped.forEach((w, i) => {
-        if (i === wrapped.length - 1 && priceStr)
-          line(buf, padBetween(w, priceStr, itemCols));
-        else line(buf, w);
-      });
-    }
-    buf.push(...DOUBLE_OFF, ...BOLD_OFF);
+    // Drawn as pixels when a 1–30 size other than the printer's own font is
+    // chosen, or when the name has characters CP437 can't carry (CJK — the
+    // kitchen-language names). Falls through to text when there is no canvas
+    // (a headless render), which prints English at the nearest multiplier.
+    const itemPx =
+      itemSize != null && itemSize !== TEXT_SIZE_NATIVE
+        ? textSizeToPx(itemSize)
+        : needsRaster(head)
+          ? 30 * itemH
+          : null;
+    const itemRaster =
+      itemPx != null
+        ? rasterTextBlock(head, lineDots, {
+            fontPx: itemPx,
+            bold: itemBold,
+            right: priceStr,
+            rightBold: itemBold,
+          })
+        : null;
+    if (itemRaster) buf.push(...ALIGN_LEFT, ...itemRaster);
+    else nativeSizedLines(buf, head, priceStr, cols, itemW, itemH);
+    buf.push(...ITEM_BOLD_OFF);
 
-    if (Array.isArray(it?.modifiers) && it.modifiers.length) {
-      buf.push(...MOD_ON);
+    if (Array.isArray(it?.modifiers) && it.modifiers.length && show("modifiers")) {
       for (const m of it.modifiers) {
         // Kitchen-language name wins, same rule as the item line above.
         const mname = String(
@@ -1072,29 +1417,27 @@ export function buildOrderReceipt(
         );
         if (!mname) continue;
         const mprice =
-          typeof m?.price === "number" && m.price > 0
+          typeof m?.price === "number" && m.price > 0 && show("modifierPrices")
             ? `+${money(m.price)}`
             : "";
-        const mline = `  - ${mname}`;
-        // CP437 cannot carry CJK, so a translated option is drawn as pixels
-        // like the item line. Modifier text is smaller, so the raster is too.
-        const modRaster = needsRaster(mline)
-          ? rasterTextLine(mline, paperWidth === 58 ? 280 : 384, {
-              // Same reason as the item line: the printer cannot scale a
-              // bitmap, so the modifier size setting is applied to the font.
-              fontPx: 22 * modH,
-              right: mprice,
-            })
-          : null;
-        if (modRaster) {
-          buf.push(...ALIGN_LEFT, ...modRaster.bytes);
-          if (!modRaster.rightDrawn && mprice)
-            line(buf, padBetween("", mprice, modCols));
-        } else if (mprice && mline.length + 1 + mprice.length <= modCols)
-          line(buf, padBetween(mline, mprice, modCols));
-        else for (const w of indented(mname, "  - ", modCols)) line(buf, w);
+        const modPx =
+          modSize != null && modSize !== TEXT_SIZE_NATIVE
+            ? textSizeToPx(modSize)
+            : needsRaster(mname)
+              ? 22 * modH
+              : null;
+        const modRaster =
+          modPx != null
+            ? rasterTextBlock(`- ${mname}`, lineDots, {
+                fontPx: modPx,
+                // Hangs under the item like the text-mode "  - " prefix.
+                indentPx: (font === "B" ? 9 : 12) * 2,
+                right: mprice,
+              })
+            : null;
+        if (modRaster) buf.push(...ALIGN_LEFT, ...modRaster);
+        else nativeSizedLines(buf, mname, mprice, cols, modW, modH, "  - ");
       }
-      buf.push(...MOD_OFF);
     }
     // Item note — reversed out, like the payment banner.
     //
@@ -1104,13 +1447,13 @@ export function buildOrderReceipt(
     // same black bar the payment line uses — the one thing on the ticket
     // staff already know means read this. Lines are padded to the full width
     // so the bar is a rectangle rather than ragged around the text.
-    if (it?.notes) {
+    if (it?.notes && show("itemNotes")) {
       buf.push(...BOLD_ON, ...MOD_ON, ...reverseOn());
       for (const w of indented(String(it.notes), "  Note: ", modCols))
         line(buf, w.padEnd(modCols, " "));
       buf.push(...reverseOff(), ...MOD_OFF, ...BOLD_OFF);
     }
-    if (idx < items.length - 1) line(buf, dashes(cols));
+    if (idx < items.length - 1 && show("itemSeparators")) line(buf, dashes(cols));
   });
   line(buf, "-".repeat(cols));
 
@@ -1119,23 +1462,24 @@ export function buildOrderReceipt(
     const s = money(value);
     if (s) line(buf, padBetween(label, s, cols));
   };
-  showRow("Subtotal", payload?.subtotal);
-  if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0)
+  if (show("subtotal")) showRow("Subtotal", payload?.subtotal);
+  if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0 && show("deliveryFee"))
     showRow("Delivery", payload.deliveryFee);
-  if (typeof payload?.tipAmount === "number" && payload.tipAmount > 0)
+  if (typeof payload?.tipAmount === "number" && payload.tipAmount > 0 && show("tip"))
     showRow("Tip", payload.tipAmount);
   // Service charge is its own line so a customer querying the bill can see
   // exactly what the extra was.
-  if (typeof payload?.serviceCharge === "number" && payload.serviceCharge > 0)
+  if (typeof payload?.serviceCharge === "number" && payload.serviceCharge > 0 && show("serviceCharge"))
     showRow("Service", payload.serviceCharge);
-  if (typeof payload?.taxAmount === "number" && payload.taxAmount > 0)
+  if (typeof payload?.taxAmount === "number" && payload.taxAmount > 0 && show("tax"))
     showRow("Tax", payload.taxAmount);
-  if (typeof payload?.discount === "number" && payload.discount > 0)
+  if (typeof payload?.discount === "number" && payload.discount > 0 && show("discount"))
     showRow("Discount", -payload.discount);
 
   if (
-    typeof payload?.total === "number" ||
-    typeof payload?.totalAmount === "number"
+    (typeof payload?.total === "number" ||
+      typeof payload?.totalAmount === "number") &&
+    show("total")
   ) {
     const total = payload?.total ?? payload?.totalAmount;
     buf.push(...BOLD_ON, ...DOUBLE_ON);
@@ -1145,15 +1489,13 @@ export function buildOrderReceipt(
   line(buf, "");
 
   // ── Payment ───────────────────────────────────────────────────────
-  if (payload?.paymentLabel) {
+  if (payload?.paymentLabel && show("payment")) {
     // Full-width reverse-video band, matching the two server renderers. This
     // is the path the POS prints through, so it is the one the counter
     // actually sees — it printed plain bold while the server renderers were
     // already inverting, which is why tickets looked unhighlighted.
-    buf.push(...ALIGN_LEFT, ...sizeOn(1, 2), ...reverseOn());
-    line(buf, centreOn(String(payload.paymentLabel).trim(), cols));
-    buf.push(...reverseOff(), ...DOUBLE_OFF);
-  } else if (payload?.paymentMethod) {
+    styledLine("payment", String(payload.paymentLabel).trim(), { reverse: true, center: true });
+  } else if (payload?.paymentMethod && show("payment")) {
     buf.push(...ALIGN_CENTER, ...BOLD_ON);
     line(
       buf,
@@ -1162,16 +1504,6 @@ export function buildOrderReceipt(
       }`,
     );
     buf.push(...BOLD_OFF, ...ALIGN_LEFT);
-  }
-
-  // ── Special instructions ──────────────────────────────────────────
-  if (payload?.specialInstructions) {
-    line(buf, "");
-    buf.push(...BOLD_ON);
-    line(buf, "Special instructions:");
-    buf.push(...BOLD_OFF);
-    for (const w of wrap(String(payload.specialInstructions), cols))
-      line(buf, w);
   }
 
   // ── QR code (reorder link + live marketing caption) ──────────────
@@ -1221,30 +1553,92 @@ const STAR_CUT = [ESC, 0x64, 0x03]; // ESC d 3 — partial cut with feed
 const STAR_REVERSE_ON = [ESC, 0x34];
 const STAR_REVERSE_OFF = [ESC, 0x35];
 
+/** The formatting commands of a printer's language, for tickets that are not orders. */
+export function commandsFor(star: boolean) {
+  return star
+    ? {
+        init: [ESC, 0x40],
+        alignLeft: STAR_ALIGN_LEFT,
+        alignCenter: STAR_ALIGN_CENTER,
+        boldOn: STAR_BOLD_ON,
+        boldOff: STAR_BOLD_OFF,
+        doubleOn: STAR_EXPAND_ON,
+        doubleOff: STAR_EXPAND_OFF,
+        tallOn: [ESC, 0x69, 0x01, 0x00], // ESC i 1 0 — double height only
+        tallOff: STAR_EXPAND_OFF,
+        reverseOn: STAR_REVERSE_ON,
+        reverseOff: STAR_REVERSE_OFF,
+        cut: STAR_CUT,
+      }
+    : {
+        init: INIT,
+        alignLeft: ALIGN_LEFT,
+        alignCenter: ALIGN_CENTER,
+        boldOn: BOLD_ON,
+        boldOff: BOLD_OFF,
+        doubleOn: DOUBLE_ON,
+        doubleOff: DOUBLE_OFF,
+        tallOn: sizeOn(1, 2),
+        tallOff: DOUBLE_OFF,
+        reverseOn: reverseOn(),
+        reverseOff: reverseOff(),
+        cut: CUT,
+      };
+}
+
 export function buildOrderReceiptStar(
   payload: any,
   paperWidth: number = 80,
-  opts?: { fontScale?: FontScale; modifierScale?: FontScale },
+  opts?: { fontScale?: FontScale; modifierScale?: FontScale } & TicketStyle,
 ): Uint8Array {
   // Bound to this order's currency; shadows the module-level helper so every
   // price below prints in the shop's own money.
   const money = (n: any) => moneyIn(n, (payload as any)?.currency);
   const cols = colsFor(paperWidth);
+  const show = shownOn(opts?.hide);
+  const itemBold = opts?.boldItems !== false;
   // ESC i n1 n2 — n1 expands height, n2 expands width (0 = normal,
   // 1 = double). Same policy as ESC/POS: LARGE is tall only, XLARGE is
-  // tall and wide (which halves the usable columns).
+  // tall and wide. Star Line Mode has no raster here, so a 1–30 size rounds
+  // to the nearest whole height multiplier.
   const scale = normaliseFontScale(opts?.fontScale);
-  const itemW = scale === "XLARGE" ? 2 : 1;
-  const itemCols = Math.floor(cols / itemW);
-  const STAR_ITEM_ON =
-    scale === "NORMAL" ? [] : [ESC, 0x69, 0x01, itemW === 2 ? 0x01 : 0x00];
-  const STAR_ITEM_OFF = scale === "NORMAL" ? [] : STAR_EXPAND_OFF;
+  const itemSize = readTextSize(opts?.itemSize);
+  const itemH = itemSize != null ? textSizeToMultiplier(itemSize) : scale === "NORMAL" ? 1 : 2;
+  const itemW = itemSize != null ? 1 : scale === "XLARGE" ? 2 : 1;
   const modScale = normaliseFontScale(opts?.modifierScale);
-  const modW = modScale === "XLARGE" ? 2 : 1;
+  const modSize = readTextSize(opts?.modifierSize);
+  const modH = modSize != null ? textSizeToMultiplier(modSize) : modScale === "NORMAL" ? 1 : 2;
+  const modW = modSize != null ? 1 : modScale === "XLARGE" ? 2 : 1;
   const modCols = Math.floor(cols / modW);
-  const STAR_MOD_ON =
-    modScale === "NORMAL" ? [] : [ESC, 0x69, 0x01, modW === 2 ? 0x01 : 0x00];
-  const STAR_MOD_OFF = modScale === "NORMAL" ? [] : STAR_EXPAND_OFF;
+  const starSize = (w: number, h: number) =>
+    w === 1 && h === 1 ? [] : [ESC, 0x69, h - 1, w - 1];
+  const STAR_MOD_ON = starSize(modW, modH);
+  const STAR_MOD_OFF = STAR_MOD_ON.length ? STAR_EXPAND_OFF : [];
+  // Name at w×h, price at 1×1 on the last line — Star version of
+  // nativeSizedLines.
+  const starSizedLines = (text: string, right: string, w: number, h: number, prefix = "") => {
+    const SIZE = starSize(w, h);
+    const RESET = SIZE.length ? STAR_EXPAND_OFF : [];
+    const perLine = Math.max(4, Math.floor(cols / w));
+    const lines = prefix ? indented(text, prefix, perLine) : wrap(text, perLine);
+    if (lines.length === 0) lines.push(prefix);
+    const last = lines.pop()!;
+    for (const l of lines) {
+      buf.push(...SIZE);
+      line(buf, l);
+      buf.push(...RESET);
+    }
+    const used = last.length * w;
+    if (right && used + 1 + right.length <= cols) {
+      buf.push(...SIZE, ...strBytes(last), ...RESET);
+      line(buf, " ".repeat(cols - used - right.length) + right);
+      return;
+    }
+    buf.push(...SIZE);
+    line(buf, last);
+    buf.push(...RESET);
+    if (right) line(buf, padBetween("", right, cols));
+  };
   const buf: number[] = [];
   buf.push(ESC, 0x40); // ESC @ — initialise
 
@@ -1260,33 +1654,36 @@ export function buildOrderReceiptStar(
   // ── Header ────────────────────────────────────────────────────────
   buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON, ...STAR_EXPAND_ON);
   const brandName = String(payload?.brandName ?? payload?.locationName ?? "");
-  if (brandName) line(buf, brandName.slice(0, Math.floor(cols / 2)));
+  if (brandName && show("brandName")) line(buf, brandName.slice(0, Math.floor(cols / 2)));
   buf.push(...STAR_EXPAND_OFF);
-  if (payload?.locationAddress)
+  if (payload?.locationAddress && show("locationAddress"))
     for (const w of wrap(String(payload.locationAddress), cols)) line(buf, w);
-  if (payload?.locationPhone) line(buf, `Tel: ${payload.locationPhone}`);
+  if (payload?.locationPhone && show("locationPhone")) line(buf, `Tel: ${payload.locationPhone}`);
   buf.push(...STAR_BOLD_OFF);
   line(buf, "");
 
   // ── Returning-customer banner ─────────────────────────────────────
-  if (payload?.customerVisitTag) {
+  if (payload?.customerVisitTag && show("customerVisitTag")) {
     buf.push(...STAR_BOLD_ON);
     for (const w of wrap(String(payload.customerVisitTag), cols)) line(buf, w);
     buf.push(...STAR_BOLD_OFF);
     line(buf, "");
   }
 
-  // ── Order number ──────────────────────────────────────────────────
+  // ── Ticket number + Order ID ──────────────────────────────────────
   buf.push(...STAR_BOLD_ON, ...STAR_EXPAND_ON);
+  if (payload?.ticketNumber != null && show("ticketNumber"))
+    line(buf, `TICKET ${payload.ticketNumber}`);
   const orderNo = String(payload?.displayId ?? payload?.orderNumber ?? "");
-  if (orderNo) line(buf, `#${orderNo}`);
+  if (orderNo && show("orderNumber")) line(buf, `#${orderNo}`);
   buf.push(...STAR_EXPAND_OFF, ...STAR_BOLD_OFF);
-  line(
-    buf,
-    payload?.receivedAt
-      ? new Date(payload.receivedAt).toLocaleString()
-      : new Date().toLocaleString(),
-  );
+  if (show("receivedAt"))
+    line(
+      buf,
+      payload?.receivedAt
+        ? new Date(payload.receivedAt).toLocaleString()
+        : new Date().toLocaleString(),
+    );
   line(buf, "");
 
   // ── SCHEDULED banner ──────────────────────────────────────────────
@@ -1300,32 +1697,59 @@ export function buildOrderReceiptStar(
   }
 
   // ── Order meta ────────────────────────────────────────────────────
+  // Star Line Mode has no raster here, so a size rounds to the nearest whole
+  // height multiplier.
+  const styledLine = (
+    key: TicketLineKey,
+    text: string,
+    o?: { fallbackSize?: number; indent?: string; reverse?: boolean; center?: boolean },
+  ) => {
+    const style = lineStyleOf(opts?.lineStyles, key, o?.fallbackSize);
+    const h = textSizeToMultiplier(style.size);
+    if (style.bold) buf.push(...STAR_BOLD_ON);
+    if (h > 1) buf.push(...starSize(1, h));
+    if (o?.reverse) buf.push(...STAR_REVERSE_ON);
+    const prefix = o?.indent ?? "";
+    // wrap() collapses the spaces that line the labels up, so only long lines go through it.
+    const fits = o?.center || text.length + prefix.length <= cols;
+    for (const w of fits ? [text] : wrap(text, cols - prefix.length)) {
+      const shown = o?.center ? centreOn(w, cols) : prefix + w;
+      line(buf, o?.reverse ? shown.padEnd(cols, " ") : shown);
+    }
+    if (o?.reverse) buf.push(...STAR_REVERSE_OFF);
+    if (h > 1) buf.push(...STAR_EXPAND_OFF);
+    if (style.bold) buf.push(...STAR_BOLD_OFF);
+  };
+
   buf.push(...STAR_ALIGN_LEFT);
-  if (payload?.platform || payload?.orderSource)
-    line(buf, `Channel : ${payload?.platform ?? payload?.orderSource}`);
-  if (payload?.fulfillmentType)
-    line(buf, `Type    : ${payload.fulfillmentType}`);
+  if ((payload?.platform || payload?.orderSource) && show("channel"))
+    styledLine("channel", `Channel : ${payload?.platform ?? payload?.orderSource}`);
+  if (payload?.fulfillmentType && show("orderType"))
+    styledLine("orderType", `Type    : ${payload.fulfillmentType}`);
   // Table Tabs — dine-in prints name the table.
-  if (payload?.tableName) line(buf, `TABLE   : ${payload.tableName}`);
-  {
+  if (payload?.tableName && show("table")) styledLine("table", `TABLE   : ${payload.tableName}`);
+  if (show("readyTime")) {
     const isDelivery = /DELIV/i.test(String(payload?.fulfillmentType ?? ""));
     const label = isDelivery ? "Deliver " : "Collect ";
     const when = payload?.scheduledFor ?? payload?.estimatedReadyAt ?? null;
-    buf.push(...STAR_BOLD_ON);
-    line(buf, `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
-    buf.push(...STAR_BOLD_OFF);
+    styledLine("readyTime", `${label}: ${when ? fmtWhen(when) : "ASAP"}`);
   }
-  if (payload?.customerName)
-    line(buf, `Customer: ${String(payload.customerName).slice(0, cols - 10)}`);
-  if (payload?.customerPhone) line(buf, `Phone   : ${payload.customerPhone}`);
-  if (payload?.deliveryAddress) {
+  if (payload?.customerName && show("customerName"))
+    styledLine("customerName", `Customer: ${payload.customerName}`);
+  if (payload?.customerPhone && show("customerPhone"))
+    styledLine("customerPhone", `Phone   : ${payload.customerPhone}`);
+  if (payload?.deliveryAddress && show("deliveryAddress")) {
     line(buf, "Address :");
-    buf.push(...STAR_BOLD_ON);
-    if (scale !== "NORMAL") buf.push(ESC, 0x69, 0x01, 0x00);
-    for (const w of wrap(String(payload.deliveryAddress), cols - 2))
-      line(buf, `  ${w}`);
-    if (scale !== "NORMAL") buf.push(...STAR_EXPAND_OFF);
-    buf.push(...STAR_BOLD_OFF);
+    styledLine("deliveryAddress", String(payload.deliveryAddress), {
+      fallbackSize: itemH * TEXT_SIZE_NATIVE,
+      indent: "  ",
+    });
+  }
+  // The order note, as a black bar under the address. See the ESC/POS variant.
+  if (payload?.specialInstructions && show("specialInstructions")) {
+    styledLine("specialInstructions", `ORDER NOTE: ${payload.specialInstructions}`, {
+      reverse: true,
+    });
   }
   line(buf, "-".repeat(cols));
 
@@ -1340,44 +1764,32 @@ export function buildOrderReceiptStar(
         : typeof it?.price === "number"
           ? it.price * (it?.quantity ?? 1)
           : NaN;
-    const priceStr = Number.isFinite(lineTotal) ? money(lineTotal) : "";
-    buf.push(...STAR_BOLD_ON, ...STAR_ITEM_ON);
-    const head = `${qty}x ${name}`;
-    if (head.length + 1 + priceStr.length <= itemCols) {
-      line(buf, padBetween(head, priceStr, itemCols));
-    } else {
-      const wrapped = wrap(head, itemCols);
-      wrapped.forEach((w, i) => {
-        if (i === wrapped.length - 1 && priceStr)
-          line(buf, padBetween(w, priceStr, itemCols));
-        else line(buf, w);
-      });
-    }
-    buf.push(...STAR_ITEM_OFF, ...STAR_BOLD_OFF);
-    if (Array.isArray(it?.modifiers) && it.modifiers.length) {
-      buf.push(...STAR_MOD_ON);
+    const priceStr =
+      Number.isFinite(lineTotal) && show("itemPrices") ? money(lineTotal) : "";
+    if (itemBold) buf.push(...STAR_BOLD_ON);
+    starSizedLines(`${qty}x ${name}`, priceStr, itemW, itemH);
+    if (itemBold) buf.push(...STAR_BOLD_OFF);
+    if (Array.isArray(it?.modifiers) && it.modifiers.length && show("modifiers")) {
       for (const m of it.modifiers) {
         const mname = String(m?.name ?? m?.title ?? "");
         if (!mname) continue;
         const mprice =
-          typeof m?.price === "number" && m.price > 0
+          typeof m?.price === "number" && m.price > 0 && show("modifierPrices")
             ? `+${money(m.price)}`
             : "";
-        const mline = `  - ${mname}`;
-        if (mprice && mline.length + 1 + mprice.length <= modCols)
-          line(buf, padBetween(mline, mprice, modCols));
-        else for (const w of indented(mname, "  - ", modCols)) line(buf, w);
+        starSizedLines(mname, mprice, modW, modH, "  - ");
       }
-      buf.push(...STAR_MOD_OFF);
     }
     // Item note — see the note in the ESC/POS variant above.
-    if (it?.notes) {
-      buf.push(...STAR_BOLD_ON, ...STAR_MOD_ON, ...reverseOn());
+    if (it?.notes && show("itemNotes")) {
+      // ESC 4 / ESC 5 — Star has no GS B; the ESC/POS reverse bytes used here
+      // before printed as stray characters around every note.
+      buf.push(...STAR_BOLD_ON, ...STAR_MOD_ON, ...STAR_REVERSE_ON);
       for (const w of indented(String(it.notes), "  Note: ", modCols))
         line(buf, w.padEnd(modCols, " "));
-      buf.push(...reverseOff(), ...STAR_MOD_OFF, ...STAR_BOLD_OFF);
+      buf.push(...STAR_REVERSE_OFF, ...STAR_MOD_OFF, ...STAR_BOLD_OFF);
     }
-    if (idx < items.length - 1) line(buf, dashes(cols));
+    if (idx < items.length - 1 && show("itemSeparators")) line(buf, dashes(cols));
   });
   line(buf, "-".repeat(cols));
 
@@ -1386,22 +1798,23 @@ export function buildOrderReceiptStar(
     const s = money(value);
     if (s) line(buf, padBetween(label, s, cols));
   };
-  showRow("Subtotal", payload?.subtotal);
-  if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0)
+  if (show("subtotal")) showRow("Subtotal", payload?.subtotal);
+  if (typeof payload?.deliveryFee === "number" && payload.deliveryFee > 0 && show("deliveryFee"))
     showRow("Delivery", payload.deliveryFee);
-  if (typeof payload?.tipAmount === "number" && payload.tipAmount > 0)
+  if (typeof payload?.tipAmount === "number" && payload.tipAmount > 0 && show("tip"))
     showRow("Tip", payload.tipAmount);
   // Star renderer needs the same service-charge line as ESC/POS, or a Star
   // shop's bill silently wouldn't add up.
-  if (typeof payload?.serviceCharge === "number" && payload.serviceCharge > 0)
+  if (typeof payload?.serviceCharge === "number" && payload.serviceCharge > 0 && show("serviceCharge"))
     showRow("Service", payload.serviceCharge);
-  if (typeof payload?.taxAmount === "number" && payload.taxAmount > 0)
+  if (typeof payload?.taxAmount === "number" && payload.taxAmount > 0 && show("tax"))
     showRow("Tax", payload.taxAmount);
-  if (typeof payload?.discount === "number" && payload.discount > 0)
+  if (typeof payload?.discount === "number" && payload.discount > 0 && show("discount"))
     showRow("Discount", -payload.discount);
   if (
-    typeof payload?.total === "number" ||
-    typeof payload?.totalAmount === "number"
+    (typeof payload?.total === "number" ||
+      typeof payload?.totalAmount === "number") &&
+    show("total")
   ) {
     const total = payload?.total ?? payload?.totalAmount;
     buf.push(...STAR_BOLD_ON, ...STAR_EXPAND_ON);
@@ -1411,13 +1824,11 @@ export function buildOrderReceiptStar(
   line(buf, "");
 
   // ── Payment ───────────────────────────────────────────────────────
-  if (payload?.paymentLabel) {
+  if (payload?.paymentLabel && show("payment")) {
     // Same band on Star hardware. Star Line Mode has no `GS B`, so this uses
     // ESC 4 / ESC 5 — the ESC/POS bytes would print as stray characters.
-    buf.push(...STAR_ALIGN_LEFT, ...STAR_REVERSE_ON);
-    line(buf, centreOn(String(payload.paymentLabel).trim(), cols));
-    buf.push(...STAR_REVERSE_OFF);
-  } else if (payload?.paymentMethod) {
+    styledLine("payment", String(payload.paymentLabel).trim(), { reverse: true, center: true });
+  } else if (payload?.paymentMethod && show("payment")) {
     buf.push(...STAR_ALIGN_CENTER, ...STAR_BOLD_ON);
     line(
       buf,
@@ -1426,16 +1837,6 @@ export function buildOrderReceiptStar(
       }`,
     );
     buf.push(...STAR_BOLD_OFF, ...STAR_ALIGN_LEFT);
-  }
-
-  // ── Special instructions ──────────────────────────────────────────
-  if (payload?.specialInstructions) {
-    line(buf, "");
-    buf.push(...STAR_BOLD_ON);
-    line(buf, "Special instructions:");
-    buf.push(...STAR_BOLD_OFF);
-    for (const w of wrap(String(payload.specialInstructions), cols))
-      line(buf, w);
   }
 
   buf.push(LF, LF, LF, LF);
@@ -1487,7 +1888,7 @@ export async function renderReceiptBytes(
     fontScale?: FontScale;
     modifierScale?: FontScale;
     printFont?: PrintFont;
-  },
+  } & TicketStyle,
 ): Promise<Uint8Array> {
   // Star printers speak Star Line Mode, not ESC/POS — render their own
   // command set (text + cut; logo/QR are ESC/POS-only for now).
@@ -1495,6 +1896,7 @@ export async function renderReceiptBytes(
     return buildOrderReceiptStar(payload, paperWidth, {
       fontScale: opts?.fontScale,
       modifierScale: opts?.modifierScale,
+      ...ticketStyleOf(opts),
     });
   }
   let logoBytes: number[] | null = null;
@@ -1515,6 +1917,7 @@ export async function renderReceiptBytes(
     fontScale: opts?.fontScale,
     modifierScale: opts?.modifierScale,
     printFont: opts?.printFont,
+    ...ticketStyleOf(opts),
   });
 }
 
@@ -1604,6 +2007,7 @@ export async function renderReceiptParts(
     fontScale: opts?.fontScale,
     modifierScale: opts?.modifierScale,
     printFont: opts?.printFont,
+    ...ticketStyleOf(opts),
   });
   if (!qr) return { receipt, receiptWithQr: null, qrSlip: null };
   const qrCodeBytes = await qrCommandBytes(
@@ -1618,6 +2022,7 @@ export async function renderReceiptParts(
     fontScale: opts?.fontScale,
     modifierScale: opts?.modifierScale,
     printFont: opts?.printFont,
+    ...ticketStyleOf(opts),
   });
   return {
     receipt,

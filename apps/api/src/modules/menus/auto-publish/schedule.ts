@@ -5,7 +5,7 @@
  * twice so a time on a clock-change day still lands on the right instant.
  */
 
-export const AUTO_PUBLISH_CHANNELS = ["JUST_EAT", "DELIVEROO", "UBER_EATS", "HUBRISE"] as const;
+export const AUTO_PUBLISH_CHANNELS = ["JUST_EAT", "DELIVEROO", "UBER_EATS", "HUBRISE", "CAREEM"] as const;
 export type AutoPublishChannel = (typeof AUTO_PUBLISH_CHANNELS)[number];
 
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;

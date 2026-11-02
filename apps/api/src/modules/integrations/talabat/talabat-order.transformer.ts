@@ -221,7 +221,11 @@ export function transformTalabatOrder(order: TalabatOrder, ctx: TalabatTransform
               ? { line2: [addr.entrance && `Entrance ${addr.entrance}`, addr.intercom && `Intercom ${addr.intercom}`].filter(Boolean).join(", ") }
               : {}),
             city: String(addr.city ?? ""),
-            ...(addr.postcode ? { postcode: String(addr.postcode) } : {}),
+            // The street postcode is often blank where the delivery-area
+            // fields carry one; drivers' postcode fees need whichever is there.
+            ...(addr.postcode || addr.deliveryAreaPostcode || addr.deliveryMainAreaPostcode
+              ? { postcode: String(addr.postcode || addr.deliveryAreaPostcode || addr.deliveryMainAreaPostcode) }
+              : {}),
             ...(addr.deliveryArea || addr.deliveryMainArea
               ? { area: String(addr.deliveryArea || addr.deliveryMainArea) }
               : {}),

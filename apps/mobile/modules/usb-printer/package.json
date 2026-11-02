@@ -1,0 +1,8 @@
+{
+  "name": "usb-printer",
+  "version": "1.0.0",
+  "description": "Local Expo module: write raw ESC/POS / Star bytes to a USB receipt printer through Android's USB host API.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "license": "UNLICENSED"
+}

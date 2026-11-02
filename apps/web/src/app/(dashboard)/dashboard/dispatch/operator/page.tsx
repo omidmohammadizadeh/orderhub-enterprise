@@ -26,10 +26,12 @@ import {
   getDispatchFeed,
   getOperatorDashboard,
   reassignOrder,
+  setPayOnDispatch,
   unassignOrder,
   type DriverAssignmentStatus,
   type OperatorDriverRow,
   type OperatorOrderRow,
+  type OperatorShopRule,
 } from "@/lib/api/dispatch.client";
 import { DispatchChatWidget } from "@/components/dispatch/chat-widget";
 import { DispatchMap } from "@/components/dispatch/dispatch-map";
@@ -61,6 +63,7 @@ export default function OperatorDashboardPage() {
   const queryClient = useQueryClient();
   const [location, setLocation] = useState("all");
   const [busyOrder, setBusyOrder] = useState<string | null>(null);
+  const [busyShop, setBusyShop] = useState<string | null>(null);
   const [manageDriver, setManageDriver] = useState<OperatorDriverRow | null>(null);
   const [fleetFilter, setFleetFilter] = useState<FleetFilter>("all");
   const [opsTab, setOpsTab] = useState<OpsTab>("attention");
@@ -155,6 +158,25 @@ export default function OperatorDashboardPage() {
     } finally {
       setBusyOrder(null);
       refresh();
+    }
+  }
+
+  async function handlePayOnDispatch(shop: OperatorShopRule, enabled: boolean) {
+    setBusyShop(shop.id);
+    try {
+      const { creditedNow } = await setPayOnDispatch(shop.id, enabled);
+      toast.success(
+        !enabled
+          ? `${shop.name}: new orders count once delivered`
+          : creditedNow > 0
+            ? `${shop.name}: on. ${creditedNow} ${creditedNow === 1 ? "order" : "orders"} already out now counted`
+            : `${shop.name}: orders count as soon as they're dispatched`,
+      );
+      refresh();
+    } catch (err) {
+      toast.error(apiError(err, `Couldn't change the setting for ${shop.name}`));
+    } finally {
+      setBusyShop(null);
     }
   }
 
@@ -372,6 +394,7 @@ export default function OperatorDashboardPage() {
               </div>
             }
           >
+            <PayRule shops={data?.shops ?? []} busyShop={busyShop} onChange={handlePayOnDispatch} />
             {visibleDrivers.length === 0 ? (
               <Empty icon={<Users className="h-5 w-5 text-zinc-400" />}>
                 {drivers.length === 0 ? "No drivers at this location yet." : "No drivers in this view."}
@@ -449,6 +472,53 @@ function Kpi({
         <span className="truncate">{label}</span>
       </div>
       <div className="mt-1.5 text-3xl font-semibold tabular-nums tracking-tight">{value ?? "–"}</div>
+    </div>
+  );
+}
+
+function PayRule({
+  shops,
+  busyShop,
+  onChange,
+}: {
+  shops: OperatorShopRule[];
+  busyShop: string | null;
+  onChange: (shop: OperatorShopRule, enabled: boolean) => void;
+}) {
+  if (shops.length === 0) return null;
+  return (
+    <div className="mb-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
+      <p className="text-sm font-semibold">Count orders in cash-up when dispatched</p>
+      <p className="mt-0.5 text-xs text-zinc-500">
+        When on, the order total and the driver&apos;s fee are added as soon as you send the order, even if the driver
+        never slides to start. Returned or cancelled orders drop out.
+      </p>
+      <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+        {shops.map((shop) => (
+          <li key={shop.id} className="flex items-center justify-between gap-3 py-1 text-sm">
+            <span className="min-w-0 truncate">{shop.name}</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={shop.payOnDispatch}
+              aria-label={`Count orders when dispatched for ${shop.name}`}
+              disabled={busyShop === shop.id}
+              onClick={() => onChange(shop, !shop.payOnDispatch)}
+              className={cn(
+                "relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:opacity-50",
+                shop.payOnDispatch ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-700",
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
+                  shop.payOnDispatch && "translate-x-5",
+                )}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -638,12 +708,14 @@ function DriverCard({
         </button>
       </div>
 
-      {/* Today: deliveries, takings split, driver pay */}
-      <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">
-        <Mini label="Delivered" value={String(d.delivered)} />
+      {/* Owed since the last cash-up: the same figures the Cash up tab settles,
+          so settling takes this to zero. */}
+      <p className="mt-3 text-[11px] font-medium text-zinc-500">Since last cash-up</p>
+      <div className="mt-1 grid grid-cols-4 gap-1.5 text-center">
+        <Mini label="Jobs" value={String(d.delivered)} />
         <Mini label="Cash" value={money(d.cashTotal)} icon={<Banknote className="h-3 w-3" />} />
         <Mini label="Card" value={money(d.cardTotal)} icon={<CreditCard className="h-3 w-3" />} />
-        <Mini label="Earned" value={money(d.earningToday)} accent />
+        <Mini label="Earned" value={money(d.earning)} accent />
       </div>
 
       {/* Active run */}
@@ -671,6 +743,9 @@ function DriverCard({
                   </span>
                 </div>
                 {j.address && <div className="mt-0.5 truncate text-zinc-500">{j.address}</div>}
+                {j.credited && (
+                  <div className="mt-1 font-medium text-violet-700 dark:text-violet-300">Counted in cash-up</div>
+                )}
                 <div className="mt-2 flex gap-1" aria-hidden>
                   {JOB_STEPS.slice(0, 3).map((s, i) => (
                     <span

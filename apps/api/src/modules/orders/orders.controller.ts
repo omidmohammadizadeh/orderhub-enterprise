@@ -47,6 +47,8 @@ const POS_STAFF: UserRole[] = [
   "DARK_KITCHEN_MANAGER",
   "CASHIER",
   "STAFF",
+  // The shop's shared counter tablet (Team → Tablet logins).
+  "LOCATION_TABLET",
 ];
 // POS_MANAGER — supervisory actions (the manager PIN, creating a test order):
 // everyone above except front-line staff/cashier.

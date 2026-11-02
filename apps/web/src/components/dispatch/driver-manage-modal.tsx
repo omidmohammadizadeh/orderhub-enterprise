@@ -5,10 +5,12 @@
 
 import { useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
+import { useAuthStore } from "@/stores/auth.store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2, X, Wallet, BadgePoundSterling } from "lucide-react";
 import toast from "react-hot-toast";
 import {
+  DRIVER_PAY_ROLES,
   getDriverCashUp,
   settleDriverCashUp,
   updateDriverEarnings,
@@ -28,7 +30,11 @@ export function DriverManageModal({ driver, locations, open, onClose, onSaved }:
   // Prices follow the selected location's currency, not a hardcoded pound.
   const { money, symbol } = useCurrency();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<"pay" | "cashup">("pay");
+  // Pay settings are for owners and admins only; everyone else who can manage
+  // drivers (managers, staff) gets the Cash up tab alone.
+  const role = useAuthStore((s) => s.user?.role);
+  const canEditPay = !!role && DRIVER_PAY_ROLES.includes(role);
+  const [tab, setTab] = useState<"pay" | "cashup">(canEditPay ? "pay" : "cashup");
 
   if (!open) return null;
 
@@ -53,7 +59,7 @@ export function DriverManageModal({ driver, locations, open, onClose, onSaved }:
 
         <div className="flex gap-1 border-b border-zinc-100 px-5 pt-2">
           {[
-            { id: "pay" as const, label: "Earnings", icon: BadgePoundSterling },
+            ...(canEditPay ? [{ id: "pay" as const, label: "Earnings", icon: BadgePoundSterling }] : []),
             { id: "cashup" as const, label: "Cash up", icon: Wallet },
           ].map((t) => (
             <button
@@ -72,7 +78,7 @@ export function DriverManageModal({ driver, locations, open, onClose, onSaved }:
         </div>
 
         <div className="flex-1 overflow-y-auto p-5">
-          {tab === "pay" ? (
+          {tab === "pay" && canEditPay ? (
             <PayTab driver={driver} locations={locations} onSaved={onSaved} qc={qc} />
           ) : (
             <CashUpTab driver={driver} onSettled={onSaved} qc={qc} />

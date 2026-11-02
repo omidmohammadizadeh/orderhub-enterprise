@@ -6,9 +6,10 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { bounceBackToRestaurantApp, restaurantAppReturnUrl } from "@/lib/in-restaurant-app";
 
 export default function CheckoutConfirmationPage() {
   const router = useRouter();
@@ -21,7 +22,18 @@ export default function CheckoutConfirmationPage() {
   // renders the brand identity instead of the location default.
   const brand = searchParams.get("brand");
 
+  const [appLink, setAppLink] = useState<string | null>(null);
+
   useEffect(() => {
+    // Paid in a Chrome tab opened by a restaurant app (Android): back to the
+    // app, which shows the order itself. The button below is the fallback
+    // for when Chrome won't open the app without a tap.
+    const link = restaurantAppReturnUrl();
+    if (link) {
+      setAppLink(link);
+      bounceBackToRestaurantApp();
+      return;
+    }
     // Bounce to the storefront in tracking mode. The storefront reads
     // ?confirmedOrderId from the query string and shows the "waiting
     // for restaurant / accepted / out for delivery" screen.
@@ -38,6 +50,14 @@ export default function CheckoutConfirmationPage() {
       <div className="flex flex-col items-center gap-3 text-zinc-600">
         <Loader2 className="h-7 w-7 animate-spin" />
         <p className="text-sm">Payment received — taking you back to your order…</p>
+        {appLink && (
+          <a
+            href={appLink}
+            className="mt-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white"
+          >
+            Back to the app
+          </a>
+        )}
       </div>
     </div>
   );

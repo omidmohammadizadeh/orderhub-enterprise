@@ -52,6 +52,42 @@ export interface InvitationDetails {
   expiresAt: string;
 }
 
+// Team → Tablet logins: one shared counter-tablet sign-in per shop.
+export interface TabletLogin {
+  userId: string;
+  username: string;
+  isActive: boolean;
+  analytics: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+export interface TabletLoginRow {
+  locationId: string;
+  locationName: string;
+  brandName: string | null;
+  login: TabletLogin | null;
+}
+
+export const tabletLoginsClient = {
+  list: () =>
+    apiClient.get<TabletLoginRow[]>("/v1/team/tablet-logins").then((r) => r.data),
+  create: (locationId: string, password: string) =>
+    apiClient
+      .post<TabletLogin>(`/v1/team/tablet-logins/${locationId}`, { password })
+      .then((r) => r.data),
+  resetPassword: (locationId: string, password: string) =>
+    apiClient
+      .post<TabletLogin>(`/v1/team/tablet-logins/${locationId}/password`, { password })
+      .then((r) => r.data),
+  update: (locationId: string, body: { analytics?: boolean; isActive?: boolean }) =>
+    apiClient
+      .patch<TabletLogin>(`/v1/team/tablet-logins/${locationId}`, body)
+      .then((r) => r.data),
+  remove: (locationId: string) =>
+    apiClient.delete(`/v1/team/tablet-logins/${locationId}`).then((r) => r.data),
+};
+
 export const teamClient = {
   listMembers: () =>
     apiClient.get<TeamMember[]>("/v1/team/members").then((r) => r.data),
@@ -136,6 +172,8 @@ export function isAdminRole(role: string): boolean {
 
 export function humaniseRole(role: string): string {
   if (isAdminRole(role)) return "Admin";
+  // Created under Team → Tablet logins, never assigned from the role picker.
+  if (role === "LOCATION_TABLET") return "Shop tablet";
   const known = ASSIGNABLE_ROLES.find((r) => r.value === role);
   if (known) return known.label;
   return role

@@ -73,6 +73,7 @@ import { ChartEditorModal } from "@/components/assembly-charts/chart-editor-moda
 import { AutoPublishModal } from "@/components/menu/auto-publish-modal";
 import { CloneCategoryModal } from "@/components/menu/clone-category-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
+import { useCurrency } from "@/hooks/use-currency";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 import { BulkPriceModal } from "@/components/menu/bulk-price-modal";
 import { GeneratePhotosModal } from "@/components/menu/generate-photos-modal";
@@ -174,6 +175,9 @@ export default function MenuEditorPage() {
   // …and the location it is served at. Null on legacy brand-wide menus,
   // which genuinely do span every location — those keep the brand library.
   const menuLocationId = ((menu as any)?.locationId as string | null) ?? undefined;
+  // Prices follow the menu's own shop. Without this every card fell back to
+  // "£", so a Dubai menu read as pounds (2026-10-30).
+  const { currency: menuCurrency } = useCurrency(menuLocationId ?? undefined);
 
   const { data: catalogProducts = [] } = useQuery({
     queryKey: ["catalog", "products", brandId, menuLocationId ?? "brand"],
@@ -1152,7 +1156,7 @@ export default function MenuEditorPage() {
                               )}
                             </div>
                             <span className="shrink-0 text-lg font-bold text-orange-500">
-                              {formatDisplayPrice(p as any)}
+                              {formatDisplayPrice(p as any, menuCurrency)}
                             </span>
                           </div>
                         </div>
@@ -1242,7 +1246,7 @@ export default function MenuEditorPage() {
           id: p.id,
           name: p.name,
           subtitle: (p.plu ?? p.sku ?? "") as string,
-          meta: formatDisplayPrice(p as any),
+          meta: formatDisplayPrice(p as any, menuCurrency),
         }))}
         initiallyAttachedIds={(activeCat?.items ?? []).map(
           (l: any) => l.itemId,

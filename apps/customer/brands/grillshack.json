@@ -1,0 +1,25 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "grillshack",
+  "name": "Grillshack",
+  "brandId": "cmret28zv010y4c4x0crox72h",
+  "locationId": "cmret1k05010w4c4x4ceb0x57",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmret1k05010w4c4x4ceb0x57?brand=cmret28zv010y4c4x0crox72h",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#C12014",
+  "backgroundColor": "#FFFFFF",
+  "icon": "brands/grillshack/icon.png",
+  "adaptiveIcon": "brands/grillshack/adaptive-icon.png",
+  "splash": "brands/grillshack/splash.png",
+  "notificationIcon": "brands/grillshack/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.grillshack",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.grillshack"
+  },
+  "easProjectId": "f09634d9-75b1-4607-8975-aef7ff1cd5c8"
+}

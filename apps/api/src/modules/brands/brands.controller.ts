@@ -79,7 +79,7 @@ export class BrandsController {
     @Body() dto: UpdateBrandDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.brands.update(brandId, user.tenantId, dto);
+    return this.brands.update(brandId, user.tenantId, dto, user.role);
   }
 
   // Phase AW — generate or set the brand's online-ordering slug. Admin

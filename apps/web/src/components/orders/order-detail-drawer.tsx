@@ -259,6 +259,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
     "DARK_KITCHEN_MANAGER",
     "CASHIER",
     "STAFF",
+    "LOCATION_TABLET",
   ]);
   const editableStatus = ["PENDING", "ACCEPTED", "PREPARING"].includes(
     order.status,
@@ -304,6 +305,11 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           <TableBadge name={(order as any).tableName} />
           {order.displayId && (
             <span className="text-sm font-bold text-zinc-900">#{order.displayId}</span>
+          )}
+          {order.ticketNumber != null && (
+            <span className="rounded-md bg-zinc-900 px-1.5 py-0.5 text-xs font-bold tabular-nums text-white">
+              Ticket {order.ticketNumber}
+            </span>
           )}
         </div>
         <div className="flex items-center gap-1">

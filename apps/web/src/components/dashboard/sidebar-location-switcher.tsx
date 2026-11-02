@@ -22,6 +22,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Building2, ChevronDown, Check, Search } from "lucide-react";
 import { locationsClient, type Location } from "../../lib/api/locations.client";
 import { useSelectedLocationStore } from "../../stores/selected-location.store";
+import { useAuthStore } from "../../stores/auth.store";
 
 export function SidebarLocationSwitcher() {
   const pathname = usePathname();
@@ -46,12 +47,25 @@ export function SidebarLocationSwitcher() {
   //   • POS always needs one location, and
   //   • a user with exactly one accessible location should land on it
   //     instead of the (now hidden) "All locations" view.
+  const isShopTablet = useAuthStore((s) => s.user?.role) === "LOCATION_TABLET";
   useEffect(() => {
+    // A shop tablet is often a tablet someone else used before: a location
+    // still remembered from that session isn't one this login can open, so
+    // replace it rather than send requests the API will refuse.
+    if (
+      isShopTablet &&
+      selectedLocationId &&
+      locations?.[0] &&
+      !locations.some((l) => l.id === selectedLocationId)
+    ) {
+      setSelectedLocationId(locations[0].id);
+      return;
+    }
     if (allowAll) return;
     if (selectedLocationId) return;
     const first = locations?.[0];
     if (first) setSelectedLocationId(first.id);
-  }, [allowAll, selectedLocationId, locations, setSelectedLocationId]);
+  }, [allowAll, isShopTablet, selectedLocationId, locations, setSelectedLocationId]);
 
   const selected = locations?.find((l) => l.id === selectedLocationId) ?? null;
 

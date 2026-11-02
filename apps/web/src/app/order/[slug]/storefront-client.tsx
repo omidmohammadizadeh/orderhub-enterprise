@@ -24,6 +24,7 @@
 //     methods the operator turned off
 
 import { WelcomeSplash, type WelcomeSplashData } from "@/components/storefront/welcome-splash";
+import { HygieneBadge, type StorefrontHygiene } from "@/components/storefront/hygiene-badge";
 import {
   Suspense,
   useCallback,
@@ -35,7 +36,12 @@ import {
 } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { readEmailRef, rememberEmailRef } from "@/lib/email-marketing/attribution";
-import { useInRestaurantApp } from "@/lib/in-restaurant-app";
+import {
+  bounceBackToRestaurantApp,
+  restaurantAppAutoReturn,
+  restaurantAppScheme,
+  useInRestaurantApp,
+} from "@/lib/in-restaurant-app";
 import { AppInstallBanner, AppInstallCard, type CustomerAppLinks } from "@/components/storefront/app-install";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -255,6 +261,8 @@ interface Storefront {
   } | null;
   /** Today's phone welcome screen for this location, if one is scheduled. */
   splash?: WelcomeSplashData | null;
+  /** FSA food hygiene rating; null when unlinked or hidden by the shop. */
+  hygiene?: StorefrontHygiene | null;
 }
 
 interface CartLine {
@@ -605,6 +613,9 @@ function OrderPage() {
   // shows automatically instead of the empty cart.
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Cancelled on a payment page a restaurant app opened in a Chrome tab
+    // (Android): back to the app rather than a menu in the browser.
+    if (bounceBackToRestaurantApp()) return;
     const sp = new URLSearchParams(window.location.search);
     const id = sp.get("confirmedOrderId");
     // Phase AW — preserve the ?brand=<id> pin across the
@@ -708,7 +719,11 @@ function OrderPage() {
   // Every price on this page goes through money(). A hardcoded £ here is a
   // customer in Dubai reading AED prices as pounds — the one place where
   // getting currency wrong reaches the person actually paying.
-  const currency = (storefront as any)?.store?.currency ?? "GBP";
+  // The API sends it as location.currency — there is no `store` key, so the
+  // old `storefront.store.currency` read was always undefined and every Gulf
+  // storefront priced in £ (seen on the Dubai test store, 2026-10-30).
+  const currency =
+    (storefront as any)?.location?.currency ?? (storefront as any)?.store?.currency ?? "GBP";
   const money = (n: number | string | null | undefined) =>
     formatMoney(n, currency, { compact: true });
   const symbol = currencySymbol(currency);
@@ -1532,6 +1547,10 @@ function OrderPage() {
         // rather than on Stripe's hosted page, so ask for a PaymentIntent
         // secret instead of a redirect URL. Ignored for cash.
         embedded: paymentMethod === "CARD",
+        // Inside a restaurant app: lets the payment return pages hand the
+        // customer back to the app from the Chrome tab it pays in (Android).
+        appScheme: restaurantAppScheme() ?? undefined,
+        appAutoReturn: restaurantAppAutoReturn() || undefined,
         // Phase AP fix #1 — applied promo discount lands on the order
         // so it shows in operator + accounting reports.
         discount: orderDiscount,
@@ -2121,6 +2140,13 @@ function OrderPage() {
                   <Info className="h-4 w-4" aria-hidden /> Info
                 </button>
               </div>
+
+              {/* FSA food hygiene rating — refreshed nightly by the API. */}
+              {storefront.hygiene && (
+                <div className="mt-3">
+                  <HygieneBadge hygiene={storefront.hygiene} />
+                </div>
+              )}
 
               {/* How, when and who. */}
               <div className="mt-4 flex flex-wrap items-center gap-2">

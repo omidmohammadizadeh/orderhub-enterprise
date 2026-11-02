@@ -246,7 +246,53 @@ describe("Analytics brand breakdown still has its names", () => {
     } as any);
 
     expect(res.byBrand).toEqual([
-      { id: "b-here", name: "Jinty's", revenue: 10, orders: 1 },
+      { id: "b-here", name: "Jinty's", revenue: 10, netRevenue: 10, orders: 1 },
     ]);
+  });
+});
+
+describe("Analytics breakdowns carry net beside gross", () => {
+  it("nets out delivery, service and discount per channel, brand and location", async () => {
+    // JET order 965460811: £17.12 charged, £14.99 is the shop's.
+    const prisma: any = {
+      order: {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            id: "o1",
+            status: "COMPLETED",
+            locationId: "loc-1",
+            brandId: "b-1",
+            orderSource: "JUST_EAT",
+            subtotal: 14.99,
+            discount: 0,
+            deliveryFee: 0.49,
+            serviceCharge: 1.64,
+            taxAmount: 0,
+            total: 17.12,
+            paymentMethod: "CARD",
+            paymentStatus: "PAID",
+            createdAt: new Date("2026-10-07T12:00:00Z"),
+            postcode: null,
+            items: [],
+          },
+        ]),
+      },
+      brand: { findMany: jest.fn().mockResolvedValue([{ id: "b-1", name: "B" }]) },
+      menuChannelAssignment: { findMany: jest.fn().mockResolvedValue([]) },
+      location: { findMany: jest.fn().mockResolvedValue([{ id: "loc-1", name: "L" }]) },
+      userLocation: { findMany: jest.fn().mockResolvedValue([]) },
+      userBrand: { findMany: jest.fn().mockResolvedValue([]) },
+    };
+
+    const res: any = await new AnalyticsService(prisma).getOverview("t1", {
+      from: new Date("2026-10-07T00:00:00Z"),
+      to: new Date("2026-10-08T00:00:00Z"),
+      role: "TENANT_OWNER",
+    } as any);
+
+    for (const row of [res.byChannel[0], res.byBrand[0], res.byLocation[0]]) {
+      expect(row.revenue).toBeCloseTo(17.12, 2);
+      expect(row.netRevenue).toBeCloseTo(14.99, 2);
+    }
   });
 });

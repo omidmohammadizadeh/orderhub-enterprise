@@ -273,7 +273,7 @@ describe("transformCareemMenu", () => {
     );
     expect(payload).toBeNull();
     expect(errors[0]).toMatchObject({ entity: "item", id: "item-1" });
-    expect(errors[0]!.message).toContain("CAREEM_PRICE_UNIT");
+    expect(errors[0]!.message).toContain('"Beef Burger" costs 11.5');
   });
 
   it("publishes that same price happily in minor units", () => {

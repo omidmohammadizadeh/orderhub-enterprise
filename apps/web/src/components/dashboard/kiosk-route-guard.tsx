@@ -33,19 +33,60 @@ export function deviceHomeFor(role: string | undefined | null) {
   return role ? DEVICE_HOME[role] : undefined;
 }
 
+// A shop's shared counter tablet (Team → Tablet logins) is a device too, but
+// it runs the shop floor rather than one screen, so it gets a short list of
+// tabs instead of a single home. Shared with the sidebar for the same reason
+// as DEVICE_HOME.
+export const TABLET_ROLE = "LOCATION_TABLET";
+export const TABLET_ANALYTICS_PERMISSION = "tablet:analytics";
+const TABLET_HOME = "/dashboard/orders";
+const TABLET_TABS = [
+  "/dashboard/orders",
+  "/dashboard/pos",
+  "/dashboard/tables",
+  "/dashboard/reservations",
+  "/dashboard/inventory",
+  "/dashboard/store-status",
+  "/dashboard/printers",
+  "/dashboard/loyalty-scan",
+  "/dashboard/caller-id",
+];
+
+/**
+ * True when the shop tablet may open this path. `exact` is for the sidebar,
+ * so "Kitchen Display" (/dashboard/orders/kitchen) doesn't ride in on Orders.
+ */
+export function tabletMayOpen(
+  pathname: string,
+  permissions: readonly string[] | undefined,
+  exact = false,
+): boolean {
+  const tabs = permissions?.includes(TABLET_ANALYTICS_PERMISSION)
+    ? [...TABLET_TABS, "/dashboard/analytics"]
+    : TABLET_TABS;
+  return tabs.some((t) => pathname === t || (!exact && pathname.startsWith(`${t}/`)));
+}
+
 export function KioskRouteGuard() {
   const role = useAuthStore((s) => s.user?.role);
+  const permissions = useAuthStore((s) => s.user?.permissions);
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
+    if (role === TABLET_ROLE) {
+      if (pathname && !tabletMayOpen(pathname, permissions)) {
+        router.replace(TABLET_HOME);
+      }
+      return;
+    }
     const home = deviceHomeFor(role);
     if (!home) return;
     if (pathname === home) return;
     // replace, not push — a device must not accumulate history someone could
     // walk back through.
     router.replace(home);
-  }, [role, pathname, router]);
+  }, [role, permissions, pathname, router]);
 
   return null;
 }

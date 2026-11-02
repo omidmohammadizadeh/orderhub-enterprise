@@ -6,11 +6,38 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   hasNativeBridge,
+  hasUsbBridge,
+  listUsbBridgeDevices,
   bridgeSupportsPrinter,
   writeToPrinter,
   buildTestReceipt,
   buildTestReceiptStar,
+  type UsbBridgeDevice,
 } from "@/lib/printing/bridge";
+import {
+  browserSupportsWebUsb,
+  chooseUsbPrinter,
+  getBrowserPrinterLink,
+  setBrowserPrinterLink,
+  type BrowserPrinterLink,
+} from "@/lib/printing/browser-printers";
+import { LinkPrinterDialog } from "./link-printer-dialog";
+import {
+  LineStyleControls,
+  ShowOnTicket,
+  TextSizeControl,
+  TicketPreview,
+  presetToSize,
+} from "./ticket-design";
+import {
+  readLineStyles,
+  readTextSize,
+  readTicketHide,
+  textSizeToMultiplier,
+  type TicketFieldKey,
+  type TicketLineStyles,
+} from "@/lib/printing/ticket-layout";
+import { useCurrency } from "@/hooks/use-currency";
 import {
   Plus,
   Wifi,
@@ -21,6 +48,7 @@ import {
   Loader2,
   CheckCircle2,
   X,
+  Monitor,
 } from "lucide-react";
 import {
   printersClient,
@@ -35,6 +63,13 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
   const qc = useQueryClient();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editing, setEditing] = useState<Printer | null>(null);
+  const [linking, setLinking] = useState<Printer | null>(null);
+  // Browser links live in localStorage — bump to re-read them after a change.
+  const [, setLinkVersion] = useState(0);
+  // Read after mount: the server render has no window, and guessing "not the
+  // app" there would flash the desktop-only button on the tablet.
+  const [inTabletApp, setInTabletApp] = useState(true);
+  useEffect(() => setInTabletApp(hasNativeBridge()), []);
 
   const printersQuery = useQuery({
     queryKey: ["printers", "list", locationId ?? "all"],
@@ -52,13 +87,7 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
       // bytes straight to the printer via the WebView bridge. No API
       // round trip, no PrintJob queue, no agent needed. The dashboard
       // *is* the print engine in this path.
-      if (
-        (printer.connectionType === "BLUETOOTH" ||
-          printer.connectionType === "LAN") &&
-        bridgeSupportsPrinter(printer)
-      ) {
-        if (!printer.ipAddress)
-          throw new Error("No address saved for this printer");
+      if (bridgeSupportsPrinter(printer)) {
         const isStar =
           String((printer as any)?.defaults?.commandSet ?? "").toUpperCase() ===
             "STAR" ||
@@ -161,20 +190,26 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
                       })()}
                     </div>
                     <div className="text-[11px] text-zinc-500">
-                      {p.ipAddress
-                        ? p.connectionType === "BLUETOOTH"
-                          ? p.ipAddress
-                          : `${p.ipAddress}:${p.port ?? 9100}`
-                        : p.connectionType}
+                      {p.connectionType === "USB" && p.usbVendor && p.usbProduct
+                        ? `USB ${usbIdHex(p.usbVendor)}:${usbIdHex(p.usbProduct)}`
+                        : p.ipAddress
+                          ? p.connectionType === "BLUETOOTH"
+                            ? p.ipAddress
+                            : `${p.ipAddress}:${p.port ?? 9100}`
+                          : p.connectionType}
                     </div>
+                    {!inTabletApp && getBrowserPrinterLink(p.id) && (
+                      <div className="text-[11px] font-medium text-emerald-700">
+                        This computer: {getBrowserPrinterLink(p.id)!.label}
+                      </div>
+                    )}
                   </Td>
                   <Td>
-                    {p.isOnline ||
-                    (p.ipAddress && bridgeSupportsPrinter(p)) ? (
+                    {p.isOnline || bridgeSupportsPrinter(p) ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                         <Wifi className="h-3 w-3" />
                         {bridgeSupportsPrinter(p) && !p.isOnline
-                          ? "Online (tablet)"
+                          ? "Online (this device)"
                           : "Online"}
                       </span>
                     ) : (
@@ -211,6 +246,20 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
                           <Send className="h-4 w-4" />
                         )}
                       </button>
+                      {!inTabletApp && (
+                        <button
+                          onClick={() => setLinking(p)}
+                          title="Use on this computer"
+                          aria-label={`Use ${p.name} on this computer`}
+                          className={`rounded p-1.5 hover:bg-emerald-50 hover:text-emerald-700 ${
+                            getBrowserPrinterLink(p.id)
+                              ? "text-emerald-600"
+                              : "text-zinc-500"
+                          }`}
+                        >
+                          <Monitor className="h-4 w-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => setEditing(p)}
                         title="Settings"
@@ -245,6 +294,13 @@ export function PrintersTab({ locationId }: { locationId?: string }) {
             setWizardOpen(false);
             qc.invalidateQueries({ queryKey: ["printers", "list"] });
           }}
+        />
+      )}
+      {linking && (
+        <LinkPrinterDialog
+          printer={linking}
+          onClose={() => setLinking(null)}
+          onChanged={() => setLinkVersion((v) => v + 1)}
         />
       )}
       {editing && (
@@ -291,6 +347,51 @@ function PrinterWizard({
   // not become NaN while the operator is still typing.
   const [usbVendor, setUsbVendor] = useState("");
   const [usbProduct, setUsbProduct] = useState("");
+  // Printers cabled into THIS device: the Android tablet's USB host list,
+  // or the browser's own USB chooser (Chrome/Edge on a PC). A browser pick
+  // also links the new printer to this computer once it's saved.
+  const [usbDevices, setUsbDevices] = useState<UsbBridgeDevice[]>([]);
+  const [usbScanning, setUsbScanning] = useState(false);
+  const [usbError, setUsbError] = useState<string | null>(null);
+  const [usbBrowserLink, setUsbBrowserLink] = useState<BrowserPrinterLink | null>(null);
+  const [canTabletUsb, setCanTabletUsb] = useState(false);
+  const [canBrowserUsb, setCanBrowserUsb] = useState(false);
+  useEffect(() => {
+    setCanTabletUsb(hasUsbBridge());
+    setCanBrowserUsb(!hasNativeBridge() && browserSupportsWebUsb());
+  }, []);
+  const pickUsb = (vendorId: number, productId: number) => {
+    setUsbVendor(String(vendorId));
+    setUsbProduct(String(productId));
+  };
+  const scanUsbDevices = async () => {
+    setUsbScanning(true);
+    setUsbError(null);
+    try {
+      if (canTabletUsb) {
+        const list = await listUsbBridgeDevices();
+        setUsbDevices(list);
+        if (list.length === 1) pickUsb(list[0]!.vendorId, list[0]!.productId);
+        if (list.length === 0) {
+          setUsbError(
+            "No USB printer found. Check the cable is in the tablet (an OTG adapter may be needed) and the printer is on.",
+          );
+        }
+      } else {
+        const link = await chooseUsbPrinter();
+        if (link.mode === "webusb") {
+          pickUsb(link.vendorId, link.productId);
+          setUsbBrowserLink(link);
+          if (!name) setName(link.label);
+        }
+      }
+    } catch (e: any) {
+      // Closing the browser chooser throws NotFoundError — not an error.
+      if (e?.name !== "NotFoundError") setUsbError(e?.message ?? "USB scan failed");
+    } finally {
+      setUsbScanning(false);
+    }
+  };
   const [paperWidth, setPaperWidth] = useState<58 | 80>(80);
   const [model, setModel] = useState("");
   // Receipt command language. Star printers speak Star Line Mode; Epson,
@@ -398,6 +499,9 @@ function PrinterWizard({
                 : "KITCHEN",
       } as any),
     onSuccess: async (created: any) => {
+      if (usbBrowserLink && created?.id) {
+        setBrowserPrinterLink(created.id, usbBrowserLink);
+      }
       // Optionally bind to station as its default.
       if (stationId) {
         await printerStationsClient.update(stationId, {
@@ -531,13 +635,73 @@ function PrinterWizard({
                 <div className="space-y-2">
                   <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2">
                     <p className="text-xs leading-relaxed text-zinc-600">
-                      A cabled printer plugs into the machine running the Print
-                      Bridge — a PC, Mac or mini PC — and every till, tablet and
-                      iPad in the shop prints through it. A printer cabled
-                      straight into an iPad cannot be reached; Apple does not
-                      allow it.
+                      Plug the printer&rsquo;s USB cable into the Android tablet
+                      running the Order Hub app, or into a Windows/Mac computer
+                      using Chrome or Edge. A printer cabled straight into an
+                      iPad cannot be reached; Apple does not allow it.
                     </p>
                   </div>
+                  {(canTabletUsb || canBrowserUsb) && (
+                    <button
+                      type="button"
+                      onClick={scanUsbDevices}
+                      disabled={usbScanning}
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-violet-300 bg-violet-50 px-3 py-2 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-60"
+                    >
+                      {usbScanning && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                      {canTabletUsb
+                        ? "Find USB printers on this tablet"
+                        : "Choose USB printer on this computer"}
+                    </button>
+                  )}
+                  {usbDevices.length > 0 && (
+                    <div className="space-y-1">
+                      {usbDevices.map((d) => {
+                        const selected =
+                          usbVendor === String(d.vendorId) &&
+                          usbProduct === String(d.productId);
+                        return (
+                          <button
+                            key={d.deviceName}
+                            type="button"
+                            onClick={() => {
+                              pickUsb(d.vendorId, d.productId);
+                              if (!name) {
+                                setName(
+                                  [d.manufacturer, d.product].filter(Boolean).join(" ") ||
+                                    "USB printer",
+                                );
+                              }
+                            }}
+                            className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-xs ${
+                              selected
+                                ? "border-violet-600 bg-violet-50 text-violet-800"
+                                : "border-zinc-200 hover:border-zinc-400"
+                            }`}
+                          >
+                            <span className="font-semibold">
+                              {[d.manufacturer, d.product].filter(Boolean).join(" ") ||
+                                "USB device"}
+                              {!d.isPrinterClass && (
+                                <span className="ml-1 font-normal text-zinc-500">(not a printer-class device)</span>
+                              )}
+                            </span>
+                            <span className="font-mono text-zinc-500">
+                              {usbIdHex(d.vendorId)}:{usbIdHex(d.productId)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {usbBrowserLink && (
+                    <p className="rounded bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                      {usbBrowserLink.label} — will be linked to this computer when you save.
+                    </p>
+                  )}
+                  {usbError && (
+                    <p className="rounded bg-red-50 px-3 py-2 text-xs text-red-700">{usbError}</p>
+                  )}
                   <Field label="USB vendor ID *">
                     <input
                       value={usbVendor}
@@ -557,10 +721,9 @@ function PrinterWizard({
                     />
                   </Field>
                   <p className="text-[11px] leading-relaxed text-zinc-500">
-                    Decimal, not hex — Windows Device Manager and macOS System
-                    Information both show these on the device&rsquo;s details
-                    page, often written as hex like 0483 / 5740. Convert them,
-                    or run the bridge&rsquo;s bind command and it will ask.
+                    Filled in by the button above. Typing them by hand: decimal,
+                    not hex — Windows Device Manager and macOS System
+                    Information show them as hex like 0483 / 5740.
                   </p>
                 </div>
               )}
@@ -668,10 +831,11 @@ function PrinterWizard({
                   )}
                 </div>
               )}
-              {connectionType === "USB" && (
+              {connectionType === "USB" && !canTabletUsb && !canBrowserUsb && (
                 <p className="rounded bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                  USB requires the desktop Print Bridge. Pair the bridge under
-                  <strong> Agents</strong> first.
+                  To print over USB, open this page in the Order Hub Android
+                  app (latest version) on the tablet the printer is plugged
+                  into, or in Chrome/Edge on that computer.
                 </p>
               )}
             </>
@@ -738,7 +902,15 @@ function PrinterWizard({
           </button>
           {step < 3 ? (
             <button
-              disabled={step === 1 ? !locationId || !name : false}
+              disabled={
+                step === 1
+                  ? !locationId || !name
+                  : // A USB printer with no ids can never be reached — the
+                    // tablet has nothing to match. Saved blank once already.
+                    step === 2 &&
+                    connectionType === "USB" &&
+                    !(parseInt(usbVendor, 10) && parseInt(usbProduct, 10))
+              }
               onClick={() => setStep((s) => s + 1)}
               className="rounded-md bg-violet-600 px-3 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
             >
@@ -800,15 +972,26 @@ function PrinterSettingsDrawer({
   const [printFont, setPrintFont] = useState<"A" | "B">(
     (d.printFont as any) === "B" ? "B" : "A",
   );
-  const [fontScale, setFontScale] = useState<TextScale>(
+  // The old preset. Kept as the fallback for printers with no 1–30 size yet,
+  // so they print exactly as they did until someone picks a number.
+  const [fontScale] = useState<TextScale>(
     (d.fontScale as any) ?? (d.largeFont ? "LARGE" : "NORMAL"),
   );
   // Options / modifiers size independently of the item headline: a
   // 12-option meal deal at double height runs a lot of paper, so shops
   // that want big toppings opt in rather than getting it by default.
-  const [modifierScale, setModifierScale] = useState<TextScale>(
+  const [modifierScale] = useState<TextScale>(
     (d.modifierScale as any) ?? "NORMAL",
   );
+  // Exact 1–30 sizes. null = this printer is still on the preset above and
+  // prints exactly as before until someone picks a number.
+  const [itemSize, setItemSize] = useState<number | null>(readTextSize(d.itemSize));
+  const [modifierSize, setModifierSize] = useState<number | null>(
+    readTextSize(d.modifierSize),
+  );
+  const [ticketHide, setTicketHide] = useState<Set<TicketFieldKey>>(() => readTicketHide(printer));
+  const [lineStyles, setLineStyles] = useState<TicketLineStyles>(() => readLineStyles(printer));
+  const { currency } = useCurrency(printer.locationId);
   // Item headlines have always printed bold. Kept opt-OUT so no existing
   // printer changes behaviour on save; shops that want a flat ticket untick it.
   const [boldItems, setBoldItems] = useState<boolean>(d.boldItems !== false);
@@ -845,6 +1028,10 @@ function PrinterSettingsDrawer({
           fontScale,
           printFont,
           modifierScale,
+          itemSize,
+          modifierSize,
+          ticketHide: [...ticketHide],
+          lineStyles,
           boldItems,
           // Keep the legacy flag consistent for any older reader.
           largeFont: fontScale !== "NORMAL",
@@ -860,7 +1047,7 @@ function PrinterSettingsDrawer({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-zinc-900/40 p-4">
-      <div className="w-full max-w-xl rounded-lg bg-white shadow-xl">
+      <div className="w-full max-w-xl rounded-lg bg-white shadow-xl lg:max-w-5xl">
         <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3">
           <h2 className="text-base font-semibold text-zinc-900">
             {printer.name}
@@ -872,7 +1059,8 @@ function PrinterSettingsDrawer({
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="space-y-4 p-5 max-h-[70vh] overflow-y-auto">
+        <div className="max-h-[75vh] overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5 lg:p-5">
+        <div className="space-y-4 p-5 lg:p-0">
           <Section title="Automatic printing">
             <label className="flex items-center justify-between rounded-md border border-violet-200 bg-violet-50/50 px-3 py-2.5">
               <span>
@@ -995,22 +1183,57 @@ function PrinterSettingsDrawer({
           </Section>
 
           <Section title="Item text size">
-            <ScalePicker value={fontScale} onChange={setFontScale} />
+            <TextSizeControl
+              label="Item text size"
+              value={itemSize}
+              fallback={presetToSize(fontScale)}
+              onChange={setItemSize}
+            />
             <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
-              Applies to item lines, the delivery address and the total —
-              the lines staff and drivers actually read.
-              <span className="font-medium"> Extra large</span> also
-              doubles the width, so long item names wrap onto two lines.
+              1 to 30. 10 is the printer&rsquo;s normal font. Prices always
+              stay at normal size, whatever you pick.
+              {brand === "star"
+                ? " Star printers round this to their nearest built-in size."
+                : " Sizes other than 10 print as an image, which is a little slower on Bluetooth."}
             </p>
           </Section>
 
           <Section title="Options / extras text size">
-            <ScalePicker value={modifierScale} onChange={setModifierScale} />
+            <TextSizeControl
+              label="Options text size"
+              value={modifierSize}
+              fallback={presetToSize(modifierScale)}
+              onChange={setModifierSize}
+            />
             <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
-              The toppings and choices listed under each item. Kept
-              standard by default — a meal deal with a dozen options at
-              double height uses a lot of paper.
+              The toppings and choices listed under each item. Big options on
+              a meal deal use a lot of paper.
             </p>
+          </Section>
+
+          <Section title="Order details and payment text">
+            <LineStyleControls
+              styles={lineStyles}
+              addressFallback={
+                itemSize != null
+                  ? textSizeToMultiplier(itemSize) * 10
+                  : fontScale === "NORMAL"
+                    ? 10
+                    : 20
+              }
+              onChange={setLineStyles}
+            />
+            <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500">
+              1 to 30. 10 is the printer&rsquo;s normal font. The order note
+              prints in a black bar under the address.
+              {brand === "star"
+                ? " Star printers round this to their nearest built-in size."
+                : ""}
+            </p>
+          </Section>
+
+          <Section title="Show on ticket">
+            <ShowOnTicket hidden={ticketHide} onChange={setTicketHide} />
           </Section>
 
           <Section title="Receipt options">
@@ -1048,6 +1271,22 @@ function PrinterSettingsDrawer({
             </div>
           </Section>
         </div>
+        <div className="border-t border-zinc-200 p-5 lg:sticky lg:top-0 lg:self-start lg:border-0 lg:p-0">
+          <TicketPreview
+            paperWidth={printer.paperWidth}
+            star={brand === "star"}
+            printFont={printFont}
+            fontScale={fontScale}
+            modifierScale={modifierScale}
+            itemSize={itemSize}
+            modifierSize={modifierSize}
+            boldItems={boldItems}
+            lineStyles={lineStyles}
+            hidden={ticketHide}
+            currency={currency}
+          />
+        </div>
+        </div>
         <div className="flex items-center justify-end gap-2 border-t border-zinc-200 px-5 py-3">
           <button
             onClick={onClose}
@@ -1071,6 +1310,11 @@ function PrinterSettingsDrawer({
 
 // ── Small primitives ──────────────────────────────────────────────────
 
+// USB ids read as hex everywhere else (Device Manager, lsusb), so show them that way.
+function usbIdHex(n: number): string {
+  return n.toString(16).padStart(4, "0");
+}
+
 function Th({ children }: { children?: React.ReactNode }) {
   return (
     <th className="px-3 py-2 text-left font-semibold whitespace-nowrap">
@@ -1081,55 +1325,8 @@ function Th({ children }: { children?: React.ReactNode }) {
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-3 py-2 align-middle">{children}</td>;
 }
-// Thermal text sizing. Shared by the item headline and the options
-// beneath it so both read the same way in the drawer.
+// The old Standard / Large / Extra large presets, still read as the fallback.
 type TextScale = "NORMAL" | "LARGE" | "XLARGE";
-
-const SCALE_OPTIONS: ReadonlyArray<readonly [TextScale, string, string]> = [
-  ["NORMAL", "Standard", "Compact"],
-  ["LARGE", "Large", "Twice the height"],
-  ["XLARGE", "Extra large", "Tall + wide"],
-];
-
-function ScalePicker({
-  value,
-  onChange,
-}: {
-  value: TextScale;
-  onChange: (v: TextScale) => void;
-}) {
-  return (
-    <div className="grid grid-cols-3 gap-2">
-      {SCALE_OPTIONS.map(([option, label, hint]) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onChange(option)}
-          className={
-            "rounded-md border px-3 py-2 text-left " +
-            (value === option
-              ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500"
-              : "border-zinc-300 bg-white hover:bg-zinc-50")
-          }
-        >
-          <span
-            className={
-              "block font-semibold text-zinc-900 " +
-              (option === "NORMAL"
-                ? "text-xs"
-                : option === "LARGE"
-                  ? "text-sm"
-                  : "text-base")
-            }
-          >
-            {label}
-          </span>
-          <span className="block text-[10px] text-zinc-500">{hint}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function Field({
   label,
