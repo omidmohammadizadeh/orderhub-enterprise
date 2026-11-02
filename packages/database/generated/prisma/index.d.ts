@@ -239,6 +239,11 @@ export type Order = $Result.DefaultSelection<Prisma.$OrderPayload>
  */
 export type OrderNumberSequence = $Result.DefaultSelection<Prisma.$OrderNumberSequencePayload>
 /**
+ * Model OrderTicketSequence
+ * 
+ */
+export type OrderTicketSequence = $Result.DefaultSelection<Prisma.$OrderTicketSequencePayload>
+/**
  * Model OrderItem
  * 
  */
@@ -940,6 +945,11 @@ export type AutoDispatchRule = $Result.DefaultSelection<Prisma.$AutoDispatchRule
  * 
  */
 export type AutoDispatchRun = $Result.DefaultSelection<Prisma.$AutoDispatchRunPayload>
+/**
+ * Model Prospect
+ * 
+ */
+export type Prospect = $Result.DefaultSelection<Prisma.$ProspectPayload>
 
 /**
  * Enums
@@ -977,7 +987,8 @@ export const UserRole: {
   ONBOARDING_AGENT: 'ONBOARDING_AGENT',
   FINANCIAL_AGENT: 'FINANCIAL_AGENT',
   KIOSK: 'KIOSK',
-  KITCHEN_DISPLAY: 'KITCHEN_DISPLAY'
+  KITCHEN_DISPLAY: 'KITCHEN_DISPLAY',
+  LOCATION_TABLET: 'LOCATION_TABLET'
 };
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
@@ -2397,6 +2408,16 @@ export class PrismaClient<
   get orderNumberSequence(): Prisma.OrderNumberSequenceDelegate<ExtArgs>;
 
   /**
+   * `prisma.orderTicketSequence`: Exposes CRUD operations for the **OrderTicketSequence** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OrderTicketSequences
+    * const orderTicketSequences = await prisma.orderTicketSequence.findMany()
+    * ```
+    */
+  get orderTicketSequence(): Prisma.OrderTicketSequenceDelegate<ExtArgs>;
+
+  /**
    * `prisma.orderItem`: Exposes CRUD operations for the **OrderItem** model.
     * Example usage:
     * ```ts
@@ -3735,6 +3756,16 @@ export class PrismaClient<
     * ```
     */
   get autoDispatchRun(): Prisma.AutoDispatchRunDelegate<ExtArgs>;
+
+  /**
+   * `prisma.prospect`: Exposes CRUD operations for the **Prospect** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Prospects
+    * const prospects = await prisma.prospect.findMany()
+    * ```
+    */
+  get prospect(): Prisma.ProspectDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -4220,6 +4251,7 @@ export namespace Prisma {
     LocationPaymentConfig: 'LocationPaymentConfig',
     Order: 'Order',
     OrderNumberSequence: 'OrderNumberSequence',
+    OrderTicketSequence: 'OrderTicketSequence',
     OrderItem: 'OrderItem',
     OrderStatusHistory: 'OrderStatusHistory',
     WebhookEvent: 'WebhookEvent',
@@ -4353,7 +4385,8 @@ export namespace Prisma {
     AssemblyChart: 'AssemblyChart',
     MenuAutoPublish: 'MenuAutoPublish',
     AutoDispatchRule: 'AutoDispatchRule',
-    AutoDispatchRun: 'AutoDispatchRun'
+    AutoDispatchRun: 'AutoDispatchRun',
+    Prospect: 'Prospect'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -4369,7 +4402,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflAdCampaign" | "eflAdTap" | "eflAdShow" | "eflCampaign" | "eflStatementSend" | "eflApplication" | "eflPushDevice" | "eflSavedAddress" | "eflCallLine" | "eflFavourite" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderTicketSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflAdCampaign" | "eflAdTap" | "eflAdShow" | "eflCampaign" | "eflStatementSend" | "eflApplication" | "eflPushDevice" | "eflSavedAddress" | "eflCallLine" | "eflFavourite" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun" | "prospect"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -7450,6 +7483,76 @@ export namespace Prisma {
           count: {
             args: Prisma.OrderNumberSequenceCountArgs<ExtArgs>
             result: $Utils.Optional<OrderNumberSequenceCountAggregateOutputType> | number
+          }
+        }
+      }
+      OrderTicketSequence: {
+        payload: Prisma.$OrderTicketSequencePayload<ExtArgs>
+        fields: Prisma.OrderTicketSequenceFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OrderTicketSequenceFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OrderTicketSequenceFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload>
+          }
+          findFirst: {
+            args: Prisma.OrderTicketSequenceFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OrderTicketSequenceFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload>
+          }
+          findMany: {
+            args: Prisma.OrderTicketSequenceFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload>[]
+          }
+          create: {
+            args: Prisma.OrderTicketSequenceCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload>
+          }
+          createMany: {
+            args: Prisma.OrderTicketSequenceCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OrderTicketSequenceCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload>[]
+          }
+          delete: {
+            args: Prisma.OrderTicketSequenceDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload>
+          }
+          update: {
+            args: Prisma.OrderTicketSequenceUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload>
+          }
+          deleteMany: {
+            args: Prisma.OrderTicketSequenceDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OrderTicketSequenceUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.OrderTicketSequenceUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrderTicketSequencePayload>
+          }
+          aggregate: {
+            args: Prisma.OrderTicketSequenceAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOrderTicketSequence>
+          }
+          groupBy: {
+            args: Prisma.OrderTicketSequenceGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OrderTicketSequenceGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OrderTicketSequenceCountArgs<ExtArgs>
+            result: $Utils.Optional<OrderTicketSequenceCountAggregateOutputType> | number
           }
         }
       }
@@ -16830,6 +16933,76 @@ export namespace Prisma {
           count: {
             args: Prisma.AutoDispatchRunCountArgs<ExtArgs>
             result: $Utils.Optional<AutoDispatchRunCountAggregateOutputType> | number
+          }
+        }
+      }
+      Prospect: {
+        payload: Prisma.$ProspectPayload<ExtArgs>
+        fields: Prisma.ProspectFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProspectFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProspectFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload>
+          }
+          findFirst: {
+            args: Prisma.ProspectFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProspectFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload>
+          }
+          findMany: {
+            args: Prisma.ProspectFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload>[]
+          }
+          create: {
+            args: Prisma.ProspectCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload>
+          }
+          createMany: {
+            args: Prisma.ProspectCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProspectCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload>[]
+          }
+          delete: {
+            args: Prisma.ProspectDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload>
+          }
+          update: {
+            args: Prisma.ProspectUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload>
+          }
+          deleteMany: {
+            args: Prisma.ProspectDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProspectUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ProspectUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProspectPayload>
+          }
+          aggregate: {
+            args: Prisma.ProspectAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProspect>
+          }
+          groupBy: {
+            args: Prisma.ProspectGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProspectGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProspectCountArgs<ExtArgs>
+            result: $Utils.Optional<ProspectCountAggregateOutputType> | number
           }
         }
       }
@@ -34391,6 +34564,7 @@ export namespace Prisma {
     posTerminalApplicationFeeFixedMinor: number | null
     status: string | null
     googleReviewUrl: string | null
+    payOnDispatch: boolean | null
     shopCode: string | null
     printToken: string | null
     slug: string | null
@@ -34451,6 +34625,7 @@ export namespace Prisma {
     posTerminalApplicationFeeFixedMinor: number | null
     status: string | null
     googleReviewUrl: string | null
+    payOnDispatch: boolean | null
     shopCode: string | null
     printToken: string | null
     slug: string | null
@@ -34516,6 +34691,7 @@ export namespace Prisma {
     status: number
     googleReviewUrl: number
     busyModeJson: number
+    payOnDispatch: number
     shopCode: number
     printToken: number
     slug: number
@@ -34612,6 +34788,7 @@ export namespace Prisma {
     posTerminalApplicationFeeFixedMinor?: true
     status?: true
     googleReviewUrl?: true
+    payOnDispatch?: true
     shopCode?: true
     printToken?: true
     slug?: true
@@ -34672,6 +34849,7 @@ export namespace Prisma {
     posTerminalApplicationFeeFixedMinor?: true
     status?: true
     googleReviewUrl?: true
+    payOnDispatch?: true
     shopCode?: true
     printToken?: true
     slug?: true
@@ -34737,6 +34915,7 @@ export namespace Prisma {
     status?: true
     googleReviewUrl?: true
     busyModeJson?: true
+    payOnDispatch?: true
     shopCode?: true
     printToken?: true
     slug?: true
@@ -34891,6 +35070,7 @@ export namespace Prisma {
     status: string
     googleReviewUrl: string | null
     busyModeJson: JsonValue
+    payOnDispatch: boolean
     shopCode: string | null
     printToken: string | null
     slug: string | null
@@ -34977,6 +35157,7 @@ export namespace Prisma {
     status?: boolean
     googleReviewUrl?: boolean
     busyModeJson?: boolean
+    payOnDispatch?: boolean
     shopCode?: boolean
     printToken?: boolean
     slug?: boolean
@@ -35083,6 +35264,7 @@ export namespace Prisma {
     status?: boolean
     googleReviewUrl?: boolean
     busyModeJson?: boolean
+    payOnDispatch?: boolean
     shopCode?: boolean
     printToken?: boolean
     slug?: boolean
@@ -35154,6 +35336,7 @@ export namespace Prisma {
     status?: boolean
     googleReviewUrl?: boolean
     busyModeJson?: boolean
+    payOnDispatch?: boolean
     shopCode?: boolean
     printToken?: boolean
     slug?: boolean
@@ -35311,6 +35494,7 @@ export namespace Prisma {
       status: string
       googleReviewUrl: string | null
       busyModeJson: Prisma.JsonValue
+      payOnDispatch: boolean
       shopCode: string | null
       printToken: string | null
       slug: string | null
@@ -35810,6 +35994,7 @@ export namespace Prisma {
     readonly status: FieldRef<"Location", 'String'>
     readonly googleReviewUrl: FieldRef<"Location", 'String'>
     readonly busyModeJson: FieldRef<"Location", 'Json'>
+    readonly payOnDispatch: FieldRef<"Location", 'Boolean'>
     readonly shopCode: FieldRef<"Location", 'String'>
     readonly printToken: FieldRef<"Location", 'String'>
     readonly slug: FieldRef<"Location", 'String'>
@@ -67861,6 +68046,7 @@ export namespace Prisma {
 
   export type OrderAvgAggregateOutputType = {
     orderNumber: number | null
+    ticketNumber: number | null
     courierLat: number | null
     courierLng: number | null
     covers: number | null
@@ -67882,6 +68068,7 @@ export namespace Prisma {
 
   export type OrderSumAggregateOutputType = {
     orderNumber: number | null
+    ticketNumber: number | null
     courierLat: number | null
     courierLng: number | null
     covers: number | null
@@ -67912,6 +68099,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform | null
     displayId: string | null
     orderNumber: number | null
+    ticketNumber: number | null
     orderSource: $Enums.OrderSource | null
     integrationSource: $Enums.IntegrationSource | null
     viaHubrise: boolean | null
@@ -67998,6 +68186,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform | null
     displayId: string | null
     orderNumber: number | null
+    ticketNumber: number | null
     orderSource: $Enums.OrderSource | null
     integrationSource: $Enums.IntegrationSource | null
     viaHubrise: boolean | null
@@ -68084,6 +68273,7 @@ export namespace Prisma {
     platform: number
     displayId: number
     orderNumber: number
+    ticketNumber: number
     orderSource: number
     integrationSource: number
     viaHubrise: number
@@ -68167,6 +68357,7 @@ export namespace Prisma {
 
   export type OrderAvgAggregateInputType = {
     orderNumber?: true
+    ticketNumber?: true
     courierLat?: true
     courierLng?: true
     covers?: true
@@ -68188,6 +68379,7 @@ export namespace Prisma {
 
   export type OrderSumAggregateInputType = {
     orderNumber?: true
+    ticketNumber?: true
     courierLat?: true
     courierLng?: true
     covers?: true
@@ -68218,6 +68410,7 @@ export namespace Prisma {
     platform?: true
     displayId?: true
     orderNumber?: true
+    ticketNumber?: true
     orderSource?: true
     integrationSource?: true
     viaHubrise?: true
@@ -68304,6 +68497,7 @@ export namespace Prisma {
     platform?: true
     displayId?: true
     orderNumber?: true
+    ticketNumber?: true
     orderSource?: true
     integrationSource?: true
     viaHubrise?: true
@@ -68390,6 +68584,7 @@ export namespace Prisma {
     platform?: true
     displayId?: true
     orderNumber?: true
+    ticketNumber?: true
     orderSource?: true
     integrationSource?: true
     viaHubrise?: true
@@ -68567,6 +68762,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId: string | null
     orderNumber: number | null
+    ticketNumber: number | null
     orderSource: $Enums.OrderSource
     integrationSource: $Enums.IntegrationSource
     viaHubrise: boolean
@@ -68676,6 +68872,7 @@ export namespace Prisma {
     platform?: boolean
     displayId?: boolean
     orderNumber?: boolean
+    ticketNumber?: boolean
     orderSource?: boolean
     integrationSource?: boolean
     viaHubrise?: boolean
@@ -68780,6 +68977,7 @@ export namespace Prisma {
     platform?: boolean
     displayId?: boolean
     orderNumber?: boolean
+    ticketNumber?: boolean
     orderSource?: boolean
     integrationSource?: boolean
     viaHubrise?: boolean
@@ -68875,6 +69073,7 @@ export namespace Prisma {
     platform?: boolean
     displayId?: boolean
     orderNumber?: boolean
+    ticketNumber?: boolean
     orderSource?: boolean
     integrationSource?: boolean
     viaHubrise?: boolean
@@ -69006,6 +69205,7 @@ export namespace Prisma {
       platform: $Enums.OrderPlatform
       displayId: string | null
       orderNumber: number | null
+      ticketNumber: number | null
       orderSource: $Enums.OrderSource
       integrationSource: $Enums.IntegrationSource
       viaHubrise: boolean
@@ -69519,6 +69719,7 @@ export namespace Prisma {
     readonly platform: FieldRef<"Order", 'OrderPlatform'>
     readonly displayId: FieldRef<"Order", 'String'>
     readonly orderNumber: FieldRef<"Order", 'Int'>
+    readonly ticketNumber: FieldRef<"Order", 'Int'>
     readonly orderSource: FieldRef<"Order", 'OrderSource'>
     readonly integrationSource: FieldRef<"Order", 'IntegrationSource'>
     readonly viaHubrise: FieldRef<"Order", 'Boolean'>
@@ -71008,6 +71209,906 @@ export namespace Prisma {
      * Select specific fields to fetch from the OrderNumberSequence
      */
     select?: OrderNumberSequenceSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model OrderTicketSequence
+   */
+
+  export type AggregateOrderTicketSequence = {
+    _count: OrderTicketSequenceCountAggregateOutputType | null
+    _avg: OrderTicketSequenceAvgAggregateOutputType | null
+    _sum: OrderTicketSequenceSumAggregateOutputType | null
+    _min: OrderTicketSequenceMinAggregateOutputType | null
+    _max: OrderTicketSequenceMaxAggregateOutputType | null
+  }
+
+  export type OrderTicketSequenceAvgAggregateOutputType = {
+    lastValue: number | null
+  }
+
+  export type OrderTicketSequenceSumAggregateOutputType = {
+    lastValue: number | null
+  }
+
+  export type OrderTicketSequenceMinAggregateOutputType = {
+    locationId: string | null
+    businessDate: string | null
+    lastValue: number | null
+    updatedAt: Date | null
+  }
+
+  export type OrderTicketSequenceMaxAggregateOutputType = {
+    locationId: string | null
+    businessDate: string | null
+    lastValue: number | null
+    updatedAt: Date | null
+  }
+
+  export type OrderTicketSequenceCountAggregateOutputType = {
+    locationId: number
+    businessDate: number
+    lastValue: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type OrderTicketSequenceAvgAggregateInputType = {
+    lastValue?: true
+  }
+
+  export type OrderTicketSequenceSumAggregateInputType = {
+    lastValue?: true
+  }
+
+  export type OrderTicketSequenceMinAggregateInputType = {
+    locationId?: true
+    businessDate?: true
+    lastValue?: true
+    updatedAt?: true
+  }
+
+  export type OrderTicketSequenceMaxAggregateInputType = {
+    locationId?: true
+    businessDate?: true
+    lastValue?: true
+    updatedAt?: true
+  }
+
+  export type OrderTicketSequenceCountAggregateInputType = {
+    locationId?: true
+    businessDate?: true
+    lastValue?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type OrderTicketSequenceAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OrderTicketSequence to aggregate.
+     */
+    where?: OrderTicketSequenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrderTicketSequences to fetch.
+     */
+    orderBy?: OrderTicketSequenceOrderByWithRelationInput | OrderTicketSequenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OrderTicketSequenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrderTicketSequences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrderTicketSequences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OrderTicketSequences
+    **/
+    _count?: true | OrderTicketSequenceCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: OrderTicketSequenceAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: OrderTicketSequenceSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OrderTicketSequenceMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OrderTicketSequenceMaxAggregateInputType
+  }
+
+  export type GetOrderTicketSequenceAggregateType<T extends OrderTicketSequenceAggregateArgs> = {
+        [P in keyof T & keyof AggregateOrderTicketSequence]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOrderTicketSequence[P]>
+      : GetScalarType<T[P], AggregateOrderTicketSequence[P]>
+  }
+
+
+
+
+  export type OrderTicketSequenceGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrderTicketSequenceWhereInput
+    orderBy?: OrderTicketSequenceOrderByWithAggregationInput | OrderTicketSequenceOrderByWithAggregationInput[]
+    by: OrderTicketSequenceScalarFieldEnum[] | OrderTicketSequenceScalarFieldEnum
+    having?: OrderTicketSequenceScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OrderTicketSequenceCountAggregateInputType | true
+    _avg?: OrderTicketSequenceAvgAggregateInputType
+    _sum?: OrderTicketSequenceSumAggregateInputType
+    _min?: OrderTicketSequenceMinAggregateInputType
+    _max?: OrderTicketSequenceMaxAggregateInputType
+  }
+
+  export type OrderTicketSequenceGroupByOutputType = {
+    locationId: string
+    businessDate: string
+    lastValue: number
+    updatedAt: Date
+    _count: OrderTicketSequenceCountAggregateOutputType | null
+    _avg: OrderTicketSequenceAvgAggregateOutputType | null
+    _sum: OrderTicketSequenceSumAggregateOutputType | null
+    _min: OrderTicketSequenceMinAggregateOutputType | null
+    _max: OrderTicketSequenceMaxAggregateOutputType | null
+  }
+
+  type GetOrderTicketSequenceGroupByPayload<T extends OrderTicketSequenceGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OrderTicketSequenceGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OrderTicketSequenceGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OrderTicketSequenceGroupByOutputType[P]>
+            : GetScalarType<T[P], OrderTicketSequenceGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OrderTicketSequenceSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    locationId?: boolean
+    businessDate?: boolean
+    lastValue?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["orderTicketSequence"]>
+
+  export type OrderTicketSequenceSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    locationId?: boolean
+    businessDate?: boolean
+    lastValue?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["orderTicketSequence"]>
+
+  export type OrderTicketSequenceSelectScalar = {
+    locationId?: boolean
+    businessDate?: boolean
+    lastValue?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $OrderTicketSequencePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OrderTicketSequence"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      locationId: string
+      businessDate: string
+      lastValue: number
+      updatedAt: Date
+    }, ExtArgs["result"]["orderTicketSequence"]>
+    composites: {}
+  }
+
+  type OrderTicketSequenceGetPayload<S extends boolean | null | undefined | OrderTicketSequenceDefaultArgs> = $Result.GetResult<Prisma.$OrderTicketSequencePayload, S>
+
+  type OrderTicketSequenceCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<OrderTicketSequenceFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: OrderTicketSequenceCountAggregateInputType | true
+    }
+
+  export interface OrderTicketSequenceDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OrderTicketSequence'], meta: { name: 'OrderTicketSequence' } }
+    /**
+     * Find zero or one OrderTicketSequence that matches the filter.
+     * @param {OrderTicketSequenceFindUniqueArgs} args - Arguments to find a OrderTicketSequence
+     * @example
+     * // Get one OrderTicketSequence
+     * const orderTicketSequence = await prisma.orderTicketSequence.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OrderTicketSequenceFindUniqueArgs>(args: SelectSubset<T, OrderTicketSequenceFindUniqueArgs<ExtArgs>>): Prisma__OrderTicketSequenceClient<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one OrderTicketSequence that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {OrderTicketSequenceFindUniqueOrThrowArgs} args - Arguments to find a OrderTicketSequence
+     * @example
+     * // Get one OrderTicketSequence
+     * const orderTicketSequence = await prisma.orderTicketSequence.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OrderTicketSequenceFindUniqueOrThrowArgs>(args: SelectSubset<T, OrderTicketSequenceFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OrderTicketSequenceClient<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first OrderTicketSequence that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderTicketSequenceFindFirstArgs} args - Arguments to find a OrderTicketSequence
+     * @example
+     * // Get one OrderTicketSequence
+     * const orderTicketSequence = await prisma.orderTicketSequence.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OrderTicketSequenceFindFirstArgs>(args?: SelectSubset<T, OrderTicketSequenceFindFirstArgs<ExtArgs>>): Prisma__OrderTicketSequenceClient<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first OrderTicketSequence that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderTicketSequenceFindFirstOrThrowArgs} args - Arguments to find a OrderTicketSequence
+     * @example
+     * // Get one OrderTicketSequence
+     * const orderTicketSequence = await prisma.orderTicketSequence.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OrderTicketSequenceFindFirstOrThrowArgs>(args?: SelectSubset<T, OrderTicketSequenceFindFirstOrThrowArgs<ExtArgs>>): Prisma__OrderTicketSequenceClient<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more OrderTicketSequences that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderTicketSequenceFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OrderTicketSequences
+     * const orderTicketSequences = await prisma.orderTicketSequence.findMany()
+     * 
+     * // Get first 10 OrderTicketSequences
+     * const orderTicketSequences = await prisma.orderTicketSequence.findMany({ take: 10 })
+     * 
+     * // Only select the `locationId`
+     * const orderTicketSequenceWithLocationIdOnly = await prisma.orderTicketSequence.findMany({ select: { locationId: true } })
+     * 
+     */
+    findMany<T extends OrderTicketSequenceFindManyArgs>(args?: SelectSubset<T, OrderTicketSequenceFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a OrderTicketSequence.
+     * @param {OrderTicketSequenceCreateArgs} args - Arguments to create a OrderTicketSequence.
+     * @example
+     * // Create one OrderTicketSequence
+     * const OrderTicketSequence = await prisma.orderTicketSequence.create({
+     *   data: {
+     *     // ... data to create a OrderTicketSequence
+     *   }
+     * })
+     * 
+     */
+    create<T extends OrderTicketSequenceCreateArgs>(args: SelectSubset<T, OrderTicketSequenceCreateArgs<ExtArgs>>): Prisma__OrderTicketSequenceClient<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many OrderTicketSequences.
+     * @param {OrderTicketSequenceCreateManyArgs} args - Arguments to create many OrderTicketSequences.
+     * @example
+     * // Create many OrderTicketSequences
+     * const orderTicketSequence = await prisma.orderTicketSequence.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OrderTicketSequenceCreateManyArgs>(args?: SelectSubset<T, OrderTicketSequenceCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OrderTicketSequences and returns the data saved in the database.
+     * @param {OrderTicketSequenceCreateManyAndReturnArgs} args - Arguments to create many OrderTicketSequences.
+     * @example
+     * // Create many OrderTicketSequences
+     * const orderTicketSequence = await prisma.orderTicketSequence.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OrderTicketSequences and only return the `locationId`
+     * const orderTicketSequenceWithLocationIdOnly = await prisma.orderTicketSequence.createManyAndReturn({ 
+     *   select: { locationId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OrderTicketSequenceCreateManyAndReturnArgs>(args?: SelectSubset<T, OrderTicketSequenceCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a OrderTicketSequence.
+     * @param {OrderTicketSequenceDeleteArgs} args - Arguments to delete one OrderTicketSequence.
+     * @example
+     * // Delete one OrderTicketSequence
+     * const OrderTicketSequence = await prisma.orderTicketSequence.delete({
+     *   where: {
+     *     // ... filter to delete one OrderTicketSequence
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OrderTicketSequenceDeleteArgs>(args: SelectSubset<T, OrderTicketSequenceDeleteArgs<ExtArgs>>): Prisma__OrderTicketSequenceClient<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one OrderTicketSequence.
+     * @param {OrderTicketSequenceUpdateArgs} args - Arguments to update one OrderTicketSequence.
+     * @example
+     * // Update one OrderTicketSequence
+     * const orderTicketSequence = await prisma.orderTicketSequence.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OrderTicketSequenceUpdateArgs>(args: SelectSubset<T, OrderTicketSequenceUpdateArgs<ExtArgs>>): Prisma__OrderTicketSequenceClient<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more OrderTicketSequences.
+     * @param {OrderTicketSequenceDeleteManyArgs} args - Arguments to filter OrderTicketSequences to delete.
+     * @example
+     * // Delete a few OrderTicketSequences
+     * const { count } = await prisma.orderTicketSequence.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OrderTicketSequenceDeleteManyArgs>(args?: SelectSubset<T, OrderTicketSequenceDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OrderTicketSequences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderTicketSequenceUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OrderTicketSequences
+     * const orderTicketSequence = await prisma.orderTicketSequence.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OrderTicketSequenceUpdateManyArgs>(args: SelectSubset<T, OrderTicketSequenceUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one OrderTicketSequence.
+     * @param {OrderTicketSequenceUpsertArgs} args - Arguments to update or create a OrderTicketSequence.
+     * @example
+     * // Update or create a OrderTicketSequence
+     * const orderTicketSequence = await prisma.orderTicketSequence.upsert({
+     *   create: {
+     *     // ... data to create a OrderTicketSequence
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OrderTicketSequence we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OrderTicketSequenceUpsertArgs>(args: SelectSubset<T, OrderTicketSequenceUpsertArgs<ExtArgs>>): Prisma__OrderTicketSequenceClient<$Result.GetResult<Prisma.$OrderTicketSequencePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of OrderTicketSequences.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderTicketSequenceCountArgs} args - Arguments to filter OrderTicketSequences to count.
+     * @example
+     * // Count the number of OrderTicketSequences
+     * const count = await prisma.orderTicketSequence.count({
+     *   where: {
+     *     // ... the filter for the OrderTicketSequences we want to count
+     *   }
+     * })
+    **/
+    count<T extends OrderTicketSequenceCountArgs>(
+      args?: Subset<T, OrderTicketSequenceCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OrderTicketSequenceCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OrderTicketSequence.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderTicketSequenceAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OrderTicketSequenceAggregateArgs>(args: Subset<T, OrderTicketSequenceAggregateArgs>): Prisma.PrismaPromise<GetOrderTicketSequenceAggregateType<T>>
+
+    /**
+     * Group by OrderTicketSequence.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrderTicketSequenceGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OrderTicketSequenceGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OrderTicketSequenceGroupByArgs['orderBy'] }
+        : { orderBy?: OrderTicketSequenceGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OrderTicketSequenceGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOrderTicketSequenceGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OrderTicketSequence model
+   */
+  readonly fields: OrderTicketSequenceFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OrderTicketSequence.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OrderTicketSequenceClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OrderTicketSequence model
+   */ 
+  interface OrderTicketSequenceFieldRefs {
+    readonly locationId: FieldRef<"OrderTicketSequence", 'String'>
+    readonly businessDate: FieldRef<"OrderTicketSequence", 'String'>
+    readonly lastValue: FieldRef<"OrderTicketSequence", 'Int'>
+    readonly updatedAt: FieldRef<"OrderTicketSequence", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OrderTicketSequence findUnique
+   */
+  export type OrderTicketSequenceFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * Filter, which OrderTicketSequence to fetch.
+     */
+    where: OrderTicketSequenceWhereUniqueInput
+  }
+
+  /**
+   * OrderTicketSequence findUniqueOrThrow
+   */
+  export type OrderTicketSequenceFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * Filter, which OrderTicketSequence to fetch.
+     */
+    where: OrderTicketSequenceWhereUniqueInput
+  }
+
+  /**
+   * OrderTicketSequence findFirst
+   */
+  export type OrderTicketSequenceFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * Filter, which OrderTicketSequence to fetch.
+     */
+    where?: OrderTicketSequenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrderTicketSequences to fetch.
+     */
+    orderBy?: OrderTicketSequenceOrderByWithRelationInput | OrderTicketSequenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OrderTicketSequences.
+     */
+    cursor?: OrderTicketSequenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrderTicketSequences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrderTicketSequences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrderTicketSequences.
+     */
+    distinct?: OrderTicketSequenceScalarFieldEnum | OrderTicketSequenceScalarFieldEnum[]
+  }
+
+  /**
+   * OrderTicketSequence findFirstOrThrow
+   */
+  export type OrderTicketSequenceFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * Filter, which OrderTicketSequence to fetch.
+     */
+    where?: OrderTicketSequenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrderTicketSequences to fetch.
+     */
+    orderBy?: OrderTicketSequenceOrderByWithRelationInput | OrderTicketSequenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OrderTicketSequences.
+     */
+    cursor?: OrderTicketSequenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrderTicketSequences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrderTicketSequences.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrderTicketSequences.
+     */
+    distinct?: OrderTicketSequenceScalarFieldEnum | OrderTicketSequenceScalarFieldEnum[]
+  }
+
+  /**
+   * OrderTicketSequence findMany
+   */
+  export type OrderTicketSequenceFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * Filter, which OrderTicketSequences to fetch.
+     */
+    where?: OrderTicketSequenceWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrderTicketSequences to fetch.
+     */
+    orderBy?: OrderTicketSequenceOrderByWithRelationInput | OrderTicketSequenceOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OrderTicketSequences.
+     */
+    cursor?: OrderTicketSequenceWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrderTicketSequences from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrderTicketSequences.
+     */
+    skip?: number
+    distinct?: OrderTicketSequenceScalarFieldEnum | OrderTicketSequenceScalarFieldEnum[]
+  }
+
+  /**
+   * OrderTicketSequence create
+   */
+  export type OrderTicketSequenceCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * The data needed to create a OrderTicketSequence.
+     */
+    data: XOR<OrderTicketSequenceCreateInput, OrderTicketSequenceUncheckedCreateInput>
+  }
+
+  /**
+   * OrderTicketSequence createMany
+   */
+  export type OrderTicketSequenceCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OrderTicketSequences.
+     */
+    data: OrderTicketSequenceCreateManyInput | OrderTicketSequenceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OrderTicketSequence createManyAndReturn
+   */
+  export type OrderTicketSequenceCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many OrderTicketSequences.
+     */
+    data: OrderTicketSequenceCreateManyInput | OrderTicketSequenceCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OrderTicketSequence update
+   */
+  export type OrderTicketSequenceUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * The data needed to update a OrderTicketSequence.
+     */
+    data: XOR<OrderTicketSequenceUpdateInput, OrderTicketSequenceUncheckedUpdateInput>
+    /**
+     * Choose, which OrderTicketSequence to update.
+     */
+    where: OrderTicketSequenceWhereUniqueInput
+  }
+
+  /**
+   * OrderTicketSequence updateMany
+   */
+  export type OrderTicketSequenceUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OrderTicketSequences.
+     */
+    data: XOR<OrderTicketSequenceUpdateManyMutationInput, OrderTicketSequenceUncheckedUpdateManyInput>
+    /**
+     * Filter which OrderTicketSequences to update
+     */
+    where?: OrderTicketSequenceWhereInput
+  }
+
+  /**
+   * OrderTicketSequence upsert
+   */
+  export type OrderTicketSequenceUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * The filter to search for the OrderTicketSequence to update in case it exists.
+     */
+    where: OrderTicketSequenceWhereUniqueInput
+    /**
+     * In case the OrderTicketSequence found by the `where` argument doesn't exist, create a new OrderTicketSequence with this data.
+     */
+    create: XOR<OrderTicketSequenceCreateInput, OrderTicketSequenceUncheckedCreateInput>
+    /**
+     * In case the OrderTicketSequence was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OrderTicketSequenceUpdateInput, OrderTicketSequenceUncheckedUpdateInput>
+  }
+
+  /**
+   * OrderTicketSequence delete
+   */
+  export type OrderTicketSequenceDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
+    /**
+     * Filter which OrderTicketSequence to delete.
+     */
+    where: OrderTicketSequenceWhereUniqueInput
+  }
+
+  /**
+   * OrderTicketSequence deleteMany
+   */
+  export type OrderTicketSequenceDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OrderTicketSequences to delete
+     */
+    where?: OrderTicketSequenceWhereInput
+  }
+
+  /**
+   * OrderTicketSequence without action
+   */
+  export type OrderTicketSequenceDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrderTicketSequence
+     */
+    select?: OrderTicketSequenceSelect<ExtArgs> | null
   }
 
 
@@ -102358,6 +103459,7 @@ export namespace Prisma {
     pickedUpAt: Date | null
     arrivedAt: Date | null
     deliveredAt: Date | null
+    creditedAt: Date | null
   }
 
   export type DriverAssignmentMaxAggregateOutputType = {
@@ -102371,6 +103473,7 @@ export namespace Prisma {
     pickedUpAt: Date | null
     arrivedAt: Date | null
     deliveredAt: Date | null
+    creditedAt: Date | null
   }
 
   export type DriverAssignmentCountAggregateOutputType = {
@@ -102384,6 +103487,7 @@ export namespace Prisma {
     pickedUpAt: number
     arrivedAt: number
     deliveredAt: number
+    creditedAt: number
     _all: number
   }
 
@@ -102407,6 +103511,7 @@ export namespace Prisma {
     pickedUpAt?: true
     arrivedAt?: true
     deliveredAt?: true
+    creditedAt?: true
   }
 
   export type DriverAssignmentMaxAggregateInputType = {
@@ -102420,6 +103525,7 @@ export namespace Prisma {
     pickedUpAt?: true
     arrivedAt?: true
     deliveredAt?: true
+    creditedAt?: true
   }
 
   export type DriverAssignmentCountAggregateInputType = {
@@ -102433,6 +103539,7 @@ export namespace Prisma {
     pickedUpAt?: true
     arrivedAt?: true
     deliveredAt?: true
+    creditedAt?: true
     _all?: true
   }
 
@@ -102533,6 +103640,7 @@ export namespace Prisma {
     pickedUpAt: Date | null
     arrivedAt: Date | null
     deliveredAt: Date | null
+    creditedAt: Date | null
     _count: DriverAssignmentCountAggregateOutputType | null
     _avg: DriverAssignmentAvgAggregateOutputType | null
     _sum: DriverAssignmentSumAggregateOutputType | null
@@ -102565,6 +103673,7 @@ export namespace Prisma {
     pickedUpAt?: boolean
     arrivedAt?: boolean
     deliveredAt?: boolean
+    creditedAt?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     driver?: boolean | DriverDefaultArgs<ExtArgs>
     tracking?: boolean | DriverAssignment$trackingArgs<ExtArgs>
@@ -102582,6 +103691,7 @@ export namespace Prisma {
     pickedUpAt?: boolean
     arrivedAt?: boolean
     deliveredAt?: boolean
+    creditedAt?: boolean
     order?: boolean | OrderDefaultArgs<ExtArgs>
     driver?: boolean | DriverDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["driverAssignment"]>
@@ -102597,6 +103707,7 @@ export namespace Prisma {
     pickedUpAt?: boolean
     arrivedAt?: boolean
     deliveredAt?: boolean
+    creditedAt?: boolean
   }
 
   export type DriverAssignmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -102628,6 +103739,7 @@ export namespace Prisma {
       pickedUpAt: Date | null
       arrivedAt: Date | null
       deliveredAt: Date | null
+      creditedAt: Date | null
     }, ExtArgs["result"]["driverAssignment"]>
     composites: {}
   }
@@ -103034,6 +104146,7 @@ export namespace Prisma {
     readonly pickedUpAt: FieldRef<"DriverAssignment", 'DateTime'>
     readonly arrivedAt: FieldRef<"DriverAssignment", 'DateTime'>
     readonly deliveredAt: FieldRef<"DriverAssignment", 'DateTime'>
+    readonly creditedAt: FieldRef<"DriverAssignment", 'DateTime'>
   }
     
 
@@ -211493,6 +212606,1048 @@ export namespace Prisma {
 
 
   /**
+   * Model Prospect
+   */
+
+  export type AggregateProspect = {
+    _count: ProspectCountAggregateOutputType | null
+    _min: ProspectMinAggregateOutputType | null
+    _max: ProspectMaxAggregateOutputType | null
+  }
+
+  export type ProspectMinAggregateOutputType = {
+    id: string | null
+    shopName: string | null
+    sourceUrl: string | null
+    city: string | null
+    postcode: string | null
+    logoUrl: string | null
+    bannerUrl: string | null
+    previewToken: string | null
+    previewExpiresAt: Date | null
+    menuStatus: string | null
+    menuError: string | null
+    statementStatus: string | null
+    statementError: string | null
+    createdByUserId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ProspectMaxAggregateOutputType = {
+    id: string | null
+    shopName: string | null
+    sourceUrl: string | null
+    city: string | null
+    postcode: string | null
+    logoUrl: string | null
+    bannerUrl: string | null
+    previewToken: string | null
+    previewExpiresAt: Date | null
+    menuStatus: string | null
+    menuError: string | null
+    statementStatus: string | null
+    statementError: string | null
+    createdByUserId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ProspectCountAggregateOutputType = {
+    id: number
+    shopName: number
+    sourceUrl: number
+    city: number
+    postcode: number
+    logoUrl: number
+    bannerUrl: number
+    previewToken: number
+    previewExpiresAt: number
+    menu: number
+    menuStatus: number
+    menuError: number
+    hygiene: number
+    statements: number
+    statementStatus: number
+    statementError: number
+    assumptions: number
+    createdByUserId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ProspectMinAggregateInputType = {
+    id?: true
+    shopName?: true
+    sourceUrl?: true
+    city?: true
+    postcode?: true
+    logoUrl?: true
+    bannerUrl?: true
+    previewToken?: true
+    previewExpiresAt?: true
+    menuStatus?: true
+    menuError?: true
+    statementStatus?: true
+    statementError?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ProspectMaxAggregateInputType = {
+    id?: true
+    shopName?: true
+    sourceUrl?: true
+    city?: true
+    postcode?: true
+    logoUrl?: true
+    bannerUrl?: true
+    previewToken?: true
+    previewExpiresAt?: true
+    menuStatus?: true
+    menuError?: true
+    statementStatus?: true
+    statementError?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ProspectCountAggregateInputType = {
+    id?: true
+    shopName?: true
+    sourceUrl?: true
+    city?: true
+    postcode?: true
+    logoUrl?: true
+    bannerUrl?: true
+    previewToken?: true
+    previewExpiresAt?: true
+    menu?: true
+    menuStatus?: true
+    menuError?: true
+    hygiene?: true
+    statements?: true
+    statementStatus?: true
+    statementError?: true
+    assumptions?: true
+    createdByUserId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ProspectAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Prospect to aggregate.
+     */
+    where?: ProspectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Prospects to fetch.
+     */
+    orderBy?: ProspectOrderByWithRelationInput | ProspectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProspectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Prospects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Prospects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Prospects
+    **/
+    _count?: true | ProspectCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProspectMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProspectMaxAggregateInputType
+  }
+
+  export type GetProspectAggregateType<T extends ProspectAggregateArgs> = {
+        [P in keyof T & keyof AggregateProspect]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProspect[P]>
+      : GetScalarType<T[P], AggregateProspect[P]>
+  }
+
+
+
+
+  export type ProspectGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProspectWhereInput
+    orderBy?: ProspectOrderByWithAggregationInput | ProspectOrderByWithAggregationInput[]
+    by: ProspectScalarFieldEnum[] | ProspectScalarFieldEnum
+    having?: ProspectScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProspectCountAggregateInputType | true
+    _min?: ProspectMinAggregateInputType
+    _max?: ProspectMaxAggregateInputType
+  }
+
+  export type ProspectGroupByOutputType = {
+    id: string
+    shopName: string
+    sourceUrl: string | null
+    city: string | null
+    postcode: string | null
+    logoUrl: string | null
+    bannerUrl: string | null
+    previewToken: string
+    previewExpiresAt: Date
+    menu: JsonValue | null
+    menuStatus: string
+    menuError: string | null
+    hygiene: JsonValue | null
+    statements: JsonValue
+    statementStatus: string
+    statementError: string | null
+    assumptions: JsonValue | null
+    createdByUserId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ProspectCountAggregateOutputType | null
+    _min: ProspectMinAggregateOutputType | null
+    _max: ProspectMaxAggregateOutputType | null
+  }
+
+  type GetProspectGroupByPayload<T extends ProspectGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProspectGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProspectGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProspectGroupByOutputType[P]>
+            : GetScalarType<T[P], ProspectGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProspectSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    shopName?: boolean
+    sourceUrl?: boolean
+    city?: boolean
+    postcode?: boolean
+    logoUrl?: boolean
+    bannerUrl?: boolean
+    previewToken?: boolean
+    previewExpiresAt?: boolean
+    menu?: boolean
+    menuStatus?: boolean
+    menuError?: boolean
+    hygiene?: boolean
+    statements?: boolean
+    statementStatus?: boolean
+    statementError?: boolean
+    assumptions?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["prospect"]>
+
+  export type ProspectSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    shopName?: boolean
+    sourceUrl?: boolean
+    city?: boolean
+    postcode?: boolean
+    logoUrl?: boolean
+    bannerUrl?: boolean
+    previewToken?: boolean
+    previewExpiresAt?: boolean
+    menu?: boolean
+    menuStatus?: boolean
+    menuError?: boolean
+    hygiene?: boolean
+    statements?: boolean
+    statementStatus?: boolean
+    statementError?: boolean
+    assumptions?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["prospect"]>
+
+  export type ProspectSelectScalar = {
+    id?: boolean
+    shopName?: boolean
+    sourceUrl?: boolean
+    city?: boolean
+    postcode?: boolean
+    logoUrl?: boolean
+    bannerUrl?: boolean
+    previewToken?: boolean
+    previewExpiresAt?: boolean
+    menu?: boolean
+    menuStatus?: boolean
+    menuError?: boolean
+    hygiene?: boolean
+    statements?: boolean
+    statementStatus?: boolean
+    statementError?: boolean
+    assumptions?: boolean
+    createdByUserId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+
+  export type $ProspectPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Prospect"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      shopName: string
+      sourceUrl: string | null
+      city: string | null
+      postcode: string | null
+      logoUrl: string | null
+      bannerUrl: string | null
+      previewToken: string
+      previewExpiresAt: Date
+      menu: Prisma.JsonValue | null
+      menuStatus: string
+      menuError: string | null
+      hygiene: Prisma.JsonValue | null
+      statements: Prisma.JsonValue
+      statementStatus: string
+      statementError: string | null
+      assumptions: Prisma.JsonValue | null
+      createdByUserId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["prospect"]>
+    composites: {}
+  }
+
+  type ProspectGetPayload<S extends boolean | null | undefined | ProspectDefaultArgs> = $Result.GetResult<Prisma.$ProspectPayload, S>
+
+  type ProspectCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ProspectFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ProspectCountAggregateInputType | true
+    }
+
+  export interface ProspectDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Prospect'], meta: { name: 'Prospect' } }
+    /**
+     * Find zero or one Prospect that matches the filter.
+     * @param {ProspectFindUniqueArgs} args - Arguments to find a Prospect
+     * @example
+     * // Get one Prospect
+     * const prospect = await prisma.prospect.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProspectFindUniqueArgs>(args: SelectSubset<T, ProspectFindUniqueArgs<ExtArgs>>): Prisma__ProspectClient<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Prospect that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ProspectFindUniqueOrThrowArgs} args - Arguments to find a Prospect
+     * @example
+     * // Get one Prospect
+     * const prospect = await prisma.prospect.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProspectFindUniqueOrThrowArgs>(args: SelectSubset<T, ProspectFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProspectClient<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Prospect that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProspectFindFirstArgs} args - Arguments to find a Prospect
+     * @example
+     * // Get one Prospect
+     * const prospect = await prisma.prospect.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProspectFindFirstArgs>(args?: SelectSubset<T, ProspectFindFirstArgs<ExtArgs>>): Prisma__ProspectClient<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Prospect that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProspectFindFirstOrThrowArgs} args - Arguments to find a Prospect
+     * @example
+     * // Get one Prospect
+     * const prospect = await prisma.prospect.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProspectFindFirstOrThrowArgs>(args?: SelectSubset<T, ProspectFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProspectClient<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Prospects that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProspectFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Prospects
+     * const prospects = await prisma.prospect.findMany()
+     * 
+     * // Get first 10 Prospects
+     * const prospects = await prisma.prospect.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const prospectWithIdOnly = await prisma.prospect.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProspectFindManyArgs>(args?: SelectSubset<T, ProspectFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Prospect.
+     * @param {ProspectCreateArgs} args - Arguments to create a Prospect.
+     * @example
+     * // Create one Prospect
+     * const Prospect = await prisma.prospect.create({
+     *   data: {
+     *     // ... data to create a Prospect
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProspectCreateArgs>(args: SelectSubset<T, ProspectCreateArgs<ExtArgs>>): Prisma__ProspectClient<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Prospects.
+     * @param {ProspectCreateManyArgs} args - Arguments to create many Prospects.
+     * @example
+     * // Create many Prospects
+     * const prospect = await prisma.prospect.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProspectCreateManyArgs>(args?: SelectSubset<T, ProspectCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Prospects and returns the data saved in the database.
+     * @param {ProspectCreateManyAndReturnArgs} args - Arguments to create many Prospects.
+     * @example
+     * // Create many Prospects
+     * const prospect = await prisma.prospect.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Prospects and only return the `id`
+     * const prospectWithIdOnly = await prisma.prospect.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProspectCreateManyAndReturnArgs>(args?: SelectSubset<T, ProspectCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Prospect.
+     * @param {ProspectDeleteArgs} args - Arguments to delete one Prospect.
+     * @example
+     * // Delete one Prospect
+     * const Prospect = await prisma.prospect.delete({
+     *   where: {
+     *     // ... filter to delete one Prospect
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProspectDeleteArgs>(args: SelectSubset<T, ProspectDeleteArgs<ExtArgs>>): Prisma__ProspectClient<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Prospect.
+     * @param {ProspectUpdateArgs} args - Arguments to update one Prospect.
+     * @example
+     * // Update one Prospect
+     * const prospect = await prisma.prospect.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProspectUpdateArgs>(args: SelectSubset<T, ProspectUpdateArgs<ExtArgs>>): Prisma__ProspectClient<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Prospects.
+     * @param {ProspectDeleteManyArgs} args - Arguments to filter Prospects to delete.
+     * @example
+     * // Delete a few Prospects
+     * const { count } = await prisma.prospect.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProspectDeleteManyArgs>(args?: SelectSubset<T, ProspectDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Prospects.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProspectUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Prospects
+     * const prospect = await prisma.prospect.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProspectUpdateManyArgs>(args: SelectSubset<T, ProspectUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Prospect.
+     * @param {ProspectUpsertArgs} args - Arguments to update or create a Prospect.
+     * @example
+     * // Update or create a Prospect
+     * const prospect = await prisma.prospect.upsert({
+     *   create: {
+     *     // ... data to create a Prospect
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Prospect we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProspectUpsertArgs>(args: SelectSubset<T, ProspectUpsertArgs<ExtArgs>>): Prisma__ProspectClient<$Result.GetResult<Prisma.$ProspectPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Prospects.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProspectCountArgs} args - Arguments to filter Prospects to count.
+     * @example
+     * // Count the number of Prospects
+     * const count = await prisma.prospect.count({
+     *   where: {
+     *     // ... the filter for the Prospects we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProspectCountArgs>(
+      args?: Subset<T, ProspectCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProspectCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Prospect.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProspectAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProspectAggregateArgs>(args: Subset<T, ProspectAggregateArgs>): Prisma.PrismaPromise<GetProspectAggregateType<T>>
+
+    /**
+     * Group by Prospect.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProspectGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProspectGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProspectGroupByArgs['orderBy'] }
+        : { orderBy?: ProspectGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProspectGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProspectGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Prospect model
+   */
+  readonly fields: ProspectFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Prospect.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProspectClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Prospect model
+   */ 
+  interface ProspectFieldRefs {
+    readonly id: FieldRef<"Prospect", 'String'>
+    readonly shopName: FieldRef<"Prospect", 'String'>
+    readonly sourceUrl: FieldRef<"Prospect", 'String'>
+    readonly city: FieldRef<"Prospect", 'String'>
+    readonly postcode: FieldRef<"Prospect", 'String'>
+    readonly logoUrl: FieldRef<"Prospect", 'String'>
+    readonly bannerUrl: FieldRef<"Prospect", 'String'>
+    readonly previewToken: FieldRef<"Prospect", 'String'>
+    readonly previewExpiresAt: FieldRef<"Prospect", 'DateTime'>
+    readonly menu: FieldRef<"Prospect", 'Json'>
+    readonly menuStatus: FieldRef<"Prospect", 'String'>
+    readonly menuError: FieldRef<"Prospect", 'String'>
+    readonly hygiene: FieldRef<"Prospect", 'Json'>
+    readonly statements: FieldRef<"Prospect", 'Json'>
+    readonly statementStatus: FieldRef<"Prospect", 'String'>
+    readonly statementError: FieldRef<"Prospect", 'String'>
+    readonly assumptions: FieldRef<"Prospect", 'Json'>
+    readonly createdByUserId: FieldRef<"Prospect", 'String'>
+    readonly createdAt: FieldRef<"Prospect", 'DateTime'>
+    readonly updatedAt: FieldRef<"Prospect", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Prospect findUnique
+   */
+  export type ProspectFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * Filter, which Prospect to fetch.
+     */
+    where: ProspectWhereUniqueInput
+  }
+
+  /**
+   * Prospect findUniqueOrThrow
+   */
+  export type ProspectFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * Filter, which Prospect to fetch.
+     */
+    where: ProspectWhereUniqueInput
+  }
+
+  /**
+   * Prospect findFirst
+   */
+  export type ProspectFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * Filter, which Prospect to fetch.
+     */
+    where?: ProspectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Prospects to fetch.
+     */
+    orderBy?: ProspectOrderByWithRelationInput | ProspectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Prospects.
+     */
+    cursor?: ProspectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Prospects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Prospects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Prospects.
+     */
+    distinct?: ProspectScalarFieldEnum | ProspectScalarFieldEnum[]
+  }
+
+  /**
+   * Prospect findFirstOrThrow
+   */
+  export type ProspectFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * Filter, which Prospect to fetch.
+     */
+    where?: ProspectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Prospects to fetch.
+     */
+    orderBy?: ProspectOrderByWithRelationInput | ProspectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Prospects.
+     */
+    cursor?: ProspectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Prospects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Prospects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Prospects.
+     */
+    distinct?: ProspectScalarFieldEnum | ProspectScalarFieldEnum[]
+  }
+
+  /**
+   * Prospect findMany
+   */
+  export type ProspectFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * Filter, which Prospects to fetch.
+     */
+    where?: ProspectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Prospects to fetch.
+     */
+    orderBy?: ProspectOrderByWithRelationInput | ProspectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Prospects.
+     */
+    cursor?: ProspectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Prospects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Prospects.
+     */
+    skip?: number
+    distinct?: ProspectScalarFieldEnum | ProspectScalarFieldEnum[]
+  }
+
+  /**
+   * Prospect create
+   */
+  export type ProspectCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * The data needed to create a Prospect.
+     */
+    data: XOR<ProspectCreateInput, ProspectUncheckedCreateInput>
+  }
+
+  /**
+   * Prospect createMany
+   */
+  export type ProspectCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Prospects.
+     */
+    data: ProspectCreateManyInput | ProspectCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Prospect createManyAndReturn
+   */
+  export type ProspectCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Prospects.
+     */
+    data: ProspectCreateManyInput | ProspectCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Prospect update
+   */
+  export type ProspectUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * The data needed to update a Prospect.
+     */
+    data: XOR<ProspectUpdateInput, ProspectUncheckedUpdateInput>
+    /**
+     * Choose, which Prospect to update.
+     */
+    where: ProspectWhereUniqueInput
+  }
+
+  /**
+   * Prospect updateMany
+   */
+  export type ProspectUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Prospects.
+     */
+    data: XOR<ProspectUpdateManyMutationInput, ProspectUncheckedUpdateManyInput>
+    /**
+     * Filter which Prospects to update
+     */
+    where?: ProspectWhereInput
+  }
+
+  /**
+   * Prospect upsert
+   */
+  export type ProspectUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * The filter to search for the Prospect to update in case it exists.
+     */
+    where: ProspectWhereUniqueInput
+    /**
+     * In case the Prospect found by the `where` argument doesn't exist, create a new Prospect with this data.
+     */
+    create: XOR<ProspectCreateInput, ProspectUncheckedCreateInput>
+    /**
+     * In case the Prospect was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProspectUpdateInput, ProspectUncheckedUpdateInput>
+  }
+
+  /**
+   * Prospect delete
+   */
+  export type ProspectDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+    /**
+     * Filter which Prospect to delete.
+     */
+    where: ProspectWhereUniqueInput
+  }
+
+  /**
+   * Prospect deleteMany
+   */
+  export type ProspectDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Prospects to delete
+     */
+    where?: ProspectWhereInput
+  }
+
+  /**
+   * Prospect without action
+   */
+  export type ProspectDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Prospect
+     */
+    select?: ProspectSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -211807,6 +213962,7 @@ export namespace Prisma {
     status: 'status',
     googleReviewUrl: 'googleReviewUrl',
     busyModeJson: 'busyModeJson',
+    payOnDispatch: 'payOnDispatch',
     shopCode: 'shopCode',
     printToken: 'printToken',
     slug: 'slug',
@@ -212442,6 +214598,7 @@ export namespace Prisma {
     platform: 'platform',
     displayId: 'displayId',
     orderNumber: 'orderNumber',
+    ticketNumber: 'ticketNumber',
     orderSource: 'orderSource',
     integrationSource: 'integrationSource',
     viaHubrise: 'viaHubrise',
@@ -212531,6 +214688,16 @@ export namespace Prisma {
   };
 
   export type OrderNumberSequenceScalarFieldEnum = (typeof OrderNumberSequenceScalarFieldEnum)[keyof typeof OrderNumberSequenceScalarFieldEnum]
+
+
+  export const OrderTicketSequenceScalarFieldEnum: {
+    locationId: 'locationId',
+    businessDate: 'businessDate',
+    lastValue: 'lastValue',
+    updatedAt: 'updatedAt'
+  };
+
+  export type OrderTicketSequenceScalarFieldEnum = (typeof OrderTicketSequenceScalarFieldEnum)[keyof typeof OrderTicketSequenceScalarFieldEnum]
 
 
   export const OrderItemScalarFieldEnum: {
@@ -213135,7 +215302,8 @@ export namespace Prisma {
     acceptedAt: 'acceptedAt',
     pickedUpAt: 'pickedUpAt',
     arrivedAt: 'arrivedAt',
-    deliveredAt: 'deliveredAt'
+    deliveredAt: 'deliveredAt',
+    creditedAt: 'creditedAt'
   };
 
   export type DriverAssignmentScalarFieldEnum = (typeof DriverAssignmentScalarFieldEnum)[keyof typeof DriverAssignmentScalarFieldEnum]
@@ -215087,6 +217255,32 @@ export namespace Prisma {
   export type AutoDispatchRunScalarFieldEnum = (typeof AutoDispatchRunScalarFieldEnum)[keyof typeof AutoDispatchRunScalarFieldEnum]
 
 
+  export const ProspectScalarFieldEnum: {
+    id: 'id',
+    shopName: 'shopName',
+    sourceUrl: 'sourceUrl',
+    city: 'city',
+    postcode: 'postcode',
+    logoUrl: 'logoUrl',
+    bannerUrl: 'bannerUrl',
+    previewToken: 'previewToken',
+    previewExpiresAt: 'previewExpiresAt',
+    menu: 'menu',
+    menuStatus: 'menuStatus',
+    menuError: 'menuError',
+    hygiene: 'hygiene',
+    statements: 'statements',
+    statementStatus: 'statementStatus',
+    statementError: 'statementError',
+    assumptions: 'assumptions',
+    createdByUserId: 'createdByUserId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ProspectScalarFieldEnum = (typeof ProspectScalarFieldEnum)[keyof typeof ProspectScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -215791,6 +217985,14 @@ export namespace Prisma {
   };
 
   export type OrderNumberSequenceOrderByRelevanceFieldEnum = (typeof OrderNumberSequenceOrderByRelevanceFieldEnum)[keyof typeof OrderNumberSequenceOrderByRelevanceFieldEnum]
+
+
+  export const OrderTicketSequenceOrderByRelevanceFieldEnum: {
+    locationId: 'locationId',
+    businessDate: 'businessDate'
+  };
+
+  export type OrderTicketSequenceOrderByRelevanceFieldEnum = (typeof OrderTicketSequenceOrderByRelevanceFieldEnum)[keyof typeof OrderTicketSequenceOrderByRelevanceFieldEnum]
 
 
   export const OrderItemOrderByRelevanceFieldEnum: {
@@ -217581,6 +219783,25 @@ export namespace Prisma {
   };
 
   export type AutoDispatchRunOrderByRelevanceFieldEnum = (typeof AutoDispatchRunOrderByRelevanceFieldEnum)[keyof typeof AutoDispatchRunOrderByRelevanceFieldEnum]
+
+
+  export const ProspectOrderByRelevanceFieldEnum: {
+    id: 'id',
+    shopName: 'shopName',
+    sourceUrl: 'sourceUrl',
+    city: 'city',
+    postcode: 'postcode',
+    logoUrl: 'logoUrl',
+    bannerUrl: 'bannerUrl',
+    previewToken: 'previewToken',
+    menuStatus: 'menuStatus',
+    menuError: 'menuError',
+    statementStatus: 'statementStatus',
+    statementError: 'statementError',
+    createdByUserId: 'createdByUserId'
+  };
+
+  export type ProspectOrderByRelevanceFieldEnum = (typeof ProspectOrderByRelevanceFieldEnum)[keyof typeof ProspectOrderByRelevanceFieldEnum]
 
 
   /**
@@ -219965,6 +222186,7 @@ export namespace Prisma {
     status?: StringFilter<"Location"> | string
     googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
+    payOnDispatch?: BoolFilter<"Location"> | boolean
     shopCode?: StringNullableFilter<"Location"> | string | null
     printToken?: StringNullableFilter<"Location"> | string | null
     slug?: StringNullableFilter<"Location"> | string | null
@@ -220070,6 +222292,7 @@ export namespace Prisma {
     status?: SortOrder
     googleReviewUrl?: SortOrderInput | SortOrder
     busyModeJson?: SortOrder
+    payOnDispatch?: SortOrder
     shopCode?: SortOrderInput | SortOrder
     printToken?: SortOrderInput | SortOrder
     slug?: SortOrderInput | SortOrder
@@ -220182,6 +222405,7 @@ export namespace Prisma {
     status?: StringFilter<"Location"> | string
     googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
+    payOnDispatch?: BoolFilter<"Location"> | boolean
     openingHours?: JsonFilter<"Location">
     deliveryConfig?: JsonFilter<"Location">
     prepTime?: IntNullableFilter<"Location"> | number | null
@@ -220284,6 +222508,7 @@ export namespace Prisma {
     status?: SortOrder
     googleReviewUrl?: SortOrderInput | SortOrder
     busyModeJson?: SortOrder
+    payOnDispatch?: SortOrder
     shopCode?: SortOrderInput | SortOrder
     printToken?: SortOrderInput | SortOrder
     slug?: SortOrderInput | SortOrder
@@ -220359,6 +222584,7 @@ export namespace Prisma {
     status?: StringWithAggregatesFilter<"Location"> | string
     googleReviewUrl?: StringNullableWithAggregatesFilter<"Location"> | string | null
     busyModeJson?: JsonWithAggregatesFilter<"Location">
+    payOnDispatch?: BoolWithAggregatesFilter<"Location"> | boolean
     shopCode?: StringNullableWithAggregatesFilter<"Location"> | string | null
     printToken?: StringNullableWithAggregatesFilter<"Location"> | string | null
     slug?: StringNullableWithAggregatesFilter<"Location"> | string | null
@@ -223579,6 +225805,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
     displayId?: StringNullableFilter<"Order"> | string | null
     orderNumber?: IntNullableFilter<"Order"> | number | null
+    ticketNumber?: IntNullableFilter<"Order"> | number | null
     orderSource?: EnumOrderSourceFilter<"Order"> | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFilter<"Order"> | $Enums.IntegrationSource
     viaHubrise?: BoolFilter<"Order"> | boolean
@@ -223682,6 +225909,7 @@ export namespace Prisma {
     platform?: SortOrder
     displayId?: SortOrderInput | SortOrder
     orderNumber?: SortOrderInput | SortOrder
+    ticketNumber?: SortOrderInput | SortOrder
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
@@ -223791,6 +226019,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
     displayId?: StringNullableFilter<"Order"> | string | null
     orderNumber?: IntNullableFilter<"Order"> | number | null
+    ticketNumber?: IntNullableFilter<"Order"> | number | null
     orderSource?: EnumOrderSourceFilter<"Order"> | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFilter<"Order"> | $Enums.IntegrationSource
     viaHubrise?: BoolFilter<"Order"> | boolean
@@ -223893,6 +226122,7 @@ export namespace Prisma {
     platform?: SortOrder
     displayId?: SortOrderInput | SortOrder
     orderNumber?: SortOrderInput | SortOrder
+    ticketNumber?: SortOrderInput | SortOrder
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
@@ -223991,6 +226221,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformWithAggregatesFilter<"Order"> | $Enums.OrderPlatform
     displayId?: StringNullableWithAggregatesFilter<"Order"> | string | null
     orderNumber?: IntNullableWithAggregatesFilter<"Order"> | number | null
+    ticketNumber?: IntNullableWithAggregatesFilter<"Order"> | number | null
     orderSource?: EnumOrderSourceWithAggregatesFilter<"Order"> | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceWithAggregatesFilter<"Order"> | $Enums.IntegrationSource
     viaHubrise?: BoolWithAggregatesFilter<"Order"> | boolean
@@ -224113,6 +226344,57 @@ export namespace Prisma {
     tenantId?: StringWithAggregatesFilter<"OrderNumberSequence"> | string
     nextValue?: IntWithAggregatesFilter<"OrderNumberSequence"> | number
     updatedAt?: DateTimeWithAggregatesFilter<"OrderNumberSequence"> | Date | string
+  }
+
+  export type OrderTicketSequenceWhereInput = {
+    AND?: OrderTicketSequenceWhereInput | OrderTicketSequenceWhereInput[]
+    OR?: OrderTicketSequenceWhereInput[]
+    NOT?: OrderTicketSequenceWhereInput | OrderTicketSequenceWhereInput[]
+    locationId?: StringFilter<"OrderTicketSequence"> | string
+    businessDate?: StringFilter<"OrderTicketSequence"> | string
+    lastValue?: IntFilter<"OrderTicketSequence"> | number
+    updatedAt?: DateTimeFilter<"OrderTicketSequence"> | Date | string
+  }
+
+  export type OrderTicketSequenceOrderByWithRelationInput = {
+    locationId?: SortOrder
+    businessDate?: SortOrder
+    lastValue?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: OrderTicketSequenceOrderByRelevanceInput
+  }
+
+  export type OrderTicketSequenceWhereUniqueInput = Prisma.AtLeast<{
+    locationId_businessDate?: OrderTicketSequenceLocationIdBusinessDateCompoundUniqueInput
+    AND?: OrderTicketSequenceWhereInput | OrderTicketSequenceWhereInput[]
+    OR?: OrderTicketSequenceWhereInput[]
+    NOT?: OrderTicketSequenceWhereInput | OrderTicketSequenceWhereInput[]
+    locationId?: StringFilter<"OrderTicketSequence"> | string
+    businessDate?: StringFilter<"OrderTicketSequence"> | string
+    lastValue?: IntFilter<"OrderTicketSequence"> | number
+    updatedAt?: DateTimeFilter<"OrderTicketSequence"> | Date | string
+  }, "locationId_businessDate">
+
+  export type OrderTicketSequenceOrderByWithAggregationInput = {
+    locationId?: SortOrder
+    businessDate?: SortOrder
+    lastValue?: SortOrder
+    updatedAt?: SortOrder
+    _count?: OrderTicketSequenceCountOrderByAggregateInput
+    _avg?: OrderTicketSequenceAvgOrderByAggregateInput
+    _max?: OrderTicketSequenceMaxOrderByAggregateInput
+    _min?: OrderTicketSequenceMinOrderByAggregateInput
+    _sum?: OrderTicketSequenceSumOrderByAggregateInput
+  }
+
+  export type OrderTicketSequenceScalarWhereWithAggregatesInput = {
+    AND?: OrderTicketSequenceScalarWhereWithAggregatesInput | OrderTicketSequenceScalarWhereWithAggregatesInput[]
+    OR?: OrderTicketSequenceScalarWhereWithAggregatesInput[]
+    NOT?: OrderTicketSequenceScalarWhereWithAggregatesInput | OrderTicketSequenceScalarWhereWithAggregatesInput[]
+    locationId?: StringWithAggregatesFilter<"OrderTicketSequence"> | string
+    businessDate?: StringWithAggregatesFilter<"OrderTicketSequence"> | string
+    lastValue?: IntWithAggregatesFilter<"OrderTicketSequence"> | number
+    updatedAt?: DateTimeWithAggregatesFilter<"OrderTicketSequence"> | Date | string
   }
 
   export type OrderItemWhereInput = {
@@ -227247,6 +229529,7 @@ export namespace Prisma {
     pickedUpAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     arrivedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     deliveredAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
+    creditedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     order?: XOR<OrderRelationFilter, OrderWhereInput>
     driver?: XOR<DriverRelationFilter, DriverWhereInput>
     tracking?: DeliveryTrackingListRelationFilter
@@ -227263,6 +229546,7 @@ export namespace Prisma {
     pickedUpAt?: SortOrderInput | SortOrder
     arrivedAt?: SortOrderInput | SortOrder
     deliveredAt?: SortOrderInput | SortOrder
+    creditedAt?: SortOrderInput | SortOrder
     order?: OrderOrderByWithRelationInput
     driver?: DriverOrderByWithRelationInput
     tracking?: DeliveryTrackingOrderByRelationAggregateInput
@@ -227283,6 +229567,7 @@ export namespace Prisma {
     pickedUpAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     arrivedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     deliveredAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
+    creditedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     order?: XOR<OrderRelationFilter, OrderWhereInput>
     driver?: XOR<DriverRelationFilter, DriverWhereInput>
     tracking?: DeliveryTrackingListRelationFilter
@@ -227299,6 +229584,7 @@ export namespace Prisma {
     pickedUpAt?: SortOrderInput | SortOrder
     arrivedAt?: SortOrderInput | SortOrder
     deliveredAt?: SortOrderInput | SortOrder
+    creditedAt?: SortOrderInput | SortOrder
     _count?: DriverAssignmentCountOrderByAggregateInput
     _avg?: DriverAssignmentAvgOrderByAggregateInput
     _max?: DriverAssignmentMaxOrderByAggregateInput
@@ -227320,6 +229606,7 @@ export namespace Prisma {
     pickedUpAt?: DateTimeNullableWithAggregatesFilter<"DriverAssignment"> | Date | string | null
     arrivedAt?: DateTimeNullableWithAggregatesFilter<"DriverAssignment"> | Date | string | null
     deliveredAt?: DateTimeNullableWithAggregatesFilter<"DriverAssignment"> | Date | string | null
+    creditedAt?: DateTimeNullableWithAggregatesFilter<"DriverAssignment"> | Date | string | null
   }
 
   export type DeliveryTrackingWhereInput = {
@@ -237343,6 +239630,134 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"AutoDispatchRun"> | Date | string
   }
 
+  export type ProspectWhereInput = {
+    AND?: ProspectWhereInput | ProspectWhereInput[]
+    OR?: ProspectWhereInput[]
+    NOT?: ProspectWhereInput | ProspectWhereInput[]
+    id?: StringFilter<"Prospect"> | string
+    shopName?: StringFilter<"Prospect"> | string
+    sourceUrl?: StringNullableFilter<"Prospect"> | string | null
+    city?: StringNullableFilter<"Prospect"> | string | null
+    postcode?: StringNullableFilter<"Prospect"> | string | null
+    logoUrl?: StringNullableFilter<"Prospect"> | string | null
+    bannerUrl?: StringNullableFilter<"Prospect"> | string | null
+    previewToken?: StringFilter<"Prospect"> | string
+    previewExpiresAt?: DateTimeFilter<"Prospect"> | Date | string
+    menu?: JsonNullableFilter<"Prospect">
+    menuStatus?: StringFilter<"Prospect"> | string
+    menuError?: StringNullableFilter<"Prospect"> | string | null
+    hygiene?: JsonNullableFilter<"Prospect">
+    statements?: JsonFilter<"Prospect">
+    statementStatus?: StringFilter<"Prospect"> | string
+    statementError?: StringNullableFilter<"Prospect"> | string | null
+    assumptions?: JsonNullableFilter<"Prospect">
+    createdByUserId?: StringNullableFilter<"Prospect"> | string | null
+    createdAt?: DateTimeFilter<"Prospect"> | Date | string
+    updatedAt?: DateTimeFilter<"Prospect"> | Date | string
+  }
+
+  export type ProspectOrderByWithRelationInput = {
+    id?: SortOrder
+    shopName?: SortOrder
+    sourceUrl?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    postcode?: SortOrderInput | SortOrder
+    logoUrl?: SortOrderInput | SortOrder
+    bannerUrl?: SortOrderInput | SortOrder
+    previewToken?: SortOrder
+    previewExpiresAt?: SortOrder
+    menu?: SortOrderInput | SortOrder
+    menuStatus?: SortOrder
+    menuError?: SortOrderInput | SortOrder
+    hygiene?: SortOrderInput | SortOrder
+    statements?: SortOrder
+    statementStatus?: SortOrder
+    statementError?: SortOrderInput | SortOrder
+    assumptions?: SortOrderInput | SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: ProspectOrderByRelevanceInput
+  }
+
+  export type ProspectWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    previewToken?: string
+    AND?: ProspectWhereInput | ProspectWhereInput[]
+    OR?: ProspectWhereInput[]
+    NOT?: ProspectWhereInput | ProspectWhereInput[]
+    shopName?: StringFilter<"Prospect"> | string
+    sourceUrl?: StringNullableFilter<"Prospect"> | string | null
+    city?: StringNullableFilter<"Prospect"> | string | null
+    postcode?: StringNullableFilter<"Prospect"> | string | null
+    logoUrl?: StringNullableFilter<"Prospect"> | string | null
+    bannerUrl?: StringNullableFilter<"Prospect"> | string | null
+    previewExpiresAt?: DateTimeFilter<"Prospect"> | Date | string
+    menu?: JsonNullableFilter<"Prospect">
+    menuStatus?: StringFilter<"Prospect"> | string
+    menuError?: StringNullableFilter<"Prospect"> | string | null
+    hygiene?: JsonNullableFilter<"Prospect">
+    statements?: JsonFilter<"Prospect">
+    statementStatus?: StringFilter<"Prospect"> | string
+    statementError?: StringNullableFilter<"Prospect"> | string | null
+    assumptions?: JsonNullableFilter<"Prospect">
+    createdByUserId?: StringNullableFilter<"Prospect"> | string | null
+    createdAt?: DateTimeFilter<"Prospect"> | Date | string
+    updatedAt?: DateTimeFilter<"Prospect"> | Date | string
+  }, "id" | "previewToken">
+
+  export type ProspectOrderByWithAggregationInput = {
+    id?: SortOrder
+    shopName?: SortOrder
+    sourceUrl?: SortOrderInput | SortOrder
+    city?: SortOrderInput | SortOrder
+    postcode?: SortOrderInput | SortOrder
+    logoUrl?: SortOrderInput | SortOrder
+    bannerUrl?: SortOrderInput | SortOrder
+    previewToken?: SortOrder
+    previewExpiresAt?: SortOrder
+    menu?: SortOrderInput | SortOrder
+    menuStatus?: SortOrder
+    menuError?: SortOrderInput | SortOrder
+    hygiene?: SortOrderInput | SortOrder
+    statements?: SortOrder
+    statementStatus?: SortOrder
+    statementError?: SortOrderInput | SortOrder
+    assumptions?: SortOrderInput | SortOrder
+    createdByUserId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ProspectCountOrderByAggregateInput
+    _max?: ProspectMaxOrderByAggregateInput
+    _min?: ProspectMinOrderByAggregateInput
+  }
+
+  export type ProspectScalarWhereWithAggregatesInput = {
+    AND?: ProspectScalarWhereWithAggregatesInput | ProspectScalarWhereWithAggregatesInput[]
+    OR?: ProspectScalarWhereWithAggregatesInput[]
+    NOT?: ProspectScalarWhereWithAggregatesInput | ProspectScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Prospect"> | string
+    shopName?: StringWithAggregatesFilter<"Prospect"> | string
+    sourceUrl?: StringNullableWithAggregatesFilter<"Prospect"> | string | null
+    city?: StringNullableWithAggregatesFilter<"Prospect"> | string | null
+    postcode?: StringNullableWithAggregatesFilter<"Prospect"> | string | null
+    logoUrl?: StringNullableWithAggregatesFilter<"Prospect"> | string | null
+    bannerUrl?: StringNullableWithAggregatesFilter<"Prospect"> | string | null
+    previewToken?: StringWithAggregatesFilter<"Prospect"> | string
+    previewExpiresAt?: DateTimeWithAggregatesFilter<"Prospect"> | Date | string
+    menu?: JsonNullableWithAggregatesFilter<"Prospect">
+    menuStatus?: StringWithAggregatesFilter<"Prospect"> | string
+    menuError?: StringNullableWithAggregatesFilter<"Prospect"> | string | null
+    hygiene?: JsonNullableWithAggregatesFilter<"Prospect">
+    statements?: JsonWithAggregatesFilter<"Prospect">
+    statementStatus?: StringWithAggregatesFilter<"Prospect"> | string
+    statementError?: StringNullableWithAggregatesFilter<"Prospect"> | string | null
+    assumptions?: JsonNullableWithAggregatesFilter<"Prospect">
+    createdByUserId?: StringNullableWithAggregatesFilter<"Prospect"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Prospect"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Prospect"> | Date | string
+  }
+
   export type TenantCreateInput = {
     id?: string
     name: string
@@ -239112,6 +241527,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -239217,6 +241633,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -239314,6 +241731,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239419,6 +241837,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239520,6 +241939,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -239583,6 +242003,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -239650,6 +242071,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -243340,6 +245762,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -243443,6 +245866,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -243536,6 +245960,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -243639,6 +246064,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -243737,6 +246163,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -243822,6 +246249,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -243912,6 +246340,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -244030,6 +246459,55 @@ export namespace Prisma {
   export type OrderNumberSequenceUncheckedUpdateManyInput = {
     tenantId?: StringFieldUpdateOperationsInput | string
     nextValue?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderTicketSequenceCreateInput = {
+    locationId: string
+    businessDate: string
+    lastValue?: number
+    updatedAt?: Date | string
+  }
+
+  export type OrderTicketSequenceUncheckedCreateInput = {
+    locationId: string
+    businessDate: string
+    lastValue?: number
+    updatedAt?: Date | string
+  }
+
+  export type OrderTicketSequenceUpdateInput = {
+    locationId?: StringFieldUpdateOperationsInput | string
+    businessDate?: StringFieldUpdateOperationsInput | string
+    lastValue?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderTicketSequenceUncheckedUpdateInput = {
+    locationId?: StringFieldUpdateOperationsInput | string
+    businessDate?: StringFieldUpdateOperationsInput | string
+    lastValue?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderTicketSequenceCreateManyInput = {
+    locationId: string
+    businessDate: string
+    lastValue?: number
+    updatedAt?: Date | string
+  }
+
+  export type OrderTicketSequenceUpdateManyMutationInput = {
+    locationId?: StringFieldUpdateOperationsInput | string
+    businessDate?: StringFieldUpdateOperationsInput | string
+    lastValue?: IntFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OrderTicketSequenceUncheckedUpdateManyInput = {
+    locationId?: StringFieldUpdateOperationsInput | string
+    businessDate?: StringFieldUpdateOperationsInput | string
+    lastValue?: IntFieldUpdateOperationsInput | number
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -247618,6 +250096,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
     order: OrderCreateNestedOneWithoutDriverAssignmentInput
     driver: DriverCreateNestedOneWithoutAssignmentsInput
     tracking?: DeliveryTrackingCreateNestedManyWithoutAssignmentInput
@@ -247634,6 +250113,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
     tracking?: DeliveryTrackingUncheckedCreateNestedManyWithoutAssignmentInput
   }
 
@@ -247646,6 +250126,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     order?: OrderUpdateOneRequiredWithoutDriverAssignmentNestedInput
     driver?: DriverUpdateOneRequiredWithoutAssignmentsNestedInput
     tracking?: DeliveryTrackingUpdateManyWithoutAssignmentNestedInput
@@ -247662,6 +250143,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tracking?: DeliveryTrackingUncheckedUpdateManyWithoutAssignmentNestedInput
   }
 
@@ -247676,6 +250158,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
   }
 
   export type DriverAssignmentUpdateManyMutationInput = {
@@ -247687,6 +250170,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type DriverAssignmentUncheckedUpdateManyInput = {
@@ -247700,6 +250184,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type DeliveryTrackingCreateInput = {
@@ -259215,6 +261700,167 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ProspectCreateInput = {
+    id?: string
+    shopName: string
+    sourceUrl?: string | null
+    city?: string | null
+    postcode?: string | null
+    logoUrl?: string | null
+    bannerUrl?: string | null
+    previewToken: string
+    previewExpiresAt: Date | string
+    menu?: NullableJsonNullValueInput | InputJsonValue
+    menuStatus?: string
+    menuError?: string | null
+    hygiene?: NullableJsonNullValueInput | InputJsonValue
+    statements?: JsonNullValueInput | InputJsonValue
+    statementStatus?: string
+    statementError?: string | null
+    assumptions?: NullableJsonNullValueInput | InputJsonValue
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProspectUncheckedCreateInput = {
+    id?: string
+    shopName: string
+    sourceUrl?: string | null
+    city?: string | null
+    postcode?: string | null
+    logoUrl?: string | null
+    bannerUrl?: string | null
+    previewToken: string
+    previewExpiresAt: Date | string
+    menu?: NullableJsonNullValueInput | InputJsonValue
+    menuStatus?: string
+    menuError?: string | null
+    hygiene?: NullableJsonNullValueInput | InputJsonValue
+    statements?: JsonNullValueInput | InputJsonValue
+    statementStatus?: string
+    statementError?: string | null
+    assumptions?: NullableJsonNullValueInput | InputJsonValue
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProspectUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shopName?: StringFieldUpdateOperationsInput | string
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    previewToken?: StringFieldUpdateOperationsInput | string
+    previewExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: NullableJsonNullValueInput | InputJsonValue
+    menuStatus?: StringFieldUpdateOperationsInput | string
+    menuError?: NullableStringFieldUpdateOperationsInput | string | null
+    hygiene?: NullableJsonNullValueInput | InputJsonValue
+    statements?: JsonNullValueInput | InputJsonValue
+    statementStatus?: StringFieldUpdateOperationsInput | string
+    statementError?: NullableStringFieldUpdateOperationsInput | string | null
+    assumptions?: NullableJsonNullValueInput | InputJsonValue
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProspectUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shopName?: StringFieldUpdateOperationsInput | string
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    previewToken?: StringFieldUpdateOperationsInput | string
+    previewExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: NullableJsonNullValueInput | InputJsonValue
+    menuStatus?: StringFieldUpdateOperationsInput | string
+    menuError?: NullableStringFieldUpdateOperationsInput | string | null
+    hygiene?: NullableJsonNullValueInput | InputJsonValue
+    statements?: JsonNullValueInput | InputJsonValue
+    statementStatus?: StringFieldUpdateOperationsInput | string
+    statementError?: NullableStringFieldUpdateOperationsInput | string | null
+    assumptions?: NullableJsonNullValueInput | InputJsonValue
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProspectCreateManyInput = {
+    id?: string
+    shopName: string
+    sourceUrl?: string | null
+    city?: string | null
+    postcode?: string | null
+    logoUrl?: string | null
+    bannerUrl?: string | null
+    previewToken: string
+    previewExpiresAt: Date | string
+    menu?: NullableJsonNullValueInput | InputJsonValue
+    menuStatus?: string
+    menuError?: string | null
+    hygiene?: NullableJsonNullValueInput | InputJsonValue
+    statements?: JsonNullValueInput | InputJsonValue
+    statementStatus?: string
+    statementError?: string | null
+    assumptions?: NullableJsonNullValueInput | InputJsonValue
+    createdByUserId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ProspectUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shopName?: StringFieldUpdateOperationsInput | string
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    previewToken?: StringFieldUpdateOperationsInput | string
+    previewExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: NullableJsonNullValueInput | InputJsonValue
+    menuStatus?: StringFieldUpdateOperationsInput | string
+    menuError?: NullableStringFieldUpdateOperationsInput | string | null
+    hygiene?: NullableJsonNullValueInput | InputJsonValue
+    statements?: JsonNullValueInput | InputJsonValue
+    statementStatus?: StringFieldUpdateOperationsInput | string
+    statementError?: NullableStringFieldUpdateOperationsInput | string | null
+    assumptions?: NullableJsonNullValueInput | InputJsonValue
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProspectUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    shopName?: StringFieldUpdateOperationsInput | string
+    sourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    city?: NullableStringFieldUpdateOperationsInput | string | null
+    postcode?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    bannerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    previewToken?: StringFieldUpdateOperationsInput | string
+    previewExpiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    menu?: NullableJsonNullValueInput | InputJsonValue
+    menuStatus?: StringFieldUpdateOperationsInput | string
+    menuError?: NullableStringFieldUpdateOperationsInput | string | null
+    hygiene?: NullableJsonNullValueInput | InputJsonValue
+    statements?: JsonNullValueInput | InputJsonValue
+    statementStatus?: StringFieldUpdateOperationsInput | string
+    statementError?: NullableStringFieldUpdateOperationsInput | string | null
+    assumptions?: NullableJsonNullValueInput | InputJsonValue
+    createdByUserId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -261114,6 +263760,7 @@ export namespace Prisma {
     status?: SortOrder
     googleReviewUrl?: SortOrder
     busyModeJson?: SortOrder
+    payOnDispatch?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
@@ -261192,6 +263839,7 @@ export namespace Prisma {
     posTerminalApplicationFeeFixedMinor?: SortOrder
     status?: SortOrder
     googleReviewUrl?: SortOrder
+    payOnDispatch?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
@@ -261252,6 +263900,7 @@ export namespace Prisma {
     posTerminalApplicationFeeFixedMinor?: SortOrder
     status?: SortOrder
     googleReviewUrl?: SortOrder
+    payOnDispatch?: SortOrder
     shopCode?: SortOrder
     printToken?: SortOrder
     slug?: SortOrder
@@ -263819,6 +266468,7 @@ export namespace Prisma {
     platform?: SortOrder
     displayId?: SortOrder
     orderNumber?: SortOrder
+    ticketNumber?: SortOrder
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
@@ -263900,6 +266550,7 @@ export namespace Prisma {
 
   export type OrderAvgOrderByAggregateInput = {
     orderNumber?: SortOrder
+    ticketNumber?: SortOrder
     courierLat?: SortOrder
     courierLng?: SortOrder
     covers?: SortOrder
@@ -263930,6 +266581,7 @@ export namespace Prisma {
     platform?: SortOrder
     displayId?: SortOrder
     orderNumber?: SortOrder
+    ticketNumber?: SortOrder
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
@@ -264016,6 +266668,7 @@ export namespace Prisma {
     platform?: SortOrder
     displayId?: SortOrder
     orderNumber?: SortOrder
+    ticketNumber?: SortOrder
     orderSource?: SortOrder
     integrationSource?: SortOrder
     viaHubrise?: SortOrder
@@ -264093,6 +266746,7 @@ export namespace Prisma {
 
   export type OrderSumOrderByAggregateInput = {
     orderNumber?: SortOrder
+    ticketNumber?: SortOrder
     courierLat?: SortOrder
     courierLng?: SortOrder
     covers?: SortOrder
@@ -264202,6 +266856,46 @@ export namespace Prisma {
 
   export type OrderNumberSequenceSumOrderByAggregateInput = {
     nextValue?: SortOrder
+  }
+
+  export type OrderTicketSequenceOrderByRelevanceInput = {
+    fields: OrderTicketSequenceOrderByRelevanceFieldEnum | OrderTicketSequenceOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type OrderTicketSequenceLocationIdBusinessDateCompoundUniqueInput = {
+    locationId: string
+    businessDate: string
+  }
+
+  export type OrderTicketSequenceCountOrderByAggregateInput = {
+    locationId?: SortOrder
+    businessDate?: SortOrder
+    lastValue?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OrderTicketSequenceAvgOrderByAggregateInput = {
+    lastValue?: SortOrder
+  }
+
+  export type OrderTicketSequenceMaxOrderByAggregateInput = {
+    locationId?: SortOrder
+    businessDate?: SortOrder
+    lastValue?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OrderTicketSequenceMinOrderByAggregateInput = {
+    locationId?: SortOrder
+    businessDate?: SortOrder
+    lastValue?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OrderTicketSequenceSumOrderByAggregateInput = {
+    lastValue?: SortOrder
   }
 
   export type RefundLineListRelationFilter = {
@@ -266405,6 +269099,7 @@ export namespace Prisma {
     pickedUpAt?: SortOrder
     arrivedAt?: SortOrder
     deliveredAt?: SortOrder
+    creditedAt?: SortOrder
   }
 
   export type DriverAssignmentAvgOrderByAggregateInput = {
@@ -266422,6 +269117,7 @@ export namespace Prisma {
     pickedUpAt?: SortOrder
     arrivedAt?: SortOrder
     deliveredAt?: SortOrder
+    creditedAt?: SortOrder
   }
 
   export type DriverAssignmentMinOrderByAggregateInput = {
@@ -266435,6 +269131,7 @@ export namespace Prisma {
     pickedUpAt?: SortOrder
     arrivedAt?: SortOrder
     deliveredAt?: SortOrder
+    creditedAt?: SortOrder
   }
 
   export type DriverAssignmentSumOrderByAggregateInput = {
@@ -273441,6 +276138,73 @@ export namespace Prisma {
   export type AutoDispatchRunSumOrderByAggregateInput = {
     attempts?: SortOrder
     priceMinor?: SortOrder
+  }
+
+  export type ProspectOrderByRelevanceInput = {
+    fields: ProspectOrderByRelevanceFieldEnum | ProspectOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ProspectCountOrderByAggregateInput = {
+    id?: SortOrder
+    shopName?: SortOrder
+    sourceUrl?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    logoUrl?: SortOrder
+    bannerUrl?: SortOrder
+    previewToken?: SortOrder
+    previewExpiresAt?: SortOrder
+    menu?: SortOrder
+    menuStatus?: SortOrder
+    menuError?: SortOrder
+    hygiene?: SortOrder
+    statements?: SortOrder
+    statementStatus?: SortOrder
+    statementError?: SortOrder
+    assumptions?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProspectMaxOrderByAggregateInput = {
+    id?: SortOrder
+    shopName?: SortOrder
+    sourceUrl?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    logoUrl?: SortOrder
+    bannerUrl?: SortOrder
+    previewToken?: SortOrder
+    previewExpiresAt?: SortOrder
+    menuStatus?: SortOrder
+    menuError?: SortOrder
+    statementStatus?: SortOrder
+    statementError?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ProspectMinOrderByAggregateInput = {
+    id?: SortOrder
+    shopName?: SortOrder
+    sourceUrl?: SortOrder
+    city?: SortOrder
+    postcode?: SortOrder
+    logoUrl?: SortOrder
+    bannerUrl?: SortOrder
+    previewToken?: SortOrder
+    previewExpiresAt?: SortOrder
+    menuStatus?: SortOrder
+    menuError?: SortOrder
+    statementStatus?: SortOrder
+    statementError?: SortOrder
+    createdByUserId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type BrandCreateNestedManyWithoutTenantInput = {
@@ -285591,6 +288355,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -285692,6 +288457,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -286828,6 +289594,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFilter<"Order"> | $Enums.OrderPlatform
     displayId?: StringNullableFilter<"Order"> | string | null
     orderNumber?: IntNullableFilter<"Order"> | number | null
+    ticketNumber?: IntNullableFilter<"Order"> | number | null
     orderSource?: EnumOrderSourceFilter<"Order"> | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFilter<"Order"> | $Enums.IntegrationSource
     viaHubrise?: BoolFilter<"Order"> | boolean
@@ -288547,6 +291314,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -288651,6 +291419,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -288828,6 +291597,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -288932,6 +291702,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -289771,6 +292542,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -289872,6 +292644,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -291156,6 +293929,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -291259,6 +294033,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -291577,6 +294352,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -291678,6 +294454,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -292340,6 +295117,7 @@ export namespace Prisma {
     status?: StringFilter<"Location"> | string
     googleReviewUrl?: StringNullableFilter<"Location"> | string | null
     busyModeJson?: JsonFilter<"Location">
+    payOnDispatch?: BoolFilter<"Location"> | boolean
     shopCode?: StringNullableFilter<"Location"> | string | null
     printToken?: StringNullableFilter<"Location"> | string | null
     slug?: StringNullableFilter<"Location"> | string | null
@@ -293022,6 +295800,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -293123,6 +295902,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -296657,6 +299437,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -296761,6 +299542,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -297006,6 +299788,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -297110,6 +299893,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -297206,6 +299990,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -297310,6 +300095,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -297422,6 +300208,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -297526,6 +300313,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -298310,6 +301098,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -298414,6 +301203,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -298619,6 +301409,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -298723,6 +301514,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -300028,6 +302820,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -300132,6 +302925,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -300244,6 +303038,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -300348,6 +303143,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -300561,6 +303357,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -300665,6 +303462,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -300900,6 +303698,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -301004,6 +303803,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -304104,6 +306904,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -304205,6 +307006,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -304595,6 +307397,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -304699,6 +307502,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -304938,6 +307742,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -305042,6 +307847,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -306264,6 +309070,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -306366,6 +309173,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -306541,6 +309349,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -306643,6 +309452,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -306768,6 +309578,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -306872,6 +309683,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -307111,6 +309923,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -307215,6 +310028,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -307444,6 +310258,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -307548,6 +310363,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -307660,6 +310476,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -307764,6 +310581,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -307929,6 +310747,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -308033,6 +310852,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -308509,6 +311329,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
     driver: DriverCreateNestedOneWithoutAssignmentsInput
     tracking?: DeliveryTrackingCreateNestedManyWithoutAssignmentInput
   }
@@ -308523,6 +311344,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
     tracking?: DeliveryTrackingUncheckedCreateNestedManyWithoutAssignmentInput
   }
 
@@ -308777,6 +311599,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -308881,6 +311704,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -309325,6 +312149,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     driver?: DriverUpdateOneRequiredWithoutAssignmentsNestedInput
     tracking?: DeliveryTrackingUpdateManyWithoutAssignmentNestedInput
   }
@@ -309339,6 +312164,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tracking?: DeliveryTrackingUncheckedUpdateManyWithoutAssignmentNestedInput
   }
 
@@ -309441,6 +312267,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -309543,6 +312370,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -309679,6 +312507,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -309781,6 +312610,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -309902,6 +312732,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -310004,6 +312835,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -310112,6 +312944,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -310214,6 +313047,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -310339,6 +313173,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -310443,6 +313278,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -310583,6 +313419,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -310687,6 +313524,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -310799,6 +313637,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -310903,6 +313742,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -311142,6 +313982,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -311246,6 +314087,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -311475,6 +314317,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -311579,6 +314422,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -311743,6 +314587,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -311847,6 +314692,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -311959,6 +314805,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -312063,6 +314910,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -312175,6 +315023,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -312279,6 +315128,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -312375,6 +315225,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -312479,6 +315330,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -312654,6 +315506,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -312758,6 +315611,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -312923,6 +315777,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -313027,6 +315882,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -313139,6 +315995,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313243,6 +316100,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313339,6 +316197,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -313443,6 +316302,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -313669,6 +316529,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -313773,6 +316634,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -314022,6 +316884,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -314126,6 +316989,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -314289,6 +317153,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -314393,6 +317258,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -314546,6 +317412,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -314650,6 +317517,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -314762,6 +317630,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -314866,6 +317735,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -314958,6 +317828,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -315060,6 +317931,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -315203,6 +318075,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -315305,6 +318178,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -315430,6 +318304,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -315534,6 +318409,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -315796,6 +318672,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -315899,6 +318776,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -316006,6 +318884,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -316109,6 +318988,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -316227,6 +319107,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -316331,6 +319212,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -316669,6 +319551,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -316771,6 +319654,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -317137,6 +320021,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -317239,6 +320124,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -317535,6 +320421,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -317639,6 +320526,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -318025,6 +320913,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -318128,6 +321017,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -318387,6 +321277,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -318491,6 +321382,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -318845,6 +321737,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -318949,6 +321842,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -319294,6 +322188,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -319398,6 +322293,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -320363,6 +323259,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -320467,6 +323364,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -320538,6 +323436,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
     order: OrderCreateNestedOneWithoutDriverAssignmentInput
     tracking?: DeliveryTrackingCreateNestedManyWithoutAssignmentInput
   }
@@ -320552,6 +323451,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
     tracking?: DeliveryTrackingUncheckedCreateNestedManyWithoutAssignmentInput
   }
 
@@ -320775,6 +323675,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -320879,6 +323780,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -320966,6 +323868,7 @@ export namespace Prisma {
     pickedUpAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     arrivedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
     deliveredAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
+    creditedAt?: DateTimeNullableFilter<"DriverAssignment"> | Date | string | null
   }
 
   export type DriverPresenceUpsertWithoutDriverInput = {
@@ -321250,6 +324153,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -321352,6 +324256,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -321537,6 +324442,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -321639,6 +324545,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -321816,6 +324723,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
     order: OrderCreateNestedOneWithoutDriverAssignmentInput
     driver: DriverCreateNestedOneWithoutAssignmentsInput
   }
@@ -321831,6 +324739,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
   }
 
   export type DriverAssignmentCreateOrConnectWithoutTrackingInput = {
@@ -321858,6 +324767,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     order?: OrderUpdateOneRequiredWithoutDriverAssignmentNestedInput
     driver?: DriverUpdateOneRequiredWithoutAssignmentsNestedInput
   }
@@ -321873,6 +324783,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type TenantCreateWithoutConnectAccountInput = {
@@ -322164,6 +325075,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -322266,6 +325178,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -322495,6 +325408,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -322597,6 +325511,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -323530,6 +326445,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -323634,6 +326550,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -323797,6 +326714,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -323901,6 +326819,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -326970,6 +329889,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -327074,6 +329994,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -327261,6 +330182,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -327365,6 +330287,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -328195,6 +331118,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -328299,6 +331223,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -328436,6 +331361,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -328540,6 +331466,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -329307,6 +332234,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -329411,6 +332339,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -329523,6 +332452,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -329627,6 +332557,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -329723,6 +332654,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -329827,6 +332759,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -329939,6 +332872,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -330043,6 +332977,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -330139,6 +333074,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -330243,6 +333179,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -330355,6 +333292,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -330459,6 +333397,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -330555,6 +333494,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -330659,6 +333599,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -330771,6 +333712,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -330875,6 +333817,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -331484,6 +334427,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -331588,6 +334532,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -331846,6 +334791,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -331950,6 +334896,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -332255,6 +335202,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -332359,6 +335307,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -332734,6 +335683,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -332838,6 +335788,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -333275,6 +336226,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -333377,6 +336329,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -333680,6 +336633,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -333782,6 +336736,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -333962,6 +336917,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -334066,6 +337022,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -334361,6 +337318,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -334465,6 +337423,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -335096,6 +338055,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -335200,6 +338160,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -335384,6 +338345,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -335488,6 +338450,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -337430,6 +340393,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -338081,6 +341045,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -338182,6 +341147,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -338279,6 +341245,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -339771,6 +342738,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -339914,6 +342882,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -340015,6 +342984,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -340112,6 +343082,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -340409,6 +343380,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -340534,6 +343506,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -340780,6 +343753,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -340883,6 +343857,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -340983,6 +343958,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -341308,6 +344284,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -341409,6 +344386,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -341506,6 +344484,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -341998,6 +344977,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -342553,6 +345533,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -342654,6 +345635,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -342751,6 +345733,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -345128,6 +348111,7 @@ export namespace Prisma {
     platform: $Enums.OrderPlatform
     displayId?: string | null
     orderNumber?: number | null
+    ticketNumber?: number | null
     orderSource?: $Enums.OrderSource
     integrationSource?: $Enums.IntegrationSource
     viaHubrise?: boolean
@@ -345264,6 +348248,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -345365,6 +348350,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -345462,6 +348448,7 @@ export namespace Prisma {
     platform?: EnumOrderPlatformFieldUpdateOperationsInput | $Enums.OrderPlatform
     displayId?: NullableStringFieldUpdateOperationsInput | string | null
     orderNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    ticketNumber?: NullableIntFieldUpdateOperationsInput | number | null
     orderSource?: EnumOrderSourceFieldUpdateOperationsInput | $Enums.OrderSource
     integrationSource?: EnumIntegrationSourceFieldUpdateOperationsInput | $Enums.IntegrationSource
     viaHubrise?: BoolFieldUpdateOperationsInput | boolean
@@ -346481,6 +349468,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -346547,6 +349535,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -346742,6 +349731,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -346845,6 +349835,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -346945,6 +349936,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -347008,6 +350000,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -347111,6 +350104,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -347211,6 +350205,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -347341,6 +350336,7 @@ export namespace Prisma {
     status?: string
     googleReviewUrl?: string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: boolean
     shopCode?: string | null
     printToken?: string | null
     slug?: string | null
@@ -347654,6 +350650,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -347757,6 +350754,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -347857,6 +350855,7 @@ export namespace Prisma {
     status?: StringFieldUpdateOperationsInput | string
     googleReviewUrl?: NullableStringFieldUpdateOperationsInput | string | null
     busyModeJson?: JsonNullValueInput | InputJsonValue
+    payOnDispatch?: BoolFieldUpdateOperationsInput | boolean
     shopCode?: NullableStringFieldUpdateOperationsInput | string | null
     printToken?: NullableStringFieldUpdateOperationsInput | string | null
     slug?: NullableStringFieldUpdateOperationsInput | string | null
@@ -348243,6 +351242,7 @@ export namespace Prisma {
     pickedUpAt?: Date | string | null
     arrivedAt?: Date | string | null
     deliveredAt?: Date | string | null
+    creditedAt?: Date | string | null
   }
 
   export type DriverCashUpCreateManyDriverInput = {
@@ -348271,6 +351271,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     order?: OrderUpdateOneRequiredWithoutDriverAssignmentNestedInput
     tracking?: DeliveryTrackingUpdateManyWithoutAssignmentNestedInput
   }
@@ -348285,6 +351286,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     tracking?: DeliveryTrackingUncheckedUpdateManyWithoutAssignmentNestedInput
   }
 
@@ -348298,6 +351300,7 @@ export namespace Prisma {
     pickedUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     arrivedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     deliveredAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    creditedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type DriverCashUpUpdateWithoutDriverInput = {
@@ -350819,6 +353822,10 @@ export namespace Prisma {
      */
     export type OrderNumberSequenceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrderNumberSequenceDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use OrderTicketSequenceDefaultArgs instead
+     */
+    export type OrderTicketSequenceArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrderTicketSequenceDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use OrderItemDefaultArgs instead
      */
     export type OrderItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrderItemDefaultArgs<ExtArgs>
@@ -351354,6 +354361,10 @@ export namespace Prisma {
      * @deprecated Use AutoDispatchRunDefaultArgs instead
      */
     export type AutoDispatchRunArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AutoDispatchRunDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ProspectDefaultArgs instead
+     */
+    export type ProspectArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ProspectDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

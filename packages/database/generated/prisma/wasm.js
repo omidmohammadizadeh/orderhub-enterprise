@@ -384,6 +384,7 @@ exports.Prisma.LocationScalarFieldEnum = {
   status: 'status',
   googleReviewUrl: 'googleReviewUrl',
   busyModeJson: 'busyModeJson',
+  payOnDispatch: 'payOnDispatch',
   shopCode: 'shopCode',
   printToken: 'printToken',
   slug: 'slug',
@@ -932,6 +933,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   platform: 'platform',
   displayId: 'displayId',
   orderNumber: 'orderNumber',
+  ticketNumber: 'ticketNumber',
   orderSource: 'orderSource',
   integrationSource: 'integrationSource',
   viaHubrise: 'viaHubrise',
@@ -1014,6 +1016,13 @@ exports.Prisma.OrderScalarFieldEnum = {
 exports.Prisma.OrderNumberSequenceScalarFieldEnum = {
   tenantId: 'tenantId',
   nextValue: 'nextValue',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderTicketSequenceScalarFieldEnum = {
+  locationId: 'locationId',
+  businessDate: 'businessDate',
+  lastValue: 'lastValue',
   updatedAt: 'updatedAt'
 };
 
@@ -1532,7 +1541,8 @@ exports.Prisma.DriverAssignmentScalarFieldEnum = {
   acceptedAt: 'acceptedAt',
   pickedUpAt: 'pickedUpAt',
   arrivedAt: 'arrivedAt',
-  deliveredAt: 'deliveredAt'
+  deliveredAt: 'deliveredAt',
+  creditedAt: 'creditedAt'
 };
 
 exports.Prisma.DeliveryTrackingScalarFieldEnum = {
@@ -3169,6 +3179,29 @@ exports.Prisma.AutoDispatchRunScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ProspectScalarFieldEnum = {
+  id: 'id',
+  shopName: 'shopName',
+  sourceUrl: 'sourceUrl',
+  city: 'city',
+  postcode: 'postcode',
+  logoUrl: 'logoUrl',
+  bannerUrl: 'bannerUrl',
+  previewToken: 'previewToken',
+  previewExpiresAt: 'previewExpiresAt',
+  menu: 'menu',
+  menuStatus: 'menuStatus',
+  menuError: 'menuError',
+  hygiene: 'hygiene',
+  statements: 'statements',
+  statementStatus: 'statementStatus',
+  statementError: 'statementError',
+  assumptions: 'assumptions',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3723,6 +3756,11 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
 
 exports.Prisma.OrderNumberSequenceOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId'
+};
+
+exports.Prisma.OrderTicketSequenceOrderByRelevanceFieldEnum = {
+  locationId: 'locationId',
+  businessDate: 'businessDate'
 };
 
 exports.Prisma.OrderItemOrderByRelevanceFieldEnum = {
@@ -5112,6 +5150,22 @@ exports.Prisma.AutoDispatchRunOrderByRelevanceFieldEnum = {
   jobId: 'jobId',
   error: 'error'
 };
+
+exports.Prisma.ProspectOrderByRelevanceFieldEnum = {
+  id: 'id',
+  shopName: 'shopName',
+  sourceUrl: 'sourceUrl',
+  city: 'city',
+  postcode: 'postcode',
+  logoUrl: 'logoUrl',
+  bannerUrl: 'bannerUrl',
+  previewToken: 'previewToken',
+  menuStatus: 'menuStatus',
+  menuError: 'menuError',
+  statementStatus: 'statementStatus',
+  statementError: 'statementError',
+  createdByUserId: 'createdByUserId'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -5138,7 +5192,8 @@ exports.UserRole = exports.$Enums.UserRole = {
   ONBOARDING_AGENT: 'ONBOARDING_AGENT',
   FINANCIAL_AGENT: 'FINANCIAL_AGENT',
   KIOSK: 'KIOSK',
-  KITCHEN_DISPLAY: 'KITCHEN_DISPLAY'
+  KITCHEN_DISPLAY: 'KITCHEN_DISPLAY',
+  LOCATION_TABLET: 'LOCATION_TABLET'
 };
 
 exports.LeadSource = exports.$Enums.LeadSource = {
@@ -5648,6 +5703,7 @@ exports.Prisma.ModelName = {
   LocationPaymentConfig: 'LocationPaymentConfig',
   Order: 'Order',
   OrderNumberSequence: 'OrderNumberSequence',
+  OrderTicketSequence: 'OrderTicketSequence',
   OrderItem: 'OrderItem',
   OrderStatusHistory: 'OrderStatusHistory',
   WebhookEvent: 'WebhookEvent',
@@ -5781,7 +5837,8 @@ exports.Prisma.ModelName = {
   AssemblyChart: 'AssemblyChart',
   MenuAutoPublish: 'MenuAutoPublish',
   AutoDispatchRule: 'AutoDispatchRule',
-  AutoDispatchRun: 'AutoDispatchRun'
+  AutoDispatchRun: 'AutoDispatchRun',
+  Prospect: 'Prospect'
 };
 
 /**

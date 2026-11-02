@@ -714,7 +714,10 @@ model Location {
 
   // Phase AN — structured busy-mode metadata. The boolean below stays
   // (used by AM); this carries reason + until + affected platforms.
-  busyModeJson Json @default("{}")
+  busyModeJson  Json    @default("{}")
+  // Count a dispatched order in the driver's pay and cash-up as soon as it is
+  // sent to them, for shops whose drivers don't reliably slide "start".
+  payOnDispatch Boolean @default(false)
 
   shopCode   String? @unique
   // Bearer token presented by the legacy Flutter printer app as
@@ -869,7 +872,7 @@ model Menu {
   productModifierGroupLinks  Json             @default("[]")
   modifierGroupModifierLinks Json             @default("[]")
 
-  // ── External platform refs ─────────────────────────────────────────────
+  // ── External platform refs ───────────────────────────────────────��─────
   // Source / dedup keys used by import. platformSource = uber / deliveroo /
   // hubrise. externalId is the platform's own menu id; externalParentId is
   // the platform's parent (e.g. brand id for Deliveroo).
@@ -2037,13 +2040,16 @@ model Order {
   brandId String?
   brand   Brand?  @relation(fields: [brandId], references: [id], onDelete: SetNull)
 
-  externalId  String?
-  platform    OrderPlatform
-  displayId   String?
+  externalId   String?
+  platform     OrderPlatform
+  displayId    String?
   // Phase AM — sequential per-tenant POS/DIRECT order number ("#1").
   // External-platform orders keep their own displayId (Just Eat order
   // ref, Uber Eats display_id, etc.) and leave this null.
-  orderNumber Int?
+  orderNumber  Int?
+  // Short per-shop number for calling out, restarting each trading day (see
+  // OrderTicketSequence). Null on older orders and if claiming one failed.
+  ticketNumber Int?
 
   orderSource       OrderSource       @default(DIRECT)
   integrationSource IntegrationSource @default(DIRECT)
@@ -2274,6 +2280,18 @@ model OrderNumberSequence {
   updatedAt DateTime @updatedAt
 
   @@map("order_number_sequences")
+}
+
+// Per-shop, per-trading-day counter behind Order.ticketNumber. businessDate is
+// the shop-local YYYY-MM-DD, turning over at 4am so late shifts aren't split.
+model OrderTicketSequence {
+  locationId   String
+  businessDate String
+  lastValue    Int      @default(0)
+  updatedAt    DateTime @default(now()) @updatedAt
+
+  @@id([locationId, businessDate])
+  @@map("order_ticket_sequences")
 }
 
 model OrderItem {
@@ -2545,7 +2563,7 @@ model TableReservation {
   @@map("table_reservations")
 }
 
-// ── Salon (barbers, hair, nails) ───────────���─────────────────────────────────
+// ── Salon (barbers, hair, nails) ─────────────────────────────────────────────
 //
 // A restaurant sells items; a salon sells a person's TIME. These tables are
 // the salon's own (services with a length, the people who do them, and the
@@ -3272,6 +3290,10 @@ model DriverAssignment {
   pickedUpAt  DateTime?
   arrivedAt   DateTime?
   deliveredAt DateTime?
+  // Set at dispatch when the shop has Location.payOnDispatch on: this stop counts
+  // in the driver's pay and cash-up from this moment, not from deliveredAt, and
+  // only this moment — so delivering it later can't count it a second time.
+  creditedAt  DateTime?
 
   tracking DeliveryTracking[]
 
@@ -4426,6 +4448,14 @@ enum UserRole {
   // the least supervised device in the building, so it gets the least access,
   // and revoking it means disabling one account rather than rotating a URL.
   KITCHEN_DISPLAY
+
+  // One shared sign-in per shop for the counter tablet, like Uber Eats Order
+  // Manager: a generated username (no inbox behind it) and a password the
+  // owner can reset. It reaches the shop-floor tabs (orders, POS, stock,
+  // printers, store status, loyalty scan, caller ID, and analytics only when
+  // the owner allows it) for its ONE location, and never money-out, menu or
+  // team screens. People keep their own logins; this is an extra way in.
+  LOCATION_TABLET
 }
 
 enum OAuthProvider {
@@ -6173,7 +6203,7 @@ model ContractEvent {
   @@map("contract_events")
 }
 
-// ── Loyalty card ────────────────────────────────────────────────────────────
+// ── Loyalty card ───────────────────��────────────────────────────────────────
 //
 // A stamp card, per LOCATION. Six orders, a free thing — the model every
 // takeaway already runs on paper, which is the point: customers understand it
@@ -6963,4 +6993,43 @@ model AutoDispatchRun {
   @@index([status, dueAt])
   @@index([tenantId, createdAt(sort: Desc)])
   @@map("auto_dispatch_runs")
+}
+
+// Admin Dashboard → Prospects. A shop we want to sign: a private, read-only
+// preview built from its own menu, plus what its marketplace statements say it
+// pays in commission. Belongs to no tenant and touches no brand, location or
+// menu, so a prospect can never take an order or appear in anyone's reports.
+//
+// The uploaded statement files are never kept, only the numbers read from them.
+model Prospect {
+  id               String   @id @default(cuid())
+  shopName         String
+  sourceUrl        String?
+  city             String?
+  postcode         String?
+  logoUrl          String?
+  bannerUrl        String?
+  // The owner's link. Long and random: anyone holding it can see the preview.
+  previewToken     String   @unique
+  previewExpiresAt DateTime
+  // AiMenuDraft: the same shape the JSON menu import takes.
+  menu             Json?
+  // NONE | READING | READY | FAILED
+  menuStatus       String   @default("NONE")
+  menuError        String?
+  // { establishmentId, rating, url }
+  hygiene          Json?
+  // [ProspectStatement], see prospects/commission-report.ts
+  statements       Json     @default("[]")
+  // NONE | READING | READY | FAILED
+  statementStatus  String   @default("NONE")
+  statementError   String?
+  // Overrides of the report's defaults
+  assumptions      Json?
+  createdByUserId  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([createdAt(sort: Desc)])
+  @@map("prospects")
 }
