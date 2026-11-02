@@ -101,10 +101,24 @@ describe("Eat For Less charges on its own Stripe", () => {
     await svc.handleEflStripeWebhook(Buffer.from("{}"), "sig");
     expect(events.emit).toHaveBeenCalledWith("efl.stripe_account.updated", { id: "acct_shop" });
 
-    stripe.webhooks.constructEvent.mockImplementationOnce(() => {
+    stripe.webhooks.constructEvent.mockImplementation(() => {
       throw new Error("bad sig");
     });
     await expect(svc.handleEflStripeWebhook(Buffer.from("{}"), "x")).rejects.toThrow(/signature/);
+  });
+
+  it("accepts either of its two endpoint secrets", async () => {
+    const stripe = {
+      webhooks: {
+        constructEvent: jest.fn((_b: any, _s: any, secret: string) => {
+          if (secret !== "whsec_connect") throw new Error("bad sig");
+          return { type: "account.updated", data: { object: { id: "acct_shop" } } };
+        }),
+      },
+    };
+    const { svc, events } = paymentsWith({}, stripe, { EFL_STRIPE_WEBHOOK_SECRET: "whsec_account, whsec_connect" });
+    await expect(svc.handleEflStripeWebhook(Buffer.from("{}"), "sig")).resolves.toEqual({ received: true });
+    expect(events.emit).toHaveBeenCalledWith("efl.stripe_account.updated", { id: "acct_shop" });
   });
 });
 

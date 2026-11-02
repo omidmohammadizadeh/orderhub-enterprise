@@ -1675,13 +1675,25 @@ export class PaymentsService {
 
   /** Eat For Less's webhook: its own endpoint secret, same handlers. */
   async handleEflStripeWebhook(rawBody: Buffer, signature: string) {
-    const secret = this.config.get<string>("EFL_STRIPE_WEBHOOK_SECRET");
-    if (!this.eflStripe || !secret) throw new BadRequestException("Eat For Less payments aren't configured");
+    // Comma-separated: Stripe signs its "your account" endpoint and its
+    // "connected accounts" endpoint (shops' account.updated) with different
+    // secrets, and both post here.
+    const secrets = (this.config.get<string>("EFL_STRIPE_WEBHOOK_SECRET") ?? "")
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
+    if (!this.eflStripe || !secrets.length) throw new BadRequestException("Eat For Less payments aren't configured");
     let event: any;
-    try {
-      event = this.eflStripe.webhooks.constructEvent(rawBody, signature, secret);
-    } catch (err: any) {
-      this.logger.error(`EFL Stripe webhook signature verification failed: ${err.message}`);
+    for (const secret of secrets) {
+      try {
+        event = this.eflStripe.webhooks.constructEvent(rawBody, signature, secret);
+        break;
+      } catch {
+        /* try the next secret */
+      }
+    }
+    if (!event) {
+      this.logger.error("EFL Stripe webhook signature verification failed");
       throw new BadRequestException("Invalid webhook signature");
     }
     if (event.type === "account.updated") {
