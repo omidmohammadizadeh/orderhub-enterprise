@@ -1353,16 +1353,22 @@ export class AnalyticsService {
       .map(([date, v]) => ({ date, ...v }));
 
     // ── Group breakdowns ───────────────────────────────────────────
+    // Per-order net uses the headline formula (gross − discount − delivery −
+    // service = subtotal + tax − discount), so the breakdowns' Net view ties
+    // back to the Net tile.
+    const orderNet = (o: OrderRow) =>
+      Number(o.subtotal ?? 0) + Number(o.taxAmount ?? 0) - Number(o.discount ?? 0);
     function rollup<K>(
       rows: OrderRow[],
       keyFn: (o: OrderRow) => K | null,
-    ): Map<K, { revenue: number; orders: number }> {
-      const m = new Map<K, { revenue: number; orders: number }>();
+    ): Map<K, { revenue: number; netRevenue: number; orders: number }> {
+      const m = new Map<K, { revenue: number; netRevenue: number; orders: number }>();
       for (const o of rows) {
         const k = keyFn(o);
         if (k === null) continue;
-        const cur = m.get(k) ?? { revenue: 0, orders: 0 };
+        const cur = m.get(k) ?? { revenue: 0, netRevenue: 0, orders: 0 };
         cur.revenue += Number(o.total);
+        cur.netRevenue += orderNet(o);
         cur.orders += 1;
         m.set(k, cur);
       }
@@ -1375,6 +1381,7 @@ export class AnalyticsService {
       .map(([name, v]) => ({
         name: String(name),
         revenue: v.revenue,
+        netRevenue: v.netRevenue,
         orders: v.orders,
         share: v.revenue / totalRev,
       }))
@@ -1497,6 +1504,7 @@ export class AnalyticsService {
           id,
           name: locationNameById.get(id) ?? id,
           revenue: v.revenue,
+          netRevenue: v.netRevenue,
           orders: v.orders,
           // Same buckets as paymentMix, per site: what an operator
           // actually wants when they ask "how much cash is in that till".
@@ -1516,6 +1524,7 @@ export class AnalyticsService {
         id: id as string,
         name: brandNameById.get(id as string) ?? "Unassigned",
         revenue: v.revenue,
+        netRevenue: v.netRevenue,
         orders: v.orders,
       }))
       .sort((a, b) => b.revenue - a.revenue);

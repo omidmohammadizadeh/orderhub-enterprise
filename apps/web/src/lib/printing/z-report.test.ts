@@ -79,8 +79,8 @@ describe("buildZReport", () => {
     const long = {
       ...data,
       byBrand: [
-        { id: "a", name: "A very long brand name that runs well past the edge of the roll", revenue: 60, orders: 3 },
-        { id: "b", name: "Short", revenue: 52, orders: 3 },
+        { id: "a", name: "A very long brand name that runs well past the edge of the roll", revenue: 60, netRevenue: 60, orders: 3 },
+        { id: "b", name: "Short", revenue: 52, netRevenue: 52, orders: 3 },
       ],
     };
     const t = text(buildZReport({ ...input, data: long }));

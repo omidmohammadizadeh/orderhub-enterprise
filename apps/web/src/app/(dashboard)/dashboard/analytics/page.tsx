@@ -222,6 +222,10 @@ export default function AnalyticsPage() {
   // location that location decides; with none or several, it falls back to
   // whichever location the operator has selected in the sidebar.
   const [preset, setPreset] = useState<DatePreset>("7d");
+  // Each "Sales by …" card switches on its own; gross is what they always showed.
+  const [channelBasis, setChannelBasis] = useState<RevenueBasis>("gross");
+  const [brandBasis, setBrandBasis] = useState<RevenueBasis>("gross");
+  const [locationBasis, setLocationBasis] = useState<RevenueBasis>("gross");
   const [customFrom, setCustomFrom] = useState<string>("");
   const [customTo, setCustomTo] = useState<string>("");
   // Several at once. Empty = all (that the caller can see), same convention as
@@ -421,19 +425,19 @@ export default function AnalyticsPage() {
         `,${PAYMENT_METHOD_LABELS[m.method] ?? titleCase(m.method)},${m.revenue.toFixed(2)},${m.orders}`,
       );
     rows.push("");
-    rows.push("By location,Name,Revenue,Cash,Card,Orders");
+    rows.push("By location,Name,Gross,Net,Cash,Card,Orders");
     for (const l of data.byLocation)
       rows.push(
-        `,${l.name.replace(/,/g, " ")},${l.revenue.toFixed(2)},${l.cashRevenue.toFixed(2)},${l.cardRevenue.toFixed(2)},${l.orders}`,
+        `,${l.name.replace(/,/g, " ")},${l.revenue.toFixed(2)},${l.netRevenue.toFixed(2)},${l.cashRevenue.toFixed(2)},${l.cardRevenue.toFixed(2)},${l.orders}`,
       );
     rows.push("");
-    rows.push("By channel,Name,Revenue,Orders");
+    rows.push("By channel,Name,Gross,Net,Orders");
     for (const c of data.byChannel)
-      rows.push(`,${c.name},${c.revenue.toFixed(2)},${c.orders}`);
+      rows.push(`,${c.name},${c.revenue.toFixed(2)},${c.netRevenue.toFixed(2)},${c.orders}`);
     rows.push("");
-    rows.push("By brand,Name,Revenue,Orders");
+    rows.push("By brand,Name,Gross,Net,Orders");
     for (const b of data.byBrand)
-      rows.push(`,${b.name},${b.revenue.toFixed(2)},${b.orders}`);
+      rows.push(`,${b.name},${b.revenue.toFixed(2)},${b.netRevenue.toFixed(2)},${b.orders}`);
     rows.push("");
     rows.push("Top products,Name,Quantity,Revenue");
     for (const p of data.topProducts)
@@ -855,60 +859,72 @@ export default function AnalyticsPage() {
 
           {/* Channel + Brand + Location */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <Card title="Sales by channel" subtitle="Gross revenue and order count">
+            <Card
+              title="Sales by channel"
+              subtitle={`${basisLabel(channelBasis)} revenue and order count`}
+              action={<RevenueBasisSelect value={channelBasis} onChange={setChannelBasis} />}
+            >
               {data.byChannel.length === 0 ? (
                 <Empty />
               ) : (
                 <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={data.byChannel} layout="vertical">
+                  <BarChart data={byBasis(data.byChannel, channelBasis)} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                     <XAxis type="number" tick={{ fontSize: 10 }} />
                     <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11 }} />
                     <Tooltip
                       formatter={(value: number, key: string) =>
-                        key === "revenue"
-                          ? [money(value), "Revenue"]
-                          : [fmtNum(value), "Orders"]
+                        key === "orders"
+                          ? [fmtNum(value), "Orders"]
+                          : [money(value), `${basisLabel(channelBasis)} revenue`]
                       }
                     />
-                    <Bar dataKey="revenue" fill="#f97316" />
+                    <Bar dataKey={basisKey(channelBasis)} fill="#f97316" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
               <SmallTable
-                rows={data.byChannel.map((c) => [
+                rows={byBasis(data.byChannel, channelBasis).map((c) => [
                   c.name,
-                  money(c.revenue),
+                  money(c[basisKey(channelBasis)]),
                   fmtNum(c.orders),
                 ])}
-                headers={["Channel", "Revenue", "Orders"]}
+                headers={["Channel", basisLabel(channelBasis), "Orders"]}
               />
             </Card>
-            <Card title="Sales by brand" subtitle="Gross revenue, top → bottom">
+            <Card
+              title="Sales by brand"
+              subtitle={`${basisLabel(brandBasis)} revenue, top → bottom`}
+              action={<RevenueBasisSelect value={brandBasis} onChange={setBrandBasis} />}
+            >
               {data.byBrand.length === 0 ? (
                 <Empty />
               ) : (
                 <SmallTable
-                  rows={data.byBrand.map((b) => [
+                  rows={byBasis(data.byBrand, brandBasis).map((b) => [
                     b.name,
-                    money(b.revenue),
+                    money(b[basisKey(brandBasis)]),
                     fmtNum(b.orders),
                   ])}
-                  headers={["Brand", "Revenue", "Orders"]}
+                  headers={["Brand", basisLabel(brandBasis), "Orders"]}
                 />
               )}
             </Card>
-            <Card title="Sales by location" subtitle="Gross revenue, top → bottom">
+            <Card
+              title="Sales by location"
+              subtitle={`${basisLabel(locationBasis)} revenue, top → bottom`}
+              action={<RevenueBasisSelect value={locationBasis} onChange={setLocationBasis} />}
+            >
               {data.byLocation.length === 0 ? (
                 <Empty />
               ) : (
                 <SmallTable
-                  rows={data.byLocation.map((l) => [
+                  rows={byBasis(data.byLocation, locationBasis).map((l) => [
                     l.name,
-                    money(l.revenue),
+                    money(l[basisKey(locationBasis)]),
                     fmtNum(l.orders),
                   ])}
-                  headers={["Location", "Revenue", "Orders"]}
+                  headers={["Location", basisLabel(locationBasis), "Orders"]}
                 />
               )}
             </Card>
@@ -1184,20 +1200,67 @@ function KpiCard({
   );
 }
 
+// Gross = everything the customer was charged; net = what the shop keeps
+// (no delivery fee, no service charge, less discounts) — the same split as
+// the Gross / Net revenue tiles.
+type RevenueBasis = "gross" | "net";
+
+function basisKey(basis: RevenueBasis) {
+  return basis === "net" ? ("netRevenue" as const) : ("revenue" as const);
+}
+
+function basisLabel(basis: RevenueBasis) {
+  return basis === "net" ? "Net" : "Gross";
+}
+
+/** Rows re-ranked by the chosen figure, so "top → bottom" stays true. */
+function byBasis<T extends { revenue: number; netRevenue: number }>(
+  rows: T[],
+  basis: RevenueBasis,
+): T[] {
+  const key = basisKey(basis);
+  return [...rows].sort((a, b) => (b[key] ?? 0) - (a[key] ?? 0));
+}
+
+function RevenueBasisSelect({
+  value,
+  onChange,
+}: {
+  value: RevenueBasis;
+  onChange: (v: RevenueBasis) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as RevenueBasis)}
+      aria-label="Revenue basis"
+      className="rounded-md border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-700"
+    >
+      <option value="gross">Gross</option>
+      <option value="net">Net</option>
+    </select>
+  );
+}
+
 function Card({
   title,
   subtitle,
+  action,
   children,
 }: {
   title: string;
   subtitle?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-3">
-      <header className="mb-2">
-        <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
-        {subtitle && <p className="text-[11px] text-zinc-500">{subtitle}</p>}
+      <header className="mb-2 flex items-start justify-between gap-2">
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-900">{title}</h3>
+          {subtitle && <p className="text-[11px] text-zinc-500">{subtitle}</p>}
+        </div>
+        {action}
       </header>
       {children}
     </div>
