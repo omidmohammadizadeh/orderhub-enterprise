@@ -81,7 +81,7 @@ import {
   PENDING_FILL_KEY,
   type CallerIdFill,
 } from "@/components/pos/caller-id-popup";
-import { TileColoursModal } from "@/components/pos/tile-colours-modal";
+import { TileColoursModal, type TileSettings } from "@/components/pos/tile-colours-modal";
 import { locationsClient } from "@/lib/api/locations.client";
 import { queryKeys } from "@/lib/api/query-keys";
 import {
@@ -89,6 +89,10 @@ import {
   tileColoursFromSettings,
   tileSizeFromSettings,
   TILE_SIZES,
+  categoryBarClasses,
+  categoryPlacementFromSettings,
+  categorySizeFromSettings,
+  CATEGORY_SIZES,
   type TileColours,
   type TileSize,
 } from "@/lib/pos/tile-colours";
@@ -1420,14 +1424,18 @@ export default function PosPage() {
     [locationQuery.data],
   );
   const sizing = TILE_SIZES[tileSize];
+  const categoryPlacement = categoryPlacementFromSettings(
+    (locationQuery.data as any)?.settings,
+  );
+  const categorySize = categorySizeFromSettings((locationQuery.data as any)?.settings);
+  const catBar = categoryBarClasses(categoryPlacement, categorySize);
   const saveColours = useMutation({
     mutationFn: async ({
       colours: next,
       size,
-    }: {
-      colours: TileColours;
-      size: TileSize;
-    }) => {
+      categoryPlacement: placement,
+      categorySize: catSize,
+    }: TileSettings) => {
       const settings = ((locationQuery.data as any)?.settings ?? {}) as Record<
         string,
         unknown
@@ -1439,6 +1447,8 @@ export default function PosPage() {
             ...((settings.pos as object) ?? {}),
             tileColours: next,
             tileSize: size,
+            categoryPlacement: placement,
+            categorySize: catSize,
           },
         },
       } as any);
@@ -1838,7 +1848,7 @@ export default function PosPage() {
     },
     {
       key: "tile-colours",
-      label: "Tile colours",
+      label: "Tiles & categories",
       title: "Colour-code the menu tiles",
       icon: Paintbrush,
       onClick: () => setColoursOpen(true),
@@ -2286,7 +2296,7 @@ export default function PosPage() {
           {/* Menu — categories, then products. The order ticket sits beside
               it from lg up so staff can see what they've rung in as they go;
               below that it's a sheet behind the bottom bar. */}
-          <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden xl:flex-row">
+          <div className={`flex min-w-0 flex-1 flex-col gap-3 overflow-hidden ${catBar.area}`}>
             {/* Tablet and up: every category visible at once — a wrapping
                 row on a narrower tablet, a column down the left on a wide
                 one. One tap to switch, no drilling in and back out. Phones
@@ -2294,7 +2304,9 @@ export default function PosPage() {
             {categories.length > 0 && (
               <nav
                 aria-label="Menu categories"
-                className="hidden max-h-[9.5rem] shrink-0 flex-wrap gap-1.5 overflow-y-auto md:flex xl:max-h-none xl:w-52 xl:flex-col xl:flex-nowrap xl:gap-1 xl:rounded-xl xl:border xl:border-zinc-200 xl:bg-white xl:p-2"
+                // Where and how big is the shop's choice (Settings → Tiles &
+                // categories); see categoryBarClasses.
+                className={`hidden shrink-0 overflow-y-auto md:flex ${catBar.nav}`}
               >
                 {categories.map((cat) => {
                   const selected = !search.trim() && cat.id === activeCategory?.id;
@@ -2308,10 +2320,10 @@ export default function PosPage() {
                         setActiveCategoryId(cat.id);
                       }}
                       aria-current={selected ? "true" : undefined}
-                      className={`inline-flex h-11 shrink-0 items-center gap-2 rounded-lg border px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 xl:w-full xl:border-transparent xl:px-3 ${
+                      className={`inline-flex shrink-0 items-center gap-2 rounded-lg border font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${CATEGORY_SIZES[categorySize].button} ${catBar.button} ${
                         selected
-                          ? "border-zinc-900 bg-zinc-900 text-white xl:border-zinc-900"
-                          : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 xl:hover:border-transparent xl:hover:bg-zinc-100"
+                          ? `border-zinc-900 bg-zinc-900 text-white ${catBar.selected}`
+                          : `border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 ${catBar.unselected}`
                       }`}
                     >
                       {dot && (
@@ -2321,9 +2333,9 @@ export default function PosPage() {
                           style={{ backgroundColor: dot.border }}
                         />
                       )}
-                      <span className="truncate xl:flex-1 xl:text-left">{cat.name}</span>
+                      <span className={`truncate ${catBar.label}`}>{cat.name}</span>
                       <span
-                        className={`hidden shrink-0 text-xs tabular-nums xl:inline ${
+                        className={`shrink-0 text-xs tabular-nums ${catBar.count} ${
                           selected ? "text-white/70" : "text-zinc-400"
                         }`}
                       >
@@ -2585,7 +2597,9 @@ export default function PosPage() {
         initial={tileColours}
         initialSize={tileSize}
         saving={saveColours.isPending}
-        onSave={(colours, size) => saveColours.mutate({ colours, size })}
+        initialCategoryPlacement={categoryPlacement}
+        initialCategorySize={categorySize}
+        onSave={(next) => saveColours.mutate(next)}
         onClose={() => setColoursOpen(false)}
       />
 

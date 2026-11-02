@@ -157,3 +157,91 @@ export function tileSizeFromSettings(settings: unknown): TileSize {
   const v = (settings as any)?.pos?.tileSize;
   return v && v in TILE_SIZES ? (v as TileSize) : DEFAULT_TILE_SIZE;
 }
+
+// ── Category bar ────────────────────────────────────────────────────────────
+//
+// Where the till's categories sit beside the products on a tablet, and how big
+// their buttons are. Phones keep the category tiles, which follow the tile
+// size above. Every class is written out in full so Tailwind can see it.
+
+export type CategoryPlacement = "AUTO" | "SIDE" | "TOP";
+export type CategorySize = "S" | "M" | "L" | "XL";
+
+export const CATEGORY_PLACEMENTS: Record<
+  CategoryPlacement,
+  { label: string; hint: string }
+> = {
+  AUTO: { label: "Automatic", hint: "Top on tablets, side on wide screens" },
+  SIDE: { label: "Side", hint: "A column down the left" },
+  TOP: { label: "Top", hint: "Rows above the products" },
+};
+
+export const CATEGORY_SIZES: Record<
+  CategorySize,
+  {
+    label: string;
+    /** Button height, text and padding. */
+    button: string;
+    /** Rows wrap above the products; past this height they scroll. */
+    topMaxHeight: string;
+  }
+> = {
+  S: { label: "Small", button: "h-9 px-3 text-xs", topMaxHeight: "max-h-[7.5rem]" },
+  M: { label: "Medium", button: "h-11 px-3.5 text-sm", topMaxHeight: "max-h-[9.5rem]" },
+  L: { label: "Large", button: "h-14 px-4 text-base", topMaxHeight: "max-h-[12rem]" },
+  XL: { label: "Extra large", button: "h-16 px-5 text-lg", topMaxHeight: "max-h-[13.5rem]" },
+};
+
+// The column's width grows with its buttons.
+const SIDE_WIDTH: Record<CategorySize, { md: string; xl: string }> = {
+  S: { md: "md:w-44", xl: "xl:w-44" },
+  M: { md: "md:w-52", xl: "xl:w-52" },
+  L: { md: "md:w-60", xl: "xl:w-60" },
+  XL: { md: "md:w-72", xl: "xl:w-72" },
+};
+
+/** Classes for the menu area, the category bar and its buttons. */
+export function categoryBarClasses(placement: CategoryPlacement, size: CategorySize) {
+  const sz = CATEGORY_SIZES[size];
+  if (placement === "TOP") {
+    return {
+      area: "",
+      nav: `${sz.topMaxHeight} flex-wrap gap-1.5`,
+      button: "",
+      selected: "",
+      unselected: "",
+      label: "",
+      count: "hidden",
+    };
+  }
+  if (placement === "SIDE") {
+    return {
+      area: "md:flex-row",
+      nav: `md:max-h-none ${SIDE_WIDTH[size].md} md:flex-col md:flex-nowrap md:gap-1 md:rounded-xl md:border md:border-zinc-200 md:bg-white md:p-2`,
+      button: "md:w-full md:border-transparent md:px-3",
+      selected: "md:border-zinc-900",
+      unselected: "md:hover:border-transparent md:hover:bg-zinc-100",
+      label: "md:flex-1 md:text-left",
+      count: "hidden md:inline",
+    };
+  }
+  return {
+    area: "xl:flex-row",
+    nav: `${sz.topMaxHeight} flex-wrap gap-1.5 xl:max-h-none ${SIDE_WIDTH[size].xl} xl:flex-col xl:flex-nowrap xl:gap-1 xl:rounded-xl xl:border xl:border-zinc-200 xl:bg-white xl:p-2`,
+    button: "xl:w-full xl:border-transparent xl:px-3",
+    selected: "xl:border-zinc-900",
+    unselected: "xl:hover:border-transparent xl:hover:bg-zinc-100",
+    label: "xl:flex-1 xl:text-left",
+    count: "hidden xl:inline",
+  };
+}
+
+export function categoryPlacementFromSettings(settings: unknown): CategoryPlacement {
+  const v = (settings as any)?.pos?.categoryPlacement;
+  return v && v in CATEGORY_PLACEMENTS ? (v as CategoryPlacement) : "AUTO";
+}
+
+export function categorySizeFromSettings(settings: unknown): CategorySize {
+  const v = (settings as any)?.pos?.categorySize;
+  return v && v in CATEGORY_SIZES ? (v as CategorySize) : "M";
+}
