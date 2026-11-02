@@ -14,7 +14,7 @@ import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-s
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
 import { CustomerPushService } from "../customer-push/customer-push.service";
-import { coercePostcodeFees, creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee } from "../dispatch/driver-earnings.service";
+import { coercePostcodeFees, creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee, stopPostcode } from "../dispatch/driver-earnings.service";
 import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
 import { ensureCallLine, eflCallNumber } from "../eat-for-less/efl-calls.service";
 import { MAX_PIN_ATTEMPTS, callLineOpen, checkDeliveryPin } from "../eat-for-less/efl-rules";
@@ -450,7 +450,7 @@ export class DriverAppService {
       const total = Number(a.order.total);
       if (isCashPayment(a.order.paymentMethod)) cashTotal += total;
       else cardTotal += total;
-      deliveryFees += matchPostcodeFee(rules, a.order.postcode);
+      deliveryFees += matchPostcodeFee(rules, stopPostcode(a.order as any));
     }
     // Phase BG — the driver's own live earning: start-up fee (once, when
     // they've done at least one delivery today) + per-postcode delivery fees.
@@ -490,7 +490,7 @@ export class DriverAppService {
         driverId: driver.id,
         ...creditedStopsIn({ gte: start, lte: end }),
       },
-      include: { order: { select: { total: true, paymentMethod: true, postcode: true } } },
+      include: { order: { select: { total: true, paymentMethod: true, postcode: true, deliveryAddress: true } } },
     });
 
     let cashCount = 0;
@@ -509,7 +509,7 @@ export class DriverAppService {
         cardCount += 1;
         cardTotal += t;
       }
-      deliveryFees += matchPostcodeFee(rules, a.order.postcode);
+      deliveryFees += matchPostcodeFee(rules, stopPostcode(a.order as any));
       if (a.deliveredAt) workedDays.add(new Date(a.deliveredAt).toISOString().slice(0, 10));
     }
     // Phase BG — start-up fee is charged once per day the driver worked in

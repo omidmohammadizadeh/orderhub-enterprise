@@ -1,4 +1,4 @@
-import { creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee, normalizePostcode, summariseStops } from "../driver-earnings.service";
+import { creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee, normalizePostcode, stopPostcode, summariseStops } from "../driver-earnings.service";
 
 describe("isCashPayment", () => {
   it("counts every cash spelling as cash", () => {
@@ -131,5 +131,33 @@ describe("summariseStops", () => {
       driverEarning: 29,
       cashHandover: 1,
     });
+  });
+});
+
+describe("delivery fees on website and marketplace orders", () => {
+  // Reported at Kingston Pizza: a driver with NE3/NE5/... fees earned only the
+  // start-up fee, because these orders leave the postcode column empty and
+  // carry the postcode inside deliveryAddress.
+  const driver = { startupFee: "30", postcodeFees: [{ postcode: "NE3", fee: 2.5 }, { postcode: "NE5", fee: 3 }] };
+  const blobOrder = (postcode: string) => ({
+    status: "DELIVERED" as any,
+    deliveredAt: new Date("2026-11-01T18:00:00Z"),
+    order: {
+      total: 28.04,
+      paymentMethod: "CARD",
+      postcode: null,
+      deliveryAddress: { line1: "3 Darwin Crescent", city: "newcastle upon tyne", postcode },
+    },
+  });
+
+  it("finds the postcode inside the address blob", () => {
+    expect(stopPostcode({ postcode: null, deliveryAddress: { postcode: "ne3 4tt" } })).toBe("ne3 4tt");
+    expect(stopPostcode({ postcode: "NE5 1AA", deliveryAddress: null })).toBe("NE5 1AA");
+  });
+
+  it("pays the postcode fee on them", () => {
+    const owed = summariseStops(driver, [blobOrder("ne3 4tt"), blobOrder("NE5 2BB")]);
+    expect(owed.deliveryFeeTotal).toBe(5.5);
+    expect(owed.driverEarning).toBe(35.5);
   });
 });

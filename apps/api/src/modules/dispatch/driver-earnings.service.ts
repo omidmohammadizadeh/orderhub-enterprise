@@ -7,6 +7,7 @@ import {
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { DriverAssignmentStatus } from "@orderhub/database";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
+import { resolveDeliveryAddress } from "../orders/delivery-address";
 
 // Phase BG — driver pay + cash-up.
 //
@@ -117,6 +118,19 @@ function ruleCovers(rule: unknown, orderPostcode: unknown): boolean {
   return oOut === rOut;
 }
 
+/**
+ * The postcode a stop is paid on. Website and marketplace orders keep the
+ * address only in the deliveryAddress blob and leave the postcode column empty,
+ * so reading the column alone paid every one of them £0 in delivery fees. Same
+ * resolution the driver app uses to navigate there.
+ */
+export function stopPostcode(order: { postcode?: string | null; deliveryAddress?: unknown }): string | null {
+  return resolveDeliveryAddress({
+    postcode: order.postcode ?? null,
+    deliveryAddress: order.deliveryAddress as any,
+  }).postcode;
+}
+
 /** Most specific matching rule for an order postcode (0 when none match). */
 export function matchPostcodeFee(rules: PostcodeFee[], orderPostcode: unknown): number {
   const n = normalizePostcode(orderPostcode);
@@ -155,7 +169,7 @@ export function summariseStops(
     status: DriverAssignmentStatus;
     creditedAt?: Date | null;
     deliveredAt?: Date | null;
-    order: { total: unknown; paymentMethod: string | null; postcode: string | null };
+    order: { total: unknown; paymentMethod: string | null; postcode: string | null; deliveryAddress?: unknown };
   }[],
 ): EarningsBreakdown {
   const rules = coercePostcodeFees(driver.postcodeFees);
@@ -176,7 +190,7 @@ export function summariseStops(
       cardOrders += 1;
       cardCollected += total;
     }
-    deliveryFeeTotal += matchPostcodeFee(rules, a.order.postcode);
+    deliveryFeeTotal += matchPostcodeFee(rules, stopPostcode(a.order));
     const countedOn = creditedOn(a);
     if (countedOn) days.add(countedOn.toISOString().slice(0, 10));
   }
@@ -278,7 +292,7 @@ export class DriverEarningsService {
         status: true,
         creditedAt: true,
         deliveredAt: true,
-        order: { select: { total: true, paymentMethod: true, postcode: true } },
+        order: { select: { total: true, paymentMethod: true, postcode: true, deliveryAddress: true } },
       },
     });
 

@@ -1315,7 +1315,7 @@ export class DispatchService {
         status: true,
         creditedAt: true,
         deliveredAt: true,
-        order: { select: { total: true, paymentMethod: true, postcode: true } },
+        order: { select: { total: true, paymentMethod: true, postcode: true, deliveryAddress: true } },
       },
     });
 
