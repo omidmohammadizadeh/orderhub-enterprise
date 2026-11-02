@@ -182,11 +182,17 @@ function VoiceLogo({ size, rounded = true }: LogoProps) {
 }
 
 function EatForLessLogo({ size, rounded = true }: LogoProps) {
-  // Eat For Less — our own marketplace app: black tile, lime "£".
+  // Eat For Less — our own marketplace app: the words stacked on black,
+  // "less" on its lime tag, as on the app icon.
   return (
     <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="Eat For Less">
       <rect width="100" height="100" fill="#0B0B0B" />
-      <text x="50" y="72" textAnchor="middle" fontFamily="ui-sans-serif, system-ui, sans-serif" fontWeight="900" fontSize="64" fill="#D4FF3F">£</text>
+      <g fontFamily="ui-sans-serif, system-ui, sans-serif" fontWeight="800" fontSize="25" letterSpacing="-1">
+        <text x="24" y="35" fill="white">eat</text>
+        <text x="24" y="57" fill="white">for</text>
+        <rect x="21" y="62" width="56" height="25" rx="4.5" fill="#D4FF3F" />
+        <text x="24" y="81" fill="#0B0B0B">less</text>
+      </g>
     </svg>
   );
 }

@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, Res, UseGuards } from "@nestjs/common";
+import { eflWordmarkHtml } from "./efl-brand";
 import type { Request, Response } from "express";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
@@ -215,7 +216,7 @@ export class EflAppController {
     res.end(
       `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Eat For Less</title>` +
         `<body style="margin:0;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;background:#D4FF3F;color:#0B0B0B;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box">` +
-        `<div style="max-width:420px;text-align:center"><div style="font-size:28px;font-weight:900">eat for less</div>` +
+        `<div style="max-width:420px;text-align:center"><div>${eflWordmarkHtml(28, "light")}</div>` +
         `<p style="font-size:18px">${ok ? "You won't get offers by email from us any more." : "That link has expired. Turn offers off in the app under Account."}</p></div></body>`,
     );
   }

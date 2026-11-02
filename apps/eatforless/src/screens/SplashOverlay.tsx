@@ -10,10 +10,8 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withDelay,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { T } from "@/components/T";
 import { C, F } from "@/theme";
 
 const RISE = Easing.bezier(0.2, 0.9, 0.2, 1);
@@ -33,7 +31,6 @@ function Word({ text, delay, ink }: { text: string; delay: number; ink?: boolean
 
 export function SplashOverlay({ ready, onDone }: { ready: boolean; onDone: () => void }) {
   const sweep = useSharedValue(0);
-  const tag = useSharedValue(0);
   const sub = useSharedValue(0);
   const bar = useSharedValue(0);
   const exit = useSharedValue(0);
@@ -41,12 +38,11 @@ export function SplashOverlay({ ready, onDone }: { ready: boolean; onDone: () =>
 
   useEffect(() => {
     sweep.value = withDelay(480, withTiming(1, { duration: 620, easing: Easing.bezier(0.7, 0, 0.2, 1) }));
-    tag.value = withDelay(820, withSpring(1, { damping: 9, stiffness: 180, mass: 0.7 }));
     sub.value = withDelay(1150, withTiming(1, { duration: 500 }));
     bar.value = withDelay(700, withTiming(0.8, { duration: 1400, easing: Easing.bezier(0.6, 0, 0.2, 1) }));
     const t = setTimeout(() => setMinElapsed(true), MIN_SHOW_MS);
     return () => clearTimeout(t);
-  }, [sweep, tag, sub, bar]);
+  }, [sweep, sub, bar]);
 
   useEffect(() => {
     if (!ready || !minElapsed) return;
@@ -60,10 +56,6 @@ export function SplashOverlay({ ready, onDone }: { ready: boolean; onDone: () =>
   }, [ready, minElapsed, bar, exit, onDone]);
 
   const sweepStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: sweep.value }] }));
-  const tagStyle = useAnimatedStyle(() => ({
-    opacity: Math.min(1, tag.value * 1.4),
-    transform: [{ rotate: `${-30 + tag.value * 18}deg` }, { scale: 0.2 + tag.value * 0.8 }],
-  }));
   const subStyle = useAnimatedStyle(() => ({ opacity: sub.value, transform: [{ translateY: (1 - sub.value) * 8 }] }));
   const barStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: bar.value }] }));
   const rootStyle = useAnimatedStyle(() => ({
@@ -80,9 +72,6 @@ export function SplashOverlay({ ready, onDone }: { ready: boolean; onDone: () =>
           <Animated.View style={[styles.sweep, sweepStyle]} />
           <Word text="less" delay={180} ink />
         </View>
-        <Animated.View style={[styles.tag, tagStyle]}>
-          <T style={styles.tagText}>£</T>
-        </Animated.View>
       </View>
       <Animated.Text style={[styles.sub, subStyle]}>{"Your local favourites.\nFairer prices."}</Animated.Text>
       <View style={styles.track}>
@@ -105,21 +94,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     transformOrigin: "left center",
   },
-  tag: {
-    position: "absolute",
-    right: -58,
-    top: -6,
-    width: 52,
-    height: 52,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 26,
-    borderBottomLeftRadius: 26,
-    borderBottomRightRadius: 26,
-    backgroundColor: C.lime,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  tagText: { fontFamily: F.display, fontSize: 26, color: C.ink },
   sub: { marginTop: 28, fontFamily: F.regular, fontSize: 15, lineHeight: 21, color: "#BDBDBD", textAlign: "center" },
   track: { position: "absolute", bottom: 72, width: 120, height: 3, borderRadius: 2, backgroundColor: C.ink2, overflow: "hidden" },
   fill: { width: "100%", height: "100%", backgroundColor: C.lime, transformOrigin: "left center" },

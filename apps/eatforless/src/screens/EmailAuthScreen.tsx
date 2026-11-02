@@ -7,7 +7,7 @@ import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { loginEmail, signupEmail } from "@/api/efl";
 import { useSession } from "@/auth/session";
-import { RoundButton, TagMark } from "@/components/Bits";
+import { RoundButton, Wordmark } from "@/components/Bits";
 import { PressScale } from "@/components/PressScale";
 import { T } from "@/components/T";
 import { fadeUp } from "@/lib/motion";
@@ -57,7 +57,7 @@ export function EmailAuthScreen({ navigation, route }: RootScreen<"EmailAuth">) 
       <View style={[styles.root, { paddingTop: insets.top + 8, paddingHorizontal: 20 }]}>
         <RoundButton icon="back" label="Back" light onPress={() => setSentTo(null)} />
         <Animated.View entering={fadeUp(60)} style={{ gap: 12, marginTop: 40, alignItems: "flex-start" }}>
-          <TagMark size={52} />
+          <Wordmark size={28} />
           <T v="hero">Check your inbox</T>
           <T v="sub" style={{ fontSize: 15, lineHeight: 21 }}>
             We sent a link to <T style={{ fontFamily: F.bold, color: C.ink, fontSize: 15 }}>{sentTo}</T>. Tap it to confirm your email, then sign in here.

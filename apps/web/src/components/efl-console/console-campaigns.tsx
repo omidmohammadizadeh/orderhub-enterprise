@@ -14,7 +14,7 @@ import {
   type EflCampaignChannel,
   type EflCampaignInput,
 } from "@/lib/api/efl.client";
-import { EflMark } from "./console-shell";
+import { EflMark, EflWordmark } from "@/components/eatforless/efl-logo";
 import { apiErrorMessage } from "./format";
 
 const PUSH_TITLE_MAX = 60;
@@ -550,8 +550,7 @@ function EmailPreview({ draft }: { draft: Draft }) {
       <div className="p-3">
         <div className="overflow-hidden rounded-xl bg-white">
           <div className="flex items-center gap-2 bg-[#D4FF3F] px-4 py-3">
-            <EflMark size={24} />
-            <span className="text-sm font-extrabold tracking-tight text-[#0B0B0B]">eat for less</span>
+            <EflWordmark size={22} onLime />
           </div>
           <div className="flex flex-col gap-3 px-4 py-4">
             <p className="break-words text-base font-extrabold leading-snug text-[#0B0B0B]">

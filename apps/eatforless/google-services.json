@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "937109589461-uigs1ae889b0frjc0pg2r2k773sq04iu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.eatforless.app",
+            "certificate_hash": "bf4194ef93ba635d313e154b89a862463b24f9a1"
+          }
+        },
+        {
           "client_id": "937109589461-5l7j1hdsld04gi1tstjk14v8cocsrkbn.apps.googleusercontent.com",
           "client_type": 3
         }

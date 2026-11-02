@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { isFinished, useMyOrders } from "@/api/hooks";
 import type { OrderSummary } from "@/api/types";
 import { useSession } from "@/auth/session";
-import { TagMark } from "@/components/Bits";
+import { Wordmark } from "@/components/Bits";
 import { Icon } from "@/components/Icon";
 import { Photo } from "@/components/Photo";
 import { PressScale } from "@/components/PressScale";
@@ -48,7 +48,7 @@ export function OrdersScreen() {
       <View style={[styles.root, { paddingTop: insets.top + 16 }]}>
         <T v="hero" style={{ paddingHorizontal: 16 }}>Orders</T>
         <Animated.View entering={fadeUp(60)} style={styles.empty}>
-          <TagMark size={56} />
+          <Wordmark size={30} />
           <T v="h3">Sign in to see your orders</T>
           <PressScale onPress={() => nav.navigate("Welcome")} style={styles.primary}>
             <T style={styles.primaryText}>Sign in</T>
@@ -93,7 +93,7 @@ export function OrdersScreen() {
             <T v="sub">Loading…</T>
           ) : (
             <Animated.View entering={fadeUp(60)} style={[styles.empty, { paddingHorizontal: 0 }]}>
-              <TagMark size={56} />
+              <Wordmark size={30} />
               <T v="h3">No orders yet</T>
               <T v="sub" style={{ textAlign: "center", fontSize: 15 }}>Your first Eat For Less order will show up here.</T>
               <PressScale onPress={() => nav.navigate("Tabs", { screen: "Home" })} style={styles.primary}>

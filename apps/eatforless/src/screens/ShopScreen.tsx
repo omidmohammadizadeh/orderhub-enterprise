@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useShopMenu } from "@/api/hooks";
 import type { MenuItem, Shop } from "@/api/types";
 import { BasketBar } from "@/components/BasketBar";
-import { RoundButton, Shimmer, TagMark } from "@/components/Bits";
+import { RoundButton, Shimmer, Wordmark } from "@/components/Bits";
 import { CategoryTabs, TABS_HEIGHT } from "@/components/CategoryTabs";
 import { FoodArt } from "@/components/FoodArt";
 import { Icon } from "@/components/Icon";
@@ -275,7 +275,7 @@ export function ShopScreen({ navigation, route }: RootScreen<"Shop">) {
             ))}
           </Animated.ScrollView>
           <View style={styles.eflBanner}>
-            <TagMark size={36} />
+            <Wordmark size={15} tone="light" />
             <T style={styles.eflText}>
               Eat For Less prices on this menu. <T style={{ color: C.lime, fontFamily: F.bold, fontSize: 13 }}>Lower than the big apps.</T>
             </T>

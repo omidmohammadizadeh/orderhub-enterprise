@@ -10,6 +10,7 @@
 // not a bill: there is nothing to pay.
 
 import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from "@nestjs/common";
+import { eflWordmarkHtml } from "./efl-brand";
 import { Cron } from "@nestjs/schedule";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -306,11 +307,16 @@ export class EflStatementsService {
       p.drawText(t, { x: xRight - f.widthOfTextAtSize(t, size), y: yy, size, font: f, color });
 
     // Header band
-    page.drawRectangle({ x: 0, y: H - 96, width: W, height: 96, color: lime });
-    text(page, "eat for less", M, H - 52, 24, bold);
-    text(page, "Weekly statement", M, H - 74, 11, font);
-    right(page, s.shopName, W - M, H - 52, 13, bold);
-    right(page, s.weekLabel, W - M, H - 72, 11);
+    // Header band: the wordmark, "eat for" in white and "less" on its lime tag.
+    const white = rgb(1, 1, 1);
+    page.drawRectangle({ x: 0, y: H - 96, width: W, height: 96, color: ink });
+    text(page, "eat for ", M, H - 52, 24, bold, white);
+    const lessX = M + bold.widthOfTextAtSize("eat for ", 24);
+    page.drawRectangle({ x: lessX - 3, y: H - 58, width: bold.widthOfTextAtSize("less", 24) + 6, height: 25, color: lime });
+    text(page, "less", lessX, H - 52, 24, bold);
+    text(page, "Weekly statement", M, H - 76, 11, font, rgb(0.74, 0.74, 0.74));
+    right(page, s.shopName, W - M, H - 52, 13, bold, white);
+    right(page, s.weekLabel, W - M, H - 72, 11, font, rgb(0.74, 0.74, 0.74));
     y = H - 130;
 
     // Summary
@@ -426,8 +432,8 @@ function emailHtml(s: Statement): string {
   return `<!doctype html><html><body style="margin:0;background:#F3F3F3;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden">
-<tr><td style="background:#D4FF3F;padding:22px 24px"><div style="font-size:22px;font-weight:900;color:#0B0B0B">eat for less</div>
-<div style="font-size:14px;color:#0B0B0B;margin-top:4px">Weekly statement · ${esc(s.weekLabel)}</div></td></tr>
+<tr><td style="background:#0B0B0B;padding:22px 24px"><div>${eflWordmarkHtml(24)}</div>
+<div style="font-size:14px;color:#BDBDBD;margin-top:6px">Weekly statement · ${esc(s.weekLabel)}</div></td></tr>
 <tr><td style="padding:22px 24px">
 <p style="margin:0 0 14px;font-size:15px;color:#0B0B0B">Hi ${esc(s.shopName)}, here's your week on Eat For Less. The full statement is attached.</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:15px">

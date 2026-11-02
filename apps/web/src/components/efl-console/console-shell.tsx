@@ -11,6 +11,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Lock } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
+import { EflMark, EflWordmark } from "@/components/eatforless/efl-logo";
+
+export { EflMark };
 
 const NAV: Array<{ href: string; label: string; soon?: boolean }> = [
   { href: "/efl-console", label: "Overview" },
@@ -24,18 +27,6 @@ const NAV: Array<{ href: string; label: string; soon?: boolean }> = [
   { href: "/efl-console/statements", label: "Statements" },
   { href: "/efl-console/settings", label: "Settings" },
 ];
-
-export function EflMark({ size = 36 }: { size?: number }) {
-  return (
-    <span
-      aria-hidden="true"
-      style={{ width: size, height: size, fontSize: size * 0.5 }}
-      className="flex shrink-0 items-center justify-center rounded-[10px_50%_50%_50%] bg-[#D4FF3F] font-extrabold text-[#0B0B0B]"
-    >
-      £
-    </span>
-  );
-}
 
 export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
@@ -58,9 +49,9 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col bg-[#F6F6F4] text-[#0B0B0B] md:flex-row">
       <aside className="flex shrink-0 flex-col gap-5 bg-[#0B0B0B] px-3.5 py-5 text-white md:sticky md:top-0 md:h-screen md:w-60">
         <Link href="/efl-console" className="flex items-center gap-2.5 px-2">
-          <EflMark />
+          <EflMark size={36} />
           <span className="flex flex-col leading-tight">
-            <span className="text-base font-extrabold tracking-tight">eat for less</span>
+            <EflWordmark tone="light" size={24} />
             <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400">Console</span>
           </span>
         </Link>

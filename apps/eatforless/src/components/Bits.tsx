@@ -1,4 +1,4 @@
-// Small shared pieces: the lime price-tag mark, the round icon button, the
+// Small shared pieces: the wordmark, the round icon button, the
 // deal badge, the stepper, section headers and a shimmer skeleton.
 
 import { useEffect, type ReactNode } from "react";
@@ -18,26 +18,32 @@ import { Icon, type IconName } from "./Icon";
 import { PressScale } from "./PressScale";
 import { T } from "./T";
 
-/** The brand mark: a lime tag with a tight top-left corner and a £. */
-export function TagMark({ size = 36, style }: { size?: number; style?: ViewStyle }) {
+/**
+ * The brand: "eat for" with "less" on a lime tag — the same wordmark as the
+ * welcome screen and the app icon. `size` is the font size; "light" is for
+ * dark backgrounds.
+ */
+export function Wordmark({
+  size = 20,
+  tone = "dark",
+  style,
+}: {
+  size?: number;
+  tone?: "dark" | "light";
+  style?: StyleProp<ViewStyle>;
+}) {
+  const word = { fontFamily: F.display, fontSize: size, letterSpacing: -size * 0.04, color: tone === "light" ? C.white : C.ink };
   return (
     <View
-      style={[
-        {
-          width: size,
-          height: size,
-          backgroundColor: C.lime,
-          borderTopLeftRadius: size * 0.27,
-          borderTopRightRadius: size * 0.5,
-          borderBottomLeftRadius: size * 0.5,
-          borderBottomRightRadius: size * 0.5,
-          alignItems: "center",
-          justifyContent: "center",
-        },
-        style,
-      ]}
+      style={[{ flexDirection: "row", alignItems: "center" }, style]}
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel="Eat For Less"
     >
-      <T style={{ fontFamily: F.display, fontSize: size * 0.5, color: C.ink, lineHeight: size * 0.62 }}>£</T>
+      <T style={word}>eat for </T>
+      <View style={{ backgroundColor: C.lime, borderRadius: size * 0.2, paddingHorizontal: size * 0.12 }}>
+        <T style={[word, { color: C.ink }]}>less</T>
+      </View>
     </View>
   );
 }

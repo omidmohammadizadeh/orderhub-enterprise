@@ -11,7 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useEffect } from "react";
 import { useMyOrders, useShops } from "@/api/hooks";
 import type { Shop } from "@/api/types";
-import { RoundButton, SectionHeader, Shimmer, TagMark } from "@/components/Bits";
+import { RoundButton, SectionHeader, Shimmer, Wordmark } from "@/components/Bits";
 import { CUISINES, type CuisineKind } from "@/components/CuisineIcon";
 import { CuisineMarquee } from "@/components/CuisineMarquee";
 import { Icon } from "@/components/Icon";
@@ -56,7 +56,7 @@ function Wobble() {
   const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${-8 + 16 * t.value}deg` }, { scale: 1 + 0.08 * t.value }] }));
   return (
     <Animated.View style={style}>
-      <TagMark size={92} />
+      <Wordmark size={36} />
     </Animated.View>
   );
 }
@@ -291,7 +291,7 @@ function Loading() {
 function Empty({ title, body, action, onAction }: { title: string; body: string; action: string; onAction: () => void }) {
   return (
     <Animated.View entering={fadeUp(100)} style={styles.empty}>
-      <TagMark size={56} />
+      <Wordmark size={28} />
       <T v="h3" style={{ textAlign: "center" }}>{title}</T>
       <T v="sub" style={{ textAlign: "center", fontSize: 15, lineHeight: 21 }}>{body}</T>
       <PressScale onPress={onAction} style={styles.emptyBtn}>

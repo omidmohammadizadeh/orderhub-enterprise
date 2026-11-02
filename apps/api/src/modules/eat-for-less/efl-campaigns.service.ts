@@ -6,6 +6,7 @@
 // own customer lists are never touched — these are Eat For Less customers.
 
 import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from "@nestjs/common";
+import { eflWordmarkHtml } from "./efl-brand";
 import { createHmac, timingSafeEqual } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { EmailService, type BatchEmail } from "../../infrastructure/email/email.service";
@@ -236,7 +237,7 @@ function campaignHtml(c: { title: string; body: string; ctaLabel: string | null;
   return `<!doctype html><html><body style="margin:0;background:#F3F3F3;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:16px;overflow:hidden">
-<tr><td style="background:#D4FF3F;padding:20px 24px;font-size:22px;font-weight:900;color:#0B0B0B">eat for less</td></tr>
+<tr><td style="background:#0B0B0B;padding:20px 24px">${eflWordmarkHtml(24)}</td></tr>
 <tr><td style="padding:24px">
 <h1 style="margin:0 0 14px;font-size:24px;line-height:1.25;color:#0B0B0B">${esc(c.title)}</h1>
 ${paragraphs}${button}

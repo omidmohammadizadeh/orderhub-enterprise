@@ -11,7 +11,6 @@ import Svg, { Path } from "react-native-svg";
 import { signInNative } from "@/api/efl";
 import { appleIdToken, googleConfigured, googleIdToken, isAppleSignInAvailable } from "@/auth/native";
 import { useSession } from "@/auth/session";
-import { TagMark } from "@/components/Bits";
 import { FoodArt } from "@/components/FoodArt";
 import { Icon } from "@/components/Icon";
 import { PressScale } from "@/components/PressScale";
@@ -88,7 +87,6 @@ export function WelcomeScreen({ navigation }: RootScreen<"Welcome">) {
           <View style={styles.lessWrap}>
             <T style={[styles.word, { color: C.ink }]}>less</T>
           </View>
-          <TagMark size={34} style={{ marginLeft: 8, transform: [{ rotate: "-12deg" }] }} />
         </Animated.View>
       </View>
 

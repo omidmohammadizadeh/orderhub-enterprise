@@ -25,7 +25,7 @@ import { checkout } from "@/api/efl";
 import { useShopMenu, useShops } from "@/api/hooks";
 import type { CheckoutBody } from "@/api/types";
 import { useSession } from "@/auth/session";
-import { RoundButton, Stepper, TagMark } from "@/components/Bits";
+import { RoundButton, Stepper, Wordmark } from "@/components/Bits";
 import { Icon } from "@/components/Icon";
 import { Photo } from "@/components/Photo";
 import { PressScale } from "@/components/PressScale";
@@ -149,7 +149,7 @@ export function CheckoutScreen({ navigation }: RootScreen<"Checkout">) {
           <T v="h1">Basket</T>
         </View>
         <Animated.View entering={fadeUp(80)} style={styles.empty}>
-          <TagMark size={64} />
+          <Wordmark size={30} />
           <T v="h3">Your basket is empty</T>
           <T v="sub" style={{ textAlign: "center", fontSize: 15 }}>Add something tasty from a shop near you.</T>
           <PressScale onPress={() => navigation.navigate("Tabs", { screen: "Home" })} style={styles.primarySmall}>

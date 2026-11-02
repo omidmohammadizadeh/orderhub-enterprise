@@ -7,7 +7,7 @@ import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { deleteAccount, setMarketing } from "@/api/efl";
 import { useSession } from "@/auth/session";
-import { TagMark } from "@/components/Bits";
+import { Wordmark } from "@/components/Bits";
 import { Icon, type IconName } from "@/components/Icon";
 import { PressScale } from "@/components/PressScale";
 import { T } from "@/components/T";
@@ -125,7 +125,7 @@ export function AccountScreen() {
       ) : null}
 
       <View style={styles.footer}>
-        <TagMark size={28} />
+        <Wordmark size={16} />
         <T v="small" style={{ fontFamily: F.regular }}>Eat For Less · v0.1.0{MOCK ? " · sample data" : ""}</T>
       </View>
     </ScrollView>

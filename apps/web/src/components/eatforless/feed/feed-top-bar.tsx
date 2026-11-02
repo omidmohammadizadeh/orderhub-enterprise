@@ -5,7 +5,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, MapPin, Menu, Search, ShoppingBag, X } from "lucide-react";
 import { useEflHref } from "../efl-base-context";
-import { EflWordmark } from "../efl-logo";
+import { EflMark, EflWordmark } from "../efl-logo";
 import { FOCUS } from "../efl-styles";
 import { normalisePostcode } from "../postcode";
 import type { FeedMode } from "./shop-card";
@@ -273,7 +273,7 @@ export function FeedTopBar({
           <span className="sr-only">Eat For Less home</span>
         </Link>
         <Link href={href("/")} aria-label="Eat For Less home" className={`shrink-0 rounded-lg sm:hidden ${FOCUS}`}>
-          <EflWordmarkCompact />
+          <EflMark size={36} />
         </Link>
         <ModeToggle mode={mode} onChange={onModeChange} className="hidden md:flex" />
         <AddressChip label={locationLabel} />
@@ -288,17 +288,5 @@ export function FeedTopBar({
       </div>
       <SiteMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
     </header>
-  );
-}
-
-function EflWordmarkCompact() {
-  return (
-    <span
-      aria-hidden="true"
-      className="inline-flex h-9 w-9 items-center justify-center bg-[#D4FF3F] text-xl font-extrabold text-[#0B0B0B]"
-      style={{ borderRadius: "10px 50% 50% 50%" }}
-    >
-      £
-    </span>
   );
 }
