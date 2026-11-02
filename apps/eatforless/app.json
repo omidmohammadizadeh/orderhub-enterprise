@@ -35,7 +35,8 @@
         "ACCESS_FINE_LOCATION",
         "VIBRATE",
         "POST_NOTIFICATIONS"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       "expo-secure-store",
@@ -81,7 +82,11 @@
       ]
     ],
     "extra": {
-      "apiUrl": "https://orderhub-api-0re6.onrender.com/api"
-    }
+      "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+      "eas": {
+        "projectId": "e0520a8a-ca63-444f-b91e-2b3288fca4e2"
+      }
+    },
+    "owner": "maclondas"
   }
 }

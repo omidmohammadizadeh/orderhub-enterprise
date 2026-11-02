@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "937109589461",
+    "project_id": "eat-for-less-8dcc5",
+    "storage_bucket": "eat-for-less-8dcc5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937109589461:android:fa81f7ee9700e202fb415c",
+        "android_client_info": {
+          "package_name": "com.eatforless.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "937109589461-gefge7savff46nipsm14hbak5sfv8734.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.eatforless.app",
+            "certificate_hash": "bf0856e071cfe464b2b097496c866d7b49397bb6"
+          }
+        },
+        {
+          "client_id": "937109589461-5l7j1hdsld04gi1tstjk14v8cocsrkbn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAT31X9BWQgfbo2POXiWkBE1K-9b80hEc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "937109589461-5l7j1hdsld04gi1tstjk14v8cocsrkbn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
