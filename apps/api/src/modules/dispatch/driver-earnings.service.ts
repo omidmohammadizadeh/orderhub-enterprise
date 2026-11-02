@@ -40,6 +40,15 @@ export interface EarningsBreakdown {
   cashHandover: number; // cashCollected - driverEarning (negative = owed to driver)
 }
 
+// Changing what a driver is paid, or seeing their pay settings, is for the
+// business's owners and admins, not every manager or member of staff who
+// dispatches. Cash-up stays open to everyone who dispatches.
+export const DRIVER_PAY_ROLES = ["OWNER", "TENANT_OWNER", "PLATFORM_ADMIN"] as const;
+
+export function canSeeDriverPay(role: unknown): boolean {
+  return (DRIVER_PAY_ROLES as readonly string[]).includes(String(role));
+}
+
 const CASH_METHODS = ["CASH", "CASH_ON_DELIVERY", "COD"];
 
 /**

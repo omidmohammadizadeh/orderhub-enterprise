@@ -12,6 +12,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { DispatchService } from "./dispatch.service";
 import {
+  DRIVER_PAY_ROLES,
   DriverEarningsService,
   type PostcodeFee,
 } from "./driver-earnings.service";
@@ -127,7 +128,7 @@ export class DispatchController {
   }
 
   @Patch("drivers/:driverId/earnings")
-  @Roles(...DISPATCH_ROLES)
+  @Roles(...DRIVER_PAY_ROLES)
   @ApiOperation({ summary: "Set a driver's home location + pay (start-up fee + per-postcode fees)" })
   updateEarnings(
     @CurrentUser() user: AuthenticatedUser,

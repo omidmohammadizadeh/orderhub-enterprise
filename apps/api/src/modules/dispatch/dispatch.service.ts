@@ -13,7 +13,7 @@ import {
 } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
-import { coercePostcodeFees, creditedStopsIn, summariseStops } from "./driver-earnings.service";
+import { canSeeDriverPay, coercePostcodeFees, creditedStopsIn, summariseStops } from "./driver-earnings.service";
 import { driverIdsForLocations } from "../../common/access/accessible-locations";
 import { GeocodingService } from "./geocoding.service";
 import { TERMINAL_ORDER_STATUSES } from "./dispatch-settlement.service";
@@ -199,11 +199,11 @@ export interface OperatorDriverRow {
   cashTotal: string;
   cardTotal: string;
   total: string;
-  // Phase BG — home location + pay config (for the Manage/earnings panel) and
-  // the driver's computed earning so far today.
-  homeLocationId: string | null;
-  startupFee: string;
-  postcodeFees: { postcode: string; fee: number }[];
+  // Phase BG — home location + pay config for the Earnings tab. Only sent to
+  // owners and admins (DRIVER_PAY_ROLES); managers and staff never get it.
+  homeLocationId?: string | null;
+  startupFee?: string;
+  postcodeFees?: { postcode: string; fee: number }[];
   // Everything since the driver's last cash-up, so settling takes it to zero.
   earning: string;
 }
@@ -1290,6 +1290,8 @@ export class DispatchService {
       }),
     ]);
 
+    const canSeePay = canSeeDriverPay(user.role);
+
     // What each driver is owed: the same stops the Cash up window would settle,
     // not today's. A card counting "today" stayed at £x after settling.
     const driverIds = drivers.map((d) => d.id);
@@ -1367,9 +1369,13 @@ export class DispatchService {
         cashTotal: owed.cashCollected.toFixed(2),
         cardTotal: owed.cardCollected.toFixed(2),
         total: (owed.cashCollected + owed.cardCollected).toFixed(2),
-        homeLocationId: (d as any).locationId ?? null,
-        startupFee: startup.toFixed(2),
-        postcodeFees: fees,
+        ...(canSeePay
+          ? {
+              homeLocationId: (d as any).locationId ?? null,
+              startupFee: startup.toFixed(2),
+              postcodeFees: fees,
+            }
+          : {}),
         earning: owed.driverEarning.toFixed(2),
       };
     });

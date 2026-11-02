@@ -187,6 +187,10 @@ export interface OperatorDriverJob {
   /** Already counted in the driver's pay (shop's count-on-dispatch rule). */
   credited: boolean;
 }
+/** Who may see and change a driver's pay settings (the Earnings tab). The
+ *  API enforces the same list; this only decides what to show. */
+export const DRIVER_PAY_ROLES = ["OWNER", "TENANT_OWNER", "PLATFORM_ADMIN"];
+
 export interface PostcodeFee {
   postcode: string;
   fee: number;
@@ -201,9 +205,10 @@ export interface OperatorDriverRow {
   cashTotal: string;
   cardTotal: string;
   total: string;
-  homeLocationId: string | null;
-  startupFee: string;
-  postcodeFees: PostcodeFee[];
+  // Pay settings: only sent to DRIVER_PAY_ROLES.
+  homeLocationId?: string | null;
+  startupFee?: string;
+  postcodeFees?: PostcodeFee[];
   /** Owed since the driver's last cash-up, like the rest of the row's figures. */
   earning: string;
 }

@@ -35,7 +35,9 @@ import {
   ListChecks,
   Map as MapIcon,
   Search,
+  LayoutDashboard,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePendingCallerStore } from "@/stores/pending-caller.store";
 import dynamic from "next/dynamic";
@@ -692,6 +694,15 @@ export function OrderList({ locationId }: Props) {
           <MapIcon className="h-3.5 w-3.5" aria-hidden="true" />
           Dispatch map
         </button>
+
+        {/* Straight to the live drivers, their runs and cash-ups. */}
+        <Link
+          href="/dashboard/dispatch/operator"
+          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-300"
+        >
+          <LayoutDashboard className="h-3.5 w-3.5" aria-hidden="true" />
+          Operator dashboard
+        </Link>
 
         {/* Find an order from what the customer says on the phone. */}
         <div className="relative min-w-0 flex-1 basis-full md:max-w-sm md:basis-56">
