@@ -23,7 +23,10 @@ export type UserRole =
   | "FINANCIAL_AGENT"
   // Device accounts, not people — each reaches exactly one tab.
   | "KIOSK"
-  | "KITCHEN_DISPLAY";
+  | "KITCHEN_DISPLAY"
+  // A shop's shared counter tablet (Team → Tablet logins): the shop-floor
+  // tabs for its one location.
+  | "LOCATION_TABLET";
 
 export interface UserProfile {
   id: string;

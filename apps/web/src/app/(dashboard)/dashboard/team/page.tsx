@@ -33,8 +33,9 @@ import {
 import { locationsClient, brandsClient } from "@/lib/api/locations.client";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { useAuthStore } from "@/stores/auth.store";
+import { TabletLoginsPanel } from "@/components/team/tablet-logins-panel";
 
-type Tab = "members" | "invites";
+type Tab = "members" | "invites" | "tablets";
 
 type ModalState =
   | { kind: "assign" }
@@ -194,11 +195,16 @@ export default function TeamRolesPage() {
               ({visibleInvites.length})
             </span>
           </TabBtn>
+          <TabBtn active={tab === "tablets"} onClick={() => setTab("tablets")}>
+            Tablet logins
+          </TabBtn>
         </div>
       </div>
 
       {/* Tab bodies */}
-      {tab === "members" ? (
+      {tab === "tablets" ? (
+        <TabletLoginsPanel search={search} />
+      ) : tab === "members" ? (
         <MembersTable
           loading={membersQuery.isLoading}
           members={visibleMembers}

@@ -30,7 +30,7 @@ import type { AuthenticatedUser } from "../../modules/auth/interfaces/jwt-payloa
  */
 
 /** Roles that are hardware, not people. */
-const DEVICE_ROLES = new Set(["KIOSK", "KITCHEN_DISPLAY"]);
+const DEVICE_ROLES = new Set(["KIOSK", "KITCHEN_DISPLAY", "LOCATION_TABLET"]);
 
 @Injectable()
 export class DeviceLocationGuard implements CanActivate {

@@ -259,6 +259,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
     "DARK_KITCHEN_MANAGER",
     "CASHIER",
     "STAFF",
+    "LOCATION_TABLET",
   ]);
   const editableStatus = ["PENDING", "ACCEPTED", "PREPARING"].includes(
     order.status,

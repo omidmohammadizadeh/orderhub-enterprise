@@ -30,6 +30,7 @@ import {
 } from "@/lib/callerid/hub-log";
 import { useSelectedLocationStore } from "@/stores/selected-location.store";
 import { VoipSetupPanel } from "@/components/callerid/voip-setup-panel";
+import { useAuthStore } from "@/stores/auth.store";
 
 const LEVEL_STYLES: Record<HubLogEntry["level"], string> = {
   info: "bg-zinc-100 text-zinc-600",
@@ -43,6 +44,9 @@ type Tab = "hardware" | "provider";
 
 export default function CallerIdPage() {
   const [tab, setTab] = useState<Tab>("hardware");
+  // The shop tablet login can check the reader but not mint the shop's
+  // provider key — that panel is for whoever manages the shop's settings.
+  const isShopTablet = useAuthStore((s) => s.user?.role) === "LOCATION_TABLET";
   const [entries, setEntries] = useState<HubLogEntry[]>([]);
   const selectedLocationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
@@ -119,12 +123,14 @@ export default function CallerIdPage() {
         <TabButton active={tab === "hardware"} onClick={() => setTab("hardware")}>
           Comet box on this tablet
         </TabButton>
-        <TabButton active={tab === "provider"} onClick={() => setTab("provider")}>
-          Phone provider (no hardware)
-        </TabButton>
+        {!isShopTablet && (
+          <TabButton active={tab === "provider"} onClick={() => setTab("provider")}>
+            Phone provider (no hardware)
+          </TabButton>
+        )}
       </nav>
 
-      {tab === "provider" ? (
+      {tab === "provider" && !isShopTablet ? (
         <VoipSetupPanel locationId={selectedLocationId} />
       ) : (
       <>

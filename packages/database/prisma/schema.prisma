@@ -4448,6 +4448,14 @@ enum UserRole {
   // the least supervised device in the building, so it gets the least access,
   // and revoking it means disabling one account rather than rotating a URL.
   KITCHEN_DISPLAY
+
+  // One shared sign-in per shop for the counter tablet, like Uber Eats Order
+  // Manager: a generated username (no inbox behind it) and a password the
+  // owner can reset. It reaches the shop-floor tabs (orders, POS, stock,
+  // printers, store status, loyalty scan, caller ID, and analytics only when
+  // the owner allows it) for its ONE location, and never money-out, menu or
+  // team screens. People keep their own logins; this is an extra way in.
+  LOCATION_TABLET
 }
 
 enum OAuthProvider {

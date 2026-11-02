@@ -63,6 +63,9 @@ export const MANAGE_PRINT_ROLES = [
   "CASHIER",
   "KITCHEN_STAFF",
   "VIEWER",
+  // The shop's shared counter tablet — it is usually the device the printer
+  // is paired to, so it has to be able to set it up.
+  "LOCATION_TABLET",
 ] as const;
 
 // ──────────────────────────────────────────────────────────────────────

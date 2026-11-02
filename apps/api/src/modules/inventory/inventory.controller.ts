@@ -41,6 +41,8 @@ const INVENTORY_VIEW = [
   "STAFF",
   "CASHIER",
   "KITCHEN_STAFF",
+  // The shop's shared counter tablet — same stock work as whoever is on shift.
+  "LOCATION_TABLET",
 ] as const;
 
 // Who may CHANGE stock — adjust levels, raise and receive purchase orders.
