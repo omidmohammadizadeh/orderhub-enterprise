@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Bike, Clock, MapPin, ShoppingBag, Smartphone, Star } from "lucide-react";
+import { ArrowLeft, Bike, Clock, MapPin, Plus, Star } from "lucide-react";
 import {
   eflPublicClient,
   type EflPublicMenuItem,
@@ -17,6 +17,9 @@ import { EflWordmark } from "../efl-logo";
 import { FOCUS } from "../efl-styles";
 import { FoodTile, foodKindFor } from "../food-art";
 import { etaLabel, feeLabel, money, reviewCount } from "../feed/shop-card";
+import { basketCount, basketSubtotal, useBasket, type BasketShop } from "../order/basket";
+import { BasketButton, BasketDrawer, useBasketReady } from "../order/basket-drawer";
+import { ItemDialog, type ItemDialogTarget } from "../order/item-dialog";
 
 type Section = { id: string; title: string; items: EflPublicMenuItem[] };
 
@@ -107,13 +110,7 @@ export function ShopPage({ listingId }: { listingId: string }) {
             <EflWordmark size={28} />
             <span className="sr-only">Eat For Less home</span>
           </Link>
-          <span
-            aria-hidden="true"
-            className="ml-auto flex h-11 w-11 items-center justify-center rounded-full text-[#5E5E5E]"
-            title="Ordering opens in the app soon"
-          >
-            <ShoppingBag className="h-[22px] w-[22px]" />
-          </span>
+          <BasketButton className="ml-auto" />
         </div>
       </header>
 
@@ -154,6 +151,19 @@ function ShopContent({ data, feedShop }: { data: EflPublicShopMenu; feedShop: Ef
   const kind = foodKindFor(listing.cuisines[0], listing.cuisines.join(" "), name);
   const address = [store.location.addressLine1, store.location.city, store.location.postcode].filter(Boolean).join(", ");
   const description = listing.description || store.location.about || null;
+  const basketShop: BasketShop = useMemo(
+    () => ({ id: listing.id, name, area: store.location.city ?? null }),
+    [listing.id, name, store.location.city],
+  );
+  const shopOpen = store.isOpen && !store.closed;
+  const [picking, setPicking] = useState<ItemDialogTarget | null>(null);
+  const pick = (item: EflPublicMenuItem) =>
+    setPicking({
+      item,
+      shop: basketShop,
+      catalogue: store.brandModifierGroups ?? [],
+      orderable: shopOpen && item.isAvailable !== false && item.outOfStock !== true,
+    });
 
   // Keep the active tab in view as the page scrolls.
   useEffect(() => {
@@ -281,7 +291,7 @@ function ShopContent({ data, feedShop }: { data: EflPublicShopMenu; feedShop: Ef
               </h2>
               <ul className="m-0 grid list-none gap-3 p-0 md:grid-cols-2">
                 {s.items.map((item) => (
-                  <MenuItemCard key={item.id} item={item} />
+                  <MenuItemCard key={item.id} item={item} onPick={pick} />
                 ))}
               </ul>
             </section>
@@ -289,45 +299,80 @@ function ShopContent({ data, feedShop }: { data: EflPublicShopMenu; feedShop: Ef
         )}
       </div>
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(12px,env(safe-area-inset-bottom))] sm:px-5">
-        <div
-          role="note"
-          className="pointer-events-auto mx-auto flex max-w-[720px] items-center gap-3 rounded-2xl bg-[#0B0B0B] px-4 py-3.5 text-white shadow-[0_12px_40px_rgba(0,0,0,.25)] sm:px-5"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#D4FF3F] text-[#0B0B0B]">
-            <Smartphone aria-hidden="true" className="h-5 w-5" />
-          </span>
-          <span className="flex min-w-0 flex-col leading-tight">
-            <span className="text-[15px] font-extrabold">Order in the Eat For Less app</span>
-            <span className="text-sm text-[#D4FF3F]">Coming soon</span>
-          </span>
-        </div>
-      </div>
+      <ViewBasketBar shopId={listing.id} />
+      <ItemDialog target={picking} onClose={() => setPicking(null)} />
     </>
   );
 }
 
-function MenuItemCard({ item }: { item: EflPublicMenuItem }) {
+function MenuItemCard({ item, onPick }: { item: EflPublicMenuItem; onPick: (item: EflPublicMenuItem) => void }) {
   const soldOut = item.isAvailable === false || item.outOfStock === true;
   return (
-    <li className={`flex min-h-[112px] gap-4 rounded-2xl border border-[#E2E2E2] p-4 ${soldOut ? "opacity-60" : ""}`}>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <h3 className="m-0 text-base font-bold leading-snug">{item.name}</h3>
-        {item.description ? <p className="m-0 line-clamp-2 text-sm leading-snug text-[#5E5E5E]">{item.description}</p> : null}
-        <p className="m-0 mt-auto pt-1 text-[15px] font-semibold">
-          {priceLabel(item)}
-          {soldOut ? <span className="ml-2 rounded bg-[#0B0B0B] px-1.5 py-0.5 text-xs font-bold text-white">Sold out</span> : null}
-        </p>
-        <p className="m-0 text-xs font-semibold text-[#5E5E5E]">Order in the app — coming soon</p>
-      </div>
-      {/* No photo, no box: a drawn tile on every line would just be noise. */}
-      {item.imageUrl ? (
-        <div className="h-[100px] w-[100px] shrink-0 overflow-hidden rounded-xl bg-[#F3F3F3] sm:h-[112px] sm:w-[112px]">
-          {/* eslint-disable-next-line @next/next/no-img-element -- menu images live on any host */}
-          <img src={item.imageUrl} alt={item.name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-        </div>
-      ) : null}
+    <li>
+      <button
+        type="button"
+        onClick={() => onPick(item)}
+        aria-label={`${item.name}, ${priceLabel(item)}${soldOut ? ", sold out" : ""}`}
+        className={`efl-press flex min-h-[112px] w-full gap-4 rounded-2xl border border-[#E2E2E2] p-4 text-left hover:border-[#0B0B0B] ${FOCUS} ${
+          soldOut ? "opacity-60" : ""
+        }`}
+      >
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="text-base font-bold leading-snug">{item.name}</span>
+          {item.description ? <span className="line-clamp-2 text-sm leading-snug text-[#5E5E5E]">{item.description}</span> : null}
+          <span className="mt-auto pt-1 text-[15px] font-semibold">
+            {priceLabel(item)}
+            {soldOut ? <span className="ml-2 rounded bg-[#0B0B0B] px-1.5 py-0.5 text-xs font-bold text-white">Sold out</span> : null}
+          </span>
+        </span>
+        <span className="relative shrink-0">
+          {/* No photo, no box: a drawn tile on every line would just be noise. */}
+          {item.imageUrl ? (
+            <span className="block h-[100px] w-[100px] overflow-hidden rounded-xl bg-[#F3F3F3] sm:h-[112px] sm:w-[112px]">
+              {/* eslint-disable-next-line @next/next/no-img-element -- menu images live on any host */}
+              <img src={item.imageUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+            </span>
+          ) : (
+            <span className="block h-9 w-9" />
+          )}
+          {soldOut ? null : (
+            <span
+              aria-hidden="true"
+              className="absolute -bottom-1 -right-1 flex h-9 w-9 items-center justify-center rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,.18)]"
+            >
+              <Plus className="h-5 w-5" strokeWidth={2.6} />
+            </span>
+          )}
+        </span>
+      </button>
     </li>
+  );
+}
+
+/** "View basket · 3 · £24.50", once this shop's food is in the basket. */
+function ViewBasketBar({ shopId }: { shopId: string }) {
+  useBasketReady();
+  const { shop, lines } = useBasket();
+  const [open, setOpen] = useState(false);
+  const count = basketCount(lines);
+  if (!shop || shop.id !== shopId || count === 0) return null;
+  return (
+    <>
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(12px,env(safe-area-inset-bottom))] sm:px-5">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={`efl-press efl-fu pointer-events-auto mx-auto flex min-h-[56px] w-full max-w-[720px] items-center gap-3 rounded-full bg-[#0B0B0B] px-5 text-white shadow-[0_12px_40px_rgba(0,0,0,.25)] ${FOCUS}`}
+        >
+          <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-[#D4FF3F] px-2 text-[15px] font-extrabold tabular-nums text-[#0B0B0B]">
+            {count}
+          </span>
+          <span className="flex-1 text-left text-[15px] font-extrabold">View basket</span>
+          <span className="text-[15px] font-extrabold tabular-nums">{money(basketSubtotal(lines))}</span>
+        </button>
+      </div>
+      <BasketDrawer open={open} onClose={() => setOpen(false)} />
+    </>
   );
 }
 

@@ -450,7 +450,35 @@ export interface EflPublicMenuItem {
   visibleToCustomers?: boolean;
   outOfStock?: boolean;
   allergens?: string[];
-  productSkus?: Array<{ name: string; price: number }>;
+  availableDelivery?: boolean;
+  availableCollection?: boolean;
+  /** Sizes. Each names the modifier groups that apply to it (ids into brandModifierGroups). */
+  productSkus?: Array<{ name: string; plu: string; price: number; modifierGroups?: string[] }>;
+  modifierGroupLinks?: Array<{ groupId: string; group?: EflPublicModifierGroup }>;
+}
+
+export interface EflPublicModifierOption {
+  id: string;
+  name: string;
+  priceAdjustment: EflMoney;
+  pricesBySize?: Record<string, number> | null;
+  skuPlus?: Record<string, string> | null;
+  isAvailable?: boolean;
+  visibleToCustomers?: boolean;
+  nestedGroupIds?: string[] | null;
+  sortOrder?: number;
+}
+
+export interface EflPublicModifierGroup {
+  id: string;
+  name: string;
+  description?: string | null;
+  minSelections?: number | null;
+  maxSelections?: number | null;
+  selectionType?: "VARIANT" | "ADDON" | null;
+  allowDuplicateSelections?: boolean | null;
+  visibleToCustomers?: boolean;
+  options: EflPublicModifierOption[];
 }
 
 export interface EflPublicMenuCategory {
@@ -476,12 +504,16 @@ export interface EflPublicStore {
     bannerImage?: string | null;
     categories: EflPublicMenuCategory[];
   } | null;
+  /** Every group the menu's items and sizes refer to, nested ones included. */
+  brandModifierGroups?: EflPublicModifierGroup[];
   isOpen: boolean;
+  closed?: { brandName: string; resumeAt: string | null; reason: string | null } | null;
   directConfig?: {
     deliveryPrepMinutes: number;
     collectionPrepMinutes: number;
     acceptsDelivery: boolean;
     acceptsCollection: boolean;
+    minOrderForDelivery?: EflMoney | null;
   };
 }
 

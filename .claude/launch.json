@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev"],
       "port": 3000,
       "cwd": "apps/web"
+    },
+    {
+      "name": "web-live-api",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["NEXT_PUBLIC_SOCKET_URL=https://orderhub-api-0re6.onrender.com", "npm", "run", "dev"],
+      "port": 3000,
+      "cwd": "apps/web"
     }
   ]
 }

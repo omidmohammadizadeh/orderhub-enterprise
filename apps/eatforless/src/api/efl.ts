@@ -156,7 +156,9 @@ export function signupEmail(input: {
   marketingOptIn: boolean;
 }): Promise<{ pendingVerification: true; email: string }> {
   if (MOCK) return Promise.resolve({ pendingVerification: true, email: input.email });
-  return request("POST", "/v1/customer-auth/signup", input, { auth: false });
+  // The confirmation link opens on eatforless.co.uk, which signs them in on
+  // the web too; they then sign in here.
+  return request("POST", "/v1/customer-auth/signup", { ...input, origin: "https://eatforless.co.uk" }, { auth: false });
 }
 
 export function signInNative(input: {

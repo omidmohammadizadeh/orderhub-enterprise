@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, MapPin, Menu, Search, ShoppingBag, X } from "lucide-react";
+import { ChevronDown, MapPin, Menu, Search, X } from "lucide-react";
 import { useEflHref } from "../efl-base-context";
 import { EflMark, EflWordmark } from "../efl-logo";
 import { FOCUS } from "../efl-styles";
 import { normalisePostcode } from "../postcode";
+import { BasketButton } from "../order/basket-drawer";
 import type { FeedMode } from "./shop-card";
 
 const ICON_BTN = `efl-press flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-[#F3F3F3] ${FOCUS}`;
@@ -133,32 +134,6 @@ function AddressChip({ label }: { label: string }) {
   );
 }
 
-function BasketButton() {
-  const [open, setOpen] = useState(false);
-  const wrap = useRef<HTMLDivElement>(null);
-  const close = useCallback(() => setOpen(false), []);
-  useDismiss(open, close, wrap);
-  return (
-    <div ref={wrap} className="relative">
-      <button type="button" aria-expanded={open} aria-label="Basket" onClick={() => setOpen((o) => !o)} className={ICON_BTN}>
-        <ShoppingBag aria-hidden="true" className="h-[22px] w-[22px]" />
-      </button>
-      {open ? (
-        <div
-          role="dialog"
-          aria-label="Basket"
-          className="efl-pop absolute right-0 top-[calc(100%+8px)] z-50 w-[min(300px,calc(100vw-32px))] rounded-2xl border border-[#E2E2E2] bg-white p-5 shadow-[0_12px_40px_rgba(0,0,0,.14)]"
-        >
-          <p className="m-0 text-base font-extrabold">Your basket is empty</p>
-          <p className="m-0 mt-1.5 text-sm leading-relaxed text-[#5E5E5E]">
-            Ordering opens in the Eat For Less app soon. For now, browse the shops and menus near you.
-          </p>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function SiteMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const href = useEflHref();
@@ -171,6 +146,7 @@ function SiteMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   const links = [
     { label: "Home", href: href("/") },
+    { label: "Your orders", href: href("/orders") },
     { label: "Partner with us", href: "/partner" },
     { label: "Help", href: href("/help") },
     { label: "Privacy", href: href("/privacy") },
