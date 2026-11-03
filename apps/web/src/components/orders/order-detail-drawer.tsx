@@ -296,8 +296,11 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   return (
     <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-2xl border-l border-zinc-200">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
-        <div className="flex items-center gap-3">
+      {/* The badges wrap and the buttons don't: an app order's extra badge
+          used to push the close button off a phone's screen, leaving no way
+          out of the panel. */}
+      <div className="flex items-start justify-between gap-2 border-b border-zinc-200 px-4 py-3 sm:px-5 sm:py-4">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <PlatformBadge platform={order.platform} />
           <AppBadge metadata={(order as any).metadata} />
           <FulfillmentBadge type={order.fulfillmentType} />
@@ -312,7 +315,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           {printMsg && (
             <span
               className={`mr-1 text-[11px] font-semibold ${
@@ -328,7 +331,8 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             onClick={onPrint}
             disabled={printing}
             title="Print receipt"
-            className="rounded-lg p-1.5 hover:bg-violet-50 hover:text-violet-700 disabled:opacity-50 transition-colors"
+            aria-label="Print receipt"
+            className="grid h-10 w-10 place-items-center rounded-lg hover:bg-violet-50 hover:text-violet-700 disabled:opacity-50 transition-colors"
           >
             {printing ? (
               <Loader2 className="h-4 w-4 text-zinc-500 animate-spin" />
@@ -336,8 +340,13 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
               <Printer className="h-4 w-4 text-zinc-500" />
             )}
           </button>
-          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-zinc-100 transition-colors">
-            <X className="h-4 w-4 text-zinc-500" />
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            title="Close"
+            className="grid h-10 w-10 place-items-center rounded-lg bg-zinc-100 hover:bg-zinc-200 transition-colors"
+          >
+            <X className="h-5 w-5 text-zinc-700" />
           </button>
         </div>
       </div>
