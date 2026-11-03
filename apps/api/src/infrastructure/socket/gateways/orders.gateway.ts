@@ -119,10 +119,14 @@ export class OrdersGateway
     locationId: string,
   ): Promise<boolean> {
     if (["PLATFORM_ADMIN", "TENANT_OWNER"].includes(role)) return true;
-    const byLocation = await (this.prisma as any).userLocation.count({
-      where: { userId, locationId },
+    // Own locations are authoritative (see realtimeLocationIds): a user with
+    // any of their own never gains a room through a brand, or the parent
+    // brand most shops sit under would open every shop's room to them.
+    const own = await (this.prisma as any).userLocation.findMany({
+      where: { userId },
+      select: { locationId: true },
     });
-    if (byLocation > 0) return true;
+    if (own.length) return own.some((l: { locationId: string }) => l.locationId === locationId);
     const byBrand = await (this.prisma as any).userBrand.count({
       where: {
         userId,
