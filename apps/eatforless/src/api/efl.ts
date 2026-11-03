@@ -141,11 +141,11 @@ export function unregisterPush(token: string): Promise<{ ok: true }> {
   return request("POST", "/v1/efl/me/push/unregister", { token });
 }
 
-// ── Account (customer-auth: unversioned routes) ────────────────────────────
+// ── Account (customer-auth) ──────────────────────────────────────────────
 
 export function loginEmail(email: string, password: string): Promise<AuthResult> {
   if (MOCK) return mock.signIn();
-  return request("POST", "/customer-auth/login", { email, password }, { auth: false });
+  return request("POST", "/v1/customer-auth/login", { email, password }, { auth: false });
 }
 
 export function signupEmail(input: {
@@ -156,7 +156,7 @@ export function signupEmail(input: {
   marketingOptIn: boolean;
 }): Promise<{ pendingVerification: true; email: string }> {
   if (MOCK) return Promise.resolve({ pendingVerification: true, email: input.email });
-  return request("POST", "/customer-auth/signup", input, { auth: false });
+  return request("POST", "/v1/customer-auth/signup", input, { auth: false });
 }
 
 export function signInNative(input: {
@@ -166,21 +166,21 @@ export function signInNative(input: {
   lastName?: string;
 }): Promise<AuthResult> {
   if (MOCK) return mock.signIn();
-  return request("POST", "/customer-auth/native", input, { auth: false });
+  return request("POST", "/v1/customer-auth/native", input, { auth: false });
 }
 
 /** Validates the stored token and returns a fresh one (sliding session). */
 export function getMe(): Promise<Customer & { accessToken: string }> {
   if (MOCK) return mock.getMe();
-  return request("GET", "/customer-auth/me");
+  return request("GET", "/v1/customer-auth/me");
 }
 
 export function updateMe(patch: Partial<Customer>): Promise<Customer> {
   if (MOCK) return mock.updateMe(patch);
-  return request("PATCH", "/customer-auth/me", patch);
+  return request("PATCH", "/v1/customer-auth/me", patch);
 }
 
 export function deleteAccount(): Promise<{ ok: true }> {
   if (MOCK) return Promise.resolve({ ok: true });
-  return request("DELETE", "/customer-auth/me", { confirm: "DELETE" });
+  return request("DELETE", "/v1/customer-auth/me", { confirm: "DELETE" });
 }
