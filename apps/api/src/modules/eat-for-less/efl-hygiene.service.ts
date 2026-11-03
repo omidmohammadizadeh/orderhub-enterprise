@@ -9,6 +9,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from "@nes
 import { Cron } from "@nestjs/schedule";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { EflChecksService, fsaIdFromUrl, ratingBelowMinimum } from "./efl-checks";
+import { pinnedBrands, shopFace } from "./efl-shop-face";
 
 export const HYGIENE_REASON = "HYGIENE";
 
@@ -84,11 +85,12 @@ export class EflHygieneService {
       this.prisma.eflConfig.findUnique({ where: { id: "default" } }),
     ]);
     const minimum = config?.minHygieneRating ?? 2;
+    const brands = await pinnedBrands(this.prisma, rows);
     return {
       minimum,
       shops: rows.map((r) => ({
         listingId: r.id,
-        shopName: r.location?.brand?.name ?? r.location?.name ?? null,
+        shopName: shopFace(r, brands).name,
         town: r.location?.city ?? null,
         fsaEstablishmentId: r.fsaEstablishmentId,
         rating: r.hygieneRating,

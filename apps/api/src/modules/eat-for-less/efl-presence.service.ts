@@ -13,6 +13,7 @@ import { SocketService } from "../../infrastructure/socket/socket.service";
 import { isCurrentlyOpen } from "../../common/opening-hours.util";
 import { defaultSmsFrom, isSmsConfigured, sendSmsViaProvider } from "../sms/sms-provider";
 import { toE164 } from "../sms/phone";
+import { pinnedBrands, shopFace } from "./efl-shop-face";
 
 export const OFFLINE_REASON = "OFFLINE";
 export const OFFLINE_AFTER_MS = 2 * 60 * 1000;
@@ -63,6 +64,7 @@ export class EflPresenceService {
       select: {
         id: true,
         locationId: true,
+        brandId: true,
         hiddenReason: true,
         lastDeviceSeenAt: true,
         location: { select: { name: true, phone: true, openingHours: true, timezone: true, brand: { select: { name: true } } } },
@@ -74,6 +76,7 @@ export class EflPresenceService {
       await this.prisma.eflListing.updateMany({ where: { id: { in: seen } }, data: { lastDeviceSeenAt: now } });
     }
 
+    const brands = await pinnedBrands(this.prisma, listings);
     for (const l of listings) {
       const change = presenceChange({
         hiddenReason: l.hiddenReason,
@@ -93,7 +96,7 @@ export class EflPresenceService {
         // A shut shop's tablet is meant to be off; only text when it should
         // be trading.
         const open = isCurrentlyOpen(l.location?.openingHours as any, l.location?.timezone ?? "Europe/London", now);
-        if (open && l.location?.phone) void this.alert(l.location.phone, l.location.brand?.name ?? l.location.name);
+        if (open && l.location?.phone) void this.alert(l.location.phone, shopFace(l, brands).name ?? l.location.name);
       }
     }
   }

@@ -11,6 +11,7 @@
 
 import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from "@nestjs/common";
 import { eflWordmarkHtml } from "./efl-brand";
+import { pinnedBrands, shopFace } from "./efl-shop-face";
 import { Cron } from "@nestjs/schedule";
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -119,7 +120,7 @@ export class EflStatementsService {
     const end = nextWeekStart(weekStart);
     const listing = await this.prisma.eflListing.findUnique({
       where: { locationId },
-      select: { id: true, locationId: true, location: { select: { name: true, brand: { select: { name: true } } } } },
+      select: { id: true, locationId: true, brandId: true, location: { select: { name: true, brand: { select: { name: true } } } } },
     });
     if (!listing) throw new NotFoundException("This shop isn't on Eat For Less");
 
@@ -183,7 +184,7 @@ export class EflStatementsService {
     return {
       listingId: listing.id,
       locationId,
-      shopName: listing.location?.brand?.name ?? listing.location?.name ?? "Your shop",
+      shopName: shopFace(listing, await pinnedBrands(this.prisma, [listing])).name ?? "Your shop",
       week,
       weekLabel: weekLabel(weekStart, end),
       orders: lines.length,

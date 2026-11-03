@@ -44,6 +44,7 @@ import {
   toRulesConfig,
   type EflRulesConfig,
 } from "./efl-rules";
+import { pinnedBrands, shopFace } from "./efl-shop-face";
 
 /** What a shop can change about its own listing. Commission and approval
  *  are ours and live on the admin path. */
@@ -159,6 +160,7 @@ export class EflService {
     });
     const prep = await this.prepMinutesFor(listings.map((l) => ({ locationId: l.locationId, brandId: l.brandId ?? l.location?.brandId ?? null })));
     const ratings = await this.ratingsFor(listings.map((l) => l.locationId));
+    const brands = await pinnedBrands(this.prisma, listings);
 
     const results = await Promise.all(
       listings.map(async (listing) => {
@@ -190,11 +192,13 @@ export class EflService {
         const open = !paused && isCurrentlyOpen(loc.openingHours as any, loc.timezone);
         const shopPrep = prep.get(loc.id) ?? { delivery: 45, collection: 20 };
 
+        const face = shopFace(listing, brands);
+
         return {
           id: listing.id,
-          name: loc.brand?.name ?? loc.name,
+          name: face.name,
           area: loc.city ?? null,
-          logoUrl: listing.logoUrl ?? loc.brand?.logoUrl ?? null,
+          logoUrl: face.logoUrl,
           heroImageUrl: listing.heroImageUrl,
           description: listing.description,
           cuisines: listing.cuisines,
@@ -245,12 +249,17 @@ export class EflService {
    *  prices, plus the listing's own presentation. */
   async menu(listingId: string) {
     const { listing, slug, brandId } = await this.liveListing(listingId);
-    const store = await this.ordering.getStorefrontBySlug(slug, brandId, "ONLINE", "EAT_FOR_LESS");
+    const [store, brands] = await Promise.all([
+      this.ordering.getStorefrontBySlug(slug, brandId, "ONLINE", "EAT_FOR_LESS"),
+      pinnedBrands(this.prisma, [listing]),
+    ]);
+    const face = shopFace(listing, brands);
     return {
       listing: {
         id: listing.id,
+        name: face.name,
         heroImageUrl: listing.heroImageUrl,
-        logoUrl: listing.logoUrl,
+        logoUrl: face.logoUrl,
         description: listing.description,
         cuisines: listing.cuisines,
         acceptsDelivery: listing.acceptsDelivery,
@@ -618,10 +627,11 @@ export class EflService {
       }),
       this.rulesConfig(),
     ]);
+    const brands = await pinnedBrands(this.prisma, rows);
     return rows.map((r) => ({
       id: r.id,
       locationId: r.locationId,
-      shopName: r.location?.brand?.name ?? r.location?.name ?? null,
+      shopName: shopFace(r, brands).name,
       town: r.location?.city ?? null,
       listed: r.listed,
       status: r.status,

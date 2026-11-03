@@ -11,6 +11,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from "@nes
 import { OnEvent } from "@nestjs/event-emitter";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import { PaymentsService } from "../payments/payments.service";
+import { pinnedBrands, shopFace } from "./efl-shop-face";
 
 export type PayoutSetup = {
   /** Eat For Less's Stripe keys are in, so this flow is live. */
@@ -81,7 +82,7 @@ export class EflPayoutsService {
         capabilities: { transfers: { requested: true } },
         business_type: "company",
         business_profile: {
-          name: listing.location.brand?.name ?? listing.location.name,
+          name: shopFace(listing, await pinnedBrands(this.prisma, [listing])).name ?? listing.location.name,
           mcc: "5814",
           product_description: "Takeaway food sold through the Eat For Less app",
         },
@@ -139,6 +140,7 @@ export class EflPayoutsService {
         id: true,
         stripeAccountId: true,
         stripePayoutsEnabled: true,
+        brandId: true,
         location: { select: { name: true, brand: { select: { name: true } } } },
       },
     });

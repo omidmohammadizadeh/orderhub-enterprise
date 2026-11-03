@@ -4,6 +4,7 @@
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { createHash, createHmac, timingSafeEqual } from "crypto";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
+import { pinnedBrands, shopFace } from "./efl-shop-face";
 import {
   MAX_SHOWS_PER_DAY,
   TAP_DEDUPE_MINUTES,
@@ -265,14 +266,15 @@ export class EflAdsService {
   async adminCampaigns(now = new Date()) {
     const weekStart = londonWeekStart(now);
     const rows = await this.prisma.eflAdCampaign.findMany({
-      include: { listing: { select: { id: true, locationId: true, location: { select: { name: true, city: true, brand: { select: { name: true } } } } } } },
+      include: { listing: { select: { id: true, locationId: true, brandId: true, location: { select: { name: true, city: true, brand: { select: { name: true } } } } } } },
       orderBy: { updatedAt: "desc" },
     });
+    const brands = await pinnedBrands(this.prisma, rows.map((c) => c.listing));
     return Promise.all(
       rows.map(async (c) => ({
         ...campaignDto(c),
         listingId: c.listingId,
-        shopName: c.listing.location?.brand?.name ?? c.listing.location?.name ?? null,
+        shopName: shopFace(c.listing, brands).name,
         town: c.listing.location?.city ?? null,
         thisWeek: await this.weekStats(c.listingId, weekStart),
         owed: (await this.owedPence(c.listingId, c.listing.locationId, now)) / 100,
