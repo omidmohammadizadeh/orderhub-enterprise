@@ -416,266 +416,286 @@ export class TapService {
       walletId: this.commissionWalletId,
     });
 
-    const charge = await this.call<TapCharge>(platform.secretKey, "/v2/charges", {
-      method: "POST",
-      body: {
-        amount: charged,
-        currency,
-        source: { id: "src_all" },
-        // 3-D Secure is not optional in the Gulf in practice — the local
-        // schemes mandate it, and a charge that skips it is declined by the
-        // issuer rather than by Tap.
-        threeDSecure: true,
-        customer_initiated: true,
-        customer: {
-          first_name: params.customer.firstName || "Customer",
-          ...(params.customer.lastName ? { last_name: params.customer.lastName } : {}),
-          ...(params.customer.email ? { email: params.customer.email } : {}),
-          ...(params.customer.phone ? { phone: parsePhone(params.customer.phone, (order as any).location?.country) } : {}),
-        },
-        // Tap's hosted page shows the description, and it is the only place
-        // the customer can see why they are being charged more than their
-        // basket — a charge has no line items.
-        description:
-          `${brand?.name ?? (order as any).location?.name ?? "Order"} — ${order.displayId ?? order.id}` +
-          (customerSurcharge > 0
-            ? ` (incl. ${customerSurcharge.toFixed(currencyDecimals(currency))} service charge)`
-            : ""),
-        reference: {
-          order: order.displayId ?? order.id,
-          // Tap dedupes on this, which is what stops a double-tapped Pay
-          // button becoming two charges.
-          idempotent: `ord_${order.id}`,
-        },
-        metadata: {
-          orderId: order.id,
-          tenantId: params.tenantId,
-          locationId: order.locationId ?? "",
-          brandId: brand?.id ?? "",
-        },
-        // The Platform model: whose money this is (the brand's merchant) and
-        // which of our platforms took it.
-        platform: { id: platform.id },
-        merchant: { id: merchantId },
-        ...(destinations.length ? { destinations: { destination: destinations } } : {}),
-        post: { url: params.webhookUrl },
-        redirect: { url: params.redirectUrl },
-      },
-    });
-
-    const url = charge.transaction?.url;
-    if (!url) {
-      this.logger.error(
-        `Tap charge ${charge.id} came back with no transaction.url (status ${charge.status})`,
-      );
-      throw new BadRequestException("The payment couldn't be started. Please try again.");
-    }
-
-    // What we actually take is what rode on the charge — if no commission
-    // destination went out, we earned nothing on it, and the Payment row must
-    // not claim otherwise.
-    const takenFee = destinations.reduce((sum, d) => sum + d.amount, 0);
-    await this.recordPendingPayment({
-      tenantId: params.tenantId,
-      order,
-      charge,
+    const chargeBody = {
+      amount: charged,
       currency,
-      charged,
-      platformFee: roundToCurrency(takenFee, currency),
-      merchantId,
-      platformKind: platform.kind,
-    });
-
-    return { chargeId: charge.id, redirectUrl: url, amount: charged, currency };
-  }
-
-  /** Read a charge back from Tap. Used to reconcile an order whose webhook
-   *  never arrived — the customer is back on the confirmation page and Tap is
-   *  the only thing that knows whether their money moved. */
-  async retrieveCharge(
-    chargeId: string,
-    kind: TapPlatformKind = "COMMERCE",
-  ): Promise<TapCharge> {
-    const platform = this.platform(kind);
-    if (!platform) throw new BadRequestException("Card payments aren't configured.");
-    return this.call<TapCharge>(
-      platform.secretKey,
-      `/v2/charges/${encodeURIComponent(chargeId)}`,
-      { method: "GET" },
-    );
-  }
-
-  /**
-   * Refund a Tap charge, in full or in part.
-   *
-   * No `destinations`: under the Platform model the money sits with the
-   * merchant, so the refund comes out of their balance and our commission
-   * stays ours — the same as a UK Stripe refund. `commissionRefund` hands our
-   * cut back as well, for the case where that is the agreed outcome.
-   */
-  async refundCharge(params: {
-    chargeId: string;
-    amount: number;
-    currency: string;
-    reason: string;
-    kind?: TapPlatformKind;
-    commissionRefund?: number;
-  }): Promise<{ id: string; status: string }> {
-    const platform = this.platform(params.kind ?? "COMMERCE");
-    if (!platform) throw new BadRequestException("Card payments aren't configured.");
-    const currency = params.currency.toUpperCase();
-    const amount = roundToCurrency(params.amount, currency);
-    const wallet = this.commissionWalletId;
-    const back =
-      wallet && params.commissionRefund != null
-        ? roundToCurrency(params.commissionRefund, currency)
-        : 0;
-    return this.call<{ id: string; status: string }>(platform.secretKey, "/v2/refunds", {
-      method: "POST",
-      body: {
-        charge_id: params.chargeId,
-        amount,
-        currency,
-        reason: params.reason,
-        ...(back > 0
-          ? { destinations: { destination: [{ id: wallet, amount: back, currency }] } }
-          : {}),
-        reference: { idempotent: `rf_${params.chargeId}_${toUnits(amount, currency)}` },
+      source: { id: "src_all" },
+      // 3-D Secure is not optional in the Gulf in practice — the local
+      // schemes mandate it, and a charge that skips it is declined by the
+      // issuer rather than by Tap.
+      threeDSecure: true,
+      customer_initiated: true,
+      customer: {
+        first_name: params.customer.firstName || "Customer",
+        ...(params.customer.lastName ? { last_name: params.customer.lastName } : {}),
+        ...(params.customer.email ? { email: params.customer.email } : {}),
+        ...(params.customer.phone ? { phone: parsePhone(params.customer.phone, (order as any).location?.country) } : {}),
       },
-    });
-  }
-
-  /**
-   * Verify a charge/refund webhook against the `hashstring` header.
-   *
-   * Signed with a PLATFORM's secret key (Tap, in writing). We have up to
-   * three and the body doesn't say which one, so any configured platform key
-   * that matches is accepted. An unverified body is not a payment: posting a
-   * CAPTURED charge to this public URL is otherwise all it would take to mark
-   * any order paid.
-   */
-  verifyWebhook(body: TapSignable, hashstring: string | undefined): boolean {
-    if (!hashstring) return false;
-    const signed = tapHashString(body);
-    return this.configuredPlatforms().some((p) =>
-      signaturesMatch(
-        createHmac("sha256", p.secretKey).update(signed).digest("hex"),
-        hashstring,
-      ),
-    );
-  }
-
-  /**
-   * Settle a charge we have been told about — by webhook, or by reading it
-   * back when the webhook never arrived.
-   *
-   * Idempotent on our side as well as Tap's: a Payment row already SUCCEEDED
-   * short-circuits, so a replayed webhook cannot double-credit a ledger. Tap
-   * retries on any non-2xx, so this WILL be called more than once.
-   *
-   * Only CAPTURED means the money moved. Every other terminal status marks the
-   * payment failed and leaves the order unpaid — deliberately not cancelled,
-   * because a customer whose card was declined usually tries again.
-   */
-  async settleCharge(charge: TapCharge): Promise<void> {
-    const payment = await (this.prisma as any).payment.findFirst({
-      where: { providerChargeId: charge.id },
-    });
-    if (!payment) {
-      this.logger.warn(`Tap webhook for unknown charge ${charge.id} — ignoring`);
-      return;
-    }
-    if (charge.status === "CAPTURED") {
-      await this.payments.confirmPaymentRow(payment.tenantId, payment, charge.id);
-      return;
-    }
-    if (["FAILED", "DECLINED", "CANCELLED", "ABANDONED", "TIMEDOUT", "VOID"].includes(charge.status)) {
-      await (this.prisma as any).payment.updateMany({
-        where: { id: payment.id, status: { not: "SUCCEEDED" } },
-        data: { status: "FAILED" },
-      });
-      this.logger.warn(
-        `Tap charge ${charge.id} ${charge.status} for order ${payment.orderId}: ` +
-          `${charge.response?.code ?? "?"} ${charge.response?.message ?? ""}`,
+      // Tap's hosted page shows the description, and it is the only place
+      // the customer can see why they are being charged more than their
+      // basket — a charge has no line items.
+      description:
+        `${brand?.name ?? (order as any).location?.name ?? "Order"} — ${order.displayId ?? order.id}` +
+        (customerSurcharge > 0
+          ? ` (incl. ${customerSurcharge.toFixed(currencyDecimals(currency))} service charge)`
+          : ""),
+      reference: {
+        order: order.displayId ?? order.id,
+        // Tap dedupes on this, which is what stops a double-tapped Pay
+        // button becoming two charges.
+        idempotent: `ord_${order.id}`,
+      },
+      metadata: {
+        orderId: order.id,
+        tenantId: params.tenantId,
+        locationId: order.locationId ?? "",
+        brandId: brand?.id ?? "",
+      },
+      // The Platform model: whose money this is (the brand's merchant) and
+      // which of our platforms took it.
+      platform: { id: platform.id },
+      merchant: { id: merchantId },
+      ...(destinations.length ? { destinations: { destination: destinations } } : {}),
+      post: { url: params.webhookUrl },
+      redirect: { url: params.redirectUrl },
+    };
+      // The exact request, minus the customer's contact details, so a Tap
+      // support question ("send us the full charge request and the key") can be
+      // answered from the logs instead of reconstructed from code. The key is
+      // identified, never printed.
+      this.logger.log(
+        `Tap charge request (${platform.kind} key ${platform.secretKey.slice(0, 12)}…) ` +
+          JSON.stringify({
+            ...chargeBody,
+            customer: {
+              ...chargeBody.customer,
+              ...(chargeBody.customer.email ? { email: "<redacted>" } : {}),
+              ...((chargeBody.customer as any).phone ? { phone: "<redacted>" } : {}),
+            },
+          }),
       );
-      return;
+      const charge = await this.call<TapCharge>(platform.secretKey, "/v2/charges", {
+        method: "POST",
+        body: chargeBody,
+      });
+      this.logger.log(
+        `Tap charge ${charge.id} ${charge.status} for order ${order.id} — ` +
+          `merchant ${merchantId}, platform ${platform.id}, ${charged} ${currency}`,
+      );
+
+      const url = charge.transaction?.url;
+      if (!url) {
+        this.logger.error(
+          `Tap charge ${charge.id} came back with no transaction.url (status ${charge.status})`,
+        );
+        throw new BadRequestException("The payment couldn't be started. Please try again.");
+      }
+
+      // What we actually take is what rode on the charge — if no commission
+      // destination went out, we earned nothing on it, and the Payment row must
+      // not claim otherwise.
+      const takenFee = destinations.reduce((sum, d) => sum + d.amount, 0);
+      await this.recordPendingPayment({
+        tenantId: params.tenantId,
+        order,
+        charge,
+        currency,
+        charged,
+        platformFee: roundToCurrency(takenFee, currency),
+        merchantId,
+        platformKind: platform.kind,
+      });
+
+      return { chargeId: charge.id, redirectUrl: url, amount: charged, currency };
     }
-    // INITIATED / IN_PROGRESS — the customer is mid-payment. Nothing to do
-    // but wait for the terminal webhook.
-    this.logger.log(`Tap charge ${charge.id} still ${charge.status} — no action`);
-  }
 
-  /**
-   * Pull a Tap-paid order's state back from Tap.
-   *
-   * The confirmation page calls this when it lands and the order still says
-   * unpaid: a redirect that beats the webhook is normal, and a webhook that
-   * never arrives at all is the failure this exists to survive.
-   */
-  async reconcileOrder(orderId: string): Promise<void> {
-    const payment = await (this.prisma as any).payment.findFirst({
-      where: { orderId, provider: "TAP" },
-      orderBy: { createdAt: "desc" },
-    });
-    if (!payment?.providerChargeId) return;
-    if (payment.status === "SUCCEEDED") return;
-    const charge = await this.retrieveCharge(
-      payment.providerChargeId,
-      platformKindOf(payment),
-    );
-    await this.settleCharge(charge);
-  }
+    /** Read a charge back from Tap. Used to reconcile an order whose webhook
+     *  never arrived — the customer is back on the confirmation page and Tap is
+     *  the only thing that knows whether their money moved. */
+    async retrieveCharge(
+      chargeId: string,
+      kind: TapPlatformKind = "COMMERCE",
+    ): Promise<TapCharge> {
+      const platform = this.platform(kind);
+      if (!platform) throw new BadRequestException("Card payments aren't configured.");
+      return this.call<TapCharge>(
+        platform.secretKey,
+        `/v2/charges/${encodeURIComponent(chargeId)}`,
+        { method: "GET" },
+      );
+    }
 
-  /** Refund a Tap-paid order in full. The merchant funds it; see refundCharge. */
-  async refundOrder(orderId: string, reason = "Order cancelled"): Promise<void> {
-    const payment = await (this.prisma as any).payment.findFirst({
-      where: { orderId, provider: "TAP", status: "SUCCEEDED" },
-      orderBy: { createdAt: "desc" },
-    });
-    if (!payment?.providerChargeId) return;
-    const out = await this.refundCharge({
-      chargeId: payment.providerChargeId,
-      amount: Number(payment.amount),
-      currency: payment.currency,
-      reason,
-      kind: platformKindOf(payment),
-    });
-    await (this.prisma as any).payment.update({
-      where: { id: payment.id },
-      data: {
-        status: "REFUNDED",
-        metadata: { ...(payment.metadata as any), tapRefundId: out.id },
-      },
-    });
-    await this.prisma.order.update({
-      where: { id: orderId },
-      data: { paymentStatus: "REFUNDED" as any },
-    });
-    this.logger.log(`Tap refund ${out.id} (${out.status}) for order ${orderId}`);
-  }
+    /**
+     * Refund a Tap charge, in full or in part.
+     *
+     * No `destinations`: under the Platform model the money sits with the
+     * merchant, so the refund comes out of their balance and our commission
+     * stays ours — the same as a UK Stripe refund. `commissionRefund` hands our
+     * cut back as well, for the case where that is the agreed outcome.
+     */
+    async refundCharge(params: {
+      chargeId: string;
+      amount: number;
+      currency: string;
+      reason: string;
+      kind?: TapPlatformKind;
+      commissionRefund?: number;
+    }): Promise<{ id: string; status: string }> {
+      const platform = this.platform(params.kind ?? "COMMERCE");
+      if (!platform) throw new BadRequestException("Card payments aren't configured.");
+      const currency = params.currency.toUpperCase();
+      const amount = roundToCurrency(params.amount, currency);
+      const wallet = this.commissionWalletId;
+      const back =
+        wallet && params.commissionRefund != null
+          ? roundToCurrency(params.commissionRefund, currency)
+          : 0;
+      return this.call<{ id: string; status: string }>(platform.secretKey, "/v2/refunds", {
+        method: "POST",
+        body: {
+          charge_id: params.chargeId,
+          amount,
+          currency,
+          reason: params.reason,
+          ...(back > 0
+            ? { destinations: { destination: [{ id: wallet, amount: back, currency }] } }
+            : {}),
+          reference: { idempotent: `rf_${params.chargeId}_${toUnits(amount, currency)}` },
+        },
+      });
+    }
 
-  /**
-   * What an admin needs to see to know Tap will work — without exposing a
-   * single secret. Rendered on the Payments page above the brand rows.
-   */
-  status(): {
-    platforms: Array<{ kind: TapPlatformKind; configured: boolean; mode: "test" | "live" | null; problem: string | null }>;
-    commissionWallet: boolean;
-    ready: boolean;
-  } {
-    const platforms = TAP_PLATFORM_KINDS.map((kind) => {
-      const p = this.platform(kind);
+    /**
+     * Verify a charge/refund webhook against the `hashstring` header.
+     *
+     * Signed with a PLATFORM's secret key (Tap, in writing). We have up to
+     * three and the body doesn't say which one, so any configured platform key
+     * that matches is accepted. An unverified body is not a payment: posting a
+     * CAPTURED charge to this public URL is otherwise all it would take to mark
+     * any order paid.
+     */
+    verifyWebhook(body: TapSignable, hashstring: string | undefined): boolean {
+      if (!hashstring) return false;
+      const signed = tapHashString(body);
+      return this.configuredPlatforms().some((p) =>
+        signaturesMatch(
+          createHmac("sha256", p.secretKey).update(signed).digest("hex"),
+          hashstring,
+        ),
+      );
+    }
+
+    /**
+     * Settle a charge we have been told about — by webhook, or by reading it
+     * back when the webhook never arrived.
+     *
+     * Idempotent on our side as well as Tap's: a Payment row already SUCCEEDED
+     * short-circuits, so a replayed webhook cannot double-credit a ledger. Tap
+     * retries on any non-2xx, so this WILL be called more than once.
+     *
+     * Only CAPTURED means the money moved. Every other terminal status marks the
+     * payment failed and leaves the order unpaid — deliberately not cancelled,
+     * because a customer whose card was declined usually tries again.
+     */
+    async settleCharge(charge: TapCharge): Promise<void> {
+      const payment = await (this.prisma as any).payment.findFirst({
+        where: { providerChargeId: charge.id },
+      });
+      if (!payment) {
+        this.logger.warn(`Tap webhook for unknown charge ${charge.id} — ignoring`);
+        return;
+      }
+      if (charge.status === "CAPTURED") {
+        await this.payments.confirmPaymentRow(payment.tenantId, payment, charge.id);
+        return;
+      }
+      if (["FAILED", "DECLINED", "CANCELLED", "ABANDONED", "TIMEDOUT", "VOID"].includes(charge.status)) {
+        await (this.prisma as any).payment.updateMany({
+          where: { id: payment.id, status: { not: "SUCCEEDED" } },
+          data: { status: "FAILED" },
+        });
+        this.logger.warn(
+          `Tap charge ${charge.id} ${charge.status} for order ${payment.orderId}: ` +
+            `${charge.response?.code ?? "?"} ${charge.response?.message ?? ""}`,
+        );
+        return;
+      }
+      // INITIATED / IN_PROGRESS — the customer is mid-payment. Nothing to do
+      // but wait for the terminal webhook.
+      this.logger.log(`Tap charge ${charge.id} still ${charge.status} — no action`);
+    }
+
+    /**
+     * Pull a Tap-paid order's state back from Tap.
+     *
+     * The confirmation page calls this when it lands and the order still says
+     * unpaid: a redirect that beats the webhook is normal, and a webhook that
+     * never arrives at all is the failure this exists to survive.
+     */
+    async reconcileOrder(orderId: string): Promise<void> {
+      const payment = await (this.prisma as any).payment.findFirst({
+        where: { orderId, provider: "TAP" },
+        orderBy: { createdAt: "desc" },
+      });
+      if (!payment?.providerChargeId) return;
+      if (payment.status === "SUCCEEDED") return;
+      const charge = await this.retrieveCharge(
+        payment.providerChargeId,
+        platformKindOf(payment),
+      );
+      await this.settleCharge(charge);
+    }
+
+    /** Refund a Tap-paid order in full. The merchant funds it; see refundCharge. */
+    async refundOrder(orderId: string, reason = "Order cancelled"): Promise<void> {
+      const payment = await (this.prisma as any).payment.findFirst({
+        where: { orderId, provider: "TAP", status: "SUCCEEDED" },
+        orderBy: { createdAt: "desc" },
+      });
+      if (!payment?.providerChargeId) return;
+      const out = await this.refundCharge({
+        chargeId: payment.providerChargeId,
+        amount: Number(payment.amount),
+        currency: payment.currency,
+        reason,
+        kind: platformKindOf(payment),
+      });
+      await (this.prisma as any).payment.update({
+        where: { id: payment.id },
+        data: {
+          status: "REFUNDED",
+          metadata: { ...(payment.metadata as any), tapRefundId: out.id },
+        },
+      });
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: "REFUNDED" as any },
+      });
+      this.logger.log(`Tap refund ${out.id} (${out.status}) for order ${orderId}`);
+    }
+
+    /**
+     * What an admin needs to see to know Tap will work — without exposing a
+     * single secret. Rendered on the Payments page above the brand rows.
+     */
+    status(): {
+      platforms: Array<{ kind: TapPlatformKind; configured: boolean; mode: "test" | "live" | null; problem: string | null }>;
+      commissionWallet: boolean;
+      ready: boolean;
+    } {
+      const platforms = TAP_PLATFORM_KINDS.map((kind) => {
+        const p = this.platform(kind);
+        return {
+          kind,
+          configured: !!p,
+          mode: p ? (p.secretKey.startsWith("sk_live_") ? ("live" as const) : ("test" as const)) : null,
+          problem: tapPlatformProblem(kind),
+        };
+      });
       return {
-        kind,
-        configured: !!p,
-        mode: p ? (p.secretKey.startsWith("sk_live_") ? ("live" as const) : ("test" as const)) : null,
-        problem: tapPlatformProblem(kind),
-      };
-    });
-    return {
-      platforms,
-      commissionWallet: !!this.commissionWalletId,
-      ready: !!this.platform("COMMERCE"),
+        platforms,
+        commissionWallet: !!this.commissionWalletId,
+        ready: !!this.platform("COMMERCE"),
     };
   }
 
