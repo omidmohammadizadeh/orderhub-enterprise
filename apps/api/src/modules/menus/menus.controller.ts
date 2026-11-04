@@ -1058,6 +1058,22 @@ export class MenusController {
     return this.menus.duplicateModifierOption(optionId, user.tenantId);
   }
 
+  @Post("modifier-groups/:groupId/options/reorder")
+  @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Set the order a modifier group's options are offered in" })
+  reorderModifierGroupOptions(
+    @Param("groupId") groupId: string,
+    @Body() body: { optionIds?: string[] },
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.menus.reorderModifierGroupOptions(
+      groupId,
+      body?.optionIds ?? [],
+      user.tenantId,
+    );
+  }
+
   @Post("modifier-groups/:groupId/options")
   @Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
   @ApiOperation({ summary: "Add an option to a modifier group" })

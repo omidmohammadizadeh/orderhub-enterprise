@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { locationsClient } from "@/lib/api/locations.client";
-import { ArrowLeft, Save, Trash2, Plus, X, Layers, GripVertical, ClipboardList, Sandwich } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Plus, X, Layers, ClipboardList, Sandwich, ChevronLeft, ChevronRight } from "lucide-react";
+import { ReorderArrows } from "@/components/ui/reorder-arrows";
+import { moveInList } from "@/lib/menu/move-in-list";
 import { ChartEditorModal } from "../assembly-charts/chart-editor-modal";
 import { BuildGuideEditorModal } from "../build-guides/build-guide-editor-modal";
 import toast from "react-hot-toast";
@@ -143,9 +145,9 @@ export function ProductForm({
   const [availableDelivery, setAvailableDelivery] = useState(true);
   const [availableDineIn, setAvailableDineIn] = useState(true);
   const [attachedGroupIds, setAttachedGroupIds] = useState<string[]>([]);
-  // Which row is being dragged. A ref, not state: it changes during a drag
-  // and re-rendering on every dragover would fight the browser's own drag.
-  const draggingGroupIdx = useRef<number | null>(null);
+  /** Move an attached group one place; saved with the product. */
+  const moveGroup = (idx: number, delta: number) =>
+    setAttachedGroupIds((cur) => moveInList(cur, idx, delta));
   // Multi-SKU state. When hasMultipleSkus is true, the per-SKU rows
   // below replace the base price + flat modifier groups. Each SKU has
   // its own name, PLU, price and attached modifier groups so a pizza
@@ -215,8 +217,14 @@ export function ProductForm({
     setAvailableCollection((existing as any).availableCollection !== false);
     setAvailableDelivery((existing as any).availableDelivery !== false);
     setAvailableDineIn((existing as any).availableDineIn !== false);
+    // Sorted here as well as on the server: an old cached copy of the item
+    // came back unordered, and the reorder then looked lost on reopen.
     setAttachedGroupIds(
-      (existing.modifierGroupLinks ?? []).map((l) => l.groupId),
+      [...(existing.modifierGroupLinks ?? [])]
+        .sort(
+          (a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+        )
+        .map((l) => l.groupId),
     );
     setHasMultipleSkus(existing.hasMultipleSkus ?? false);
     setSkus(
@@ -313,7 +321,21 @@ export function ProductForm({
           // product because the sequence did not stick.
           .catch(() => undefined);
       }
-      return saved;
+      // `saved` was read before the attach and reorder calls, so its links
+      // are the OLD set in the OLD order. It seeds the cache below, and a
+      // quick reopen showed that stale order — the "it went back" report.
+      const linkById = new Map(
+        ((saved as any).modifierGroupLinks ?? []).map((l: any) => [l.groupId, l]),
+      );
+      return {
+        ...saved,
+        modifierGroupLinks: attachedGroupIds
+          .map((groupId, i) => {
+            const link: any = linkById.get(groupId);
+            return link ? { ...link, sortOrder: i } : null;
+          })
+          .filter(Boolean),
+      } as CatalogProduct;
     },
     onSuccess: (saved) => {
       // Two caches need to bust here. The list query
@@ -712,30 +734,16 @@ export function ProductForm({
                   attachedGroups.map((g, idx) => (
                     <div
                       key={g.id}
-                      draggable
-                      onDragStart={() => {
-                        draggingGroupIdx.current = idx;
-                      }}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => {
-                        const from = draggingGroupIdx.current;
-                        draggingGroupIdx.current = null;
-                        if (from == null || from === idx) return;
-                        setAttachedGroupIds((cur) => {
-                          const next = [...cur];
-                          const [moved] = next.splice(from, 1);
-                          if (moved) next.splice(idx, 0, moved);
-                          return next;
-                        });
-                      }}
-                      className="group flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2 hover:border-zinc-300"
+                      className="group flex items-center justify-between gap-1.5 rounded bg-white border border-zinc-100 py-1 pl-1 pr-3 hover:border-zinc-300"
                     >
-                      <span
-                        className="cursor-grab pr-1.5 text-zinc-300 hover:text-zinc-600"
-                        title="Drag to change the order this group is asked for"
-                      >
-                        <GripVertical className="h-3.5 w-3.5" />
-                      </span>
+                      {/* attachedGroups is ordered by attachedGroupIds, so
+                          the row index is the index in that array. */}
+                      <ReorderArrows
+                        label={g.name}
+                        isFirst={idx === 0}
+                        isLast={idx === attachedGroups.length - 1}
+                        onMove={(delta) => moveGroup(idx, delta)}
+                      />
                       <button
                         type="button"
                         onClick={() => setEditingGroupId(g.id)}
@@ -1373,9 +1381,15 @@ function SkuRow({
   // of the same tenant, so that read "the import attached nothing" when the
   // import had attached them correctly. Four rounds of debugging went to the
   // importer because of it. An id that won't resolve is now shown as an id.
-  // Which chip is being dragged. A ref for the same reason as the flat list:
-  // it changes throughout a drag and re-rendering would fight the browser.
-  const draggingChipIdx = useRef<number | null>(null);
+  // Order here IS the array order in productSkus[].modifierGroups, so there
+  // is nothing to persist separately — it saves with the product.
+  const moveChip = (groupId: string, delta: -1 | 1) => {
+    const idx = sku.modifierGroupIds.indexOf(groupId);
+    onChange({
+      ...sku,
+      modifierGroupIds: moveInList(sku.modifierGroupIds, idx, delta),
+    });
+  };
 
   // Stored absolute -> displayed supplement. A blank box reads as +0.00, so
   // a size that costs the same as the base needs nothing typed.
@@ -1494,24 +1508,7 @@ function SkuRow({
           {attached.map((g, idx) => (
             <span
               key={g.id}
-              draggable
-              onDragStart={() => {
-                draggingChipIdx.current = idx;
-              }}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                const from = draggingChipIdx.current;
-                draggingChipIdx.current = null;
-                if (from == null || from === idx) return;
-                // Order here IS the array order in productSkus[].modifierGroups,
-                // so there is nothing to persist separately — it saves with the
-                // product like any other SKU field.
-                const next = [...sku.modifierGroupIds];
-                const [moved] = next.splice(from, 1);
-                if (moved) next.splice(idx, 0, moved);
-                onChange({ ...sku, modifierGroupIds: next });
-              }}
-              className={`group inline-flex cursor-grab items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
+              className={`group inline-flex items-center gap-1 rounded-full px-1 py-0.5 text-[11px] font-medium ${
                 g.name
                   ? "bg-orange-100 text-orange-800"
                   : "bg-amber-100 text-amber-900"
@@ -1522,6 +1519,17 @@ function SkuRow({
                   : "This size references a modifier group that isn't in this location's list. It's attached — it just can't be named here."
               }
             >
+              {/* Chips wrap left to right, so left / right is earlier / later. */}
+              <button
+                type="button"
+                onClick={() => moveChip(g.id, -1)}
+                disabled={idx === 0}
+                className="grid h-4 w-4 place-items-center rounded-full hover:bg-white/70 disabled:opacity-25"
+                aria-label={`Move ${g.name ?? "group"} earlier`}
+                title="Move earlier"
+              >
+                <ChevronLeft className="h-3 w-3" />
+              </button>
               <button
                 type="button"
                 onClick={() => onEditGroup(g.id)}
@@ -1547,6 +1555,16 @@ function SkuRow({
                 title="Detach from this size"
               >
                 <X className="h-2.5 w-2.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => moveChip(g.id, 1)}
+                disabled={idx === attached.length - 1}
+                className="grid h-4 w-4 place-items-center rounded-full hover:bg-white/70 disabled:opacity-25"
+                aria-label={`Move ${g.name ?? "group"} later`}
+                title="Move later"
+              >
+                <ChevronRight className="h-3 w-3" />
               </button>
             </span>
           ))}

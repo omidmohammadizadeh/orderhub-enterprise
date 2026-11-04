@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { AttachModal } from "./attach-modal";
+import { ReorderArrows } from "@/components/ui/reorder-arrows";
 import { ModifierForm } from "./modifier-form";
 import {
   capitaliseFirst,
@@ -162,6 +163,14 @@ export function ModifierGroupForm({
       }
       for (const id of toDetach) {
         await modifiersClient.detachFromGroup(saved.id, id);
+      }
+      // The server renumbers only the modifiers this group owns; shared ones
+      // keep their place in their own group. New ones were added at the end.
+      if (attachedModifierIds.length > 1) {
+        await modifiersClient
+          .reorderInGroup(saved.id, attachedModifierIds)
+          // Cosmetic next to the save — never fail a saved group over it.
+          .catch(() => undefined);
       }
       return saved;
     },
@@ -432,6 +441,27 @@ export function ModifierGroupForm({
             const attached = attachedModifierIds
               .map((id) => byId.get(id))
               .filter(Boolean) as typeof unique;
+            // Only this group's OWN modifiers can be put in order here: a
+            // shared one's position belongs to the group it came from, and
+            // the group always lists them after its own. Moving one of those
+            // would look saved and then snap back on reopen.
+            const ownedOrder = attached
+              .filter((m) => m.primaryGroupId === groupId)
+              .map((m) => m.id);
+            const moveOwned = (id: string, delta: -1 | 1) => {
+              const at = ownedOrder.indexOf(id);
+              const swapWith = ownedOrder[at + delta];
+              if (at < 0 || !swapWith) return;
+              setAttachedModifierIds((cur) => {
+                const next = [...cur];
+                const a = next.indexOf(id);
+                const b = next.indexOf(swapWith);
+                if (a < 0 || b < 0) return cur;
+                next[a] = swapWith;
+                next[b] = id;
+                return next;
+              });
+            };
 
             return (
               <>
@@ -449,8 +479,21 @@ export function ModifierGroupForm({
                         return (
                           <div
                             key={m.id}
-                            className="flex items-center justify-between rounded bg-white border border-zinc-100 px-3 py-2 hover:border-zinc-300"
+                            className="flex items-center justify-between gap-1.5 rounded bg-white border border-zinc-100 py-1 pl-1 pr-3 hover:border-zinc-300"
                           >
+                            {owned ? (
+                              <ReorderArrows
+                                label={m.name}
+                                isFirst={ownedOrder[0] === m.id}
+                                isLast={ownedOrder[ownedOrder.length - 1] === m.id}
+                                onMove={(delta) => moveOwned(m.id, delta)}
+                              />
+                            ) : (
+                              <span
+                                className="w-7 shrink-0"
+                                title={`Shared from ${m.groupName} — its order is set there`}
+                              />
+                            )}
                             <button
                               type="button"
                               onClick={() => setEditingModifierId(m.id)}

@@ -1704,8 +1704,11 @@ export class MenusService {
         ...locationWhere,
       },
       include: {
+        // Sorted, or the editor reopens with the groups in whatever order
+        // the rows come back in and a saved reorder looks like it was lost.
         modifierGroupLinks: {
           include: { group: { include: { options: true } } },
+          orderBy: { sortOrder: "asc" },
         },
         variants: { orderBy: { sortOrder: "asc" } },
       },
@@ -1721,8 +1724,11 @@ export class MenusService {
     const item = await this.prisma.menuItem.findUnique({
       where: { id: itemId },
       include: {
+        // Sorted, or the editor reopens with the groups in whatever order
+        // the rows come back in and a saved reorder looks like it was lost.
         modifierGroupLinks: {
           include: { group: { include: { options: true } } },
+          orderBy: { sortOrder: "asc" },
         },
         variants: { orderBy: { sortOrder: "asc" } },
       },
@@ -1771,8 +1777,11 @@ export class MenusService {
     return this.prisma.menuItem.findMany({
       where: { locationId },
       include: {
+        // Sorted, or the editor reopens with the groups in whatever order
+        // the rows come back in and a saved reorder looks like it was lost.
         modifierGroupLinks: {
           include: { group: { include: { options: true } } },
+          orderBy: { sortOrder: "asc" },
         },
         variants: { orderBy: { sortOrder: "asc" } },
       },
@@ -1834,7 +1843,11 @@ export class MenusService {
       },
       include: {
         variants: true,
-        modifierGroupLinks: { include: { group: { include: { options: true } } } },
+        // In the operator's order — the editor hydrates from this response.
+        modifierGroupLinks: {
+          include: { group: { include: { options: true } } },
+          orderBy: { sortOrder: "asc" },
+        },
       },
     });
   }
@@ -1901,7 +1914,11 @@ export class MenusService {
       },
       include: {
         variants: true,
-        modifierGroupLinks: { include: { group: { include: { options: true } } } },
+        // In the operator's order — the editor hydrates from this response.
+        modifierGroupLinks: {
+          include: { group: { include: { options: true } } },
+          orderBy: { sortOrder: "asc" },
+        },
       },
     });
     // "How to build" guides are keyed by name — keep this one attached.
@@ -3028,6 +3045,38 @@ export class MenusService {
       final.map((groupId, i) =>
         this.prisma.modifierGroupOnItem.update({
           where: { itemId_groupId: { itemId, groupId } },
+          data: { sortOrder: i },
+        }),
+      ),
+    );
+    return { ok: true, order: final };
+  }
+
+  /**
+   * Set the order a group's modifiers are offered in. Only the modifiers this
+   * group OWNS are renumbered: a shared modifier's sortOrder is its place in
+   * its own group, and rewriting it here would reshuffle that group instead.
+   */
+  async reorderModifierGroupOptions(
+    groupId: string,
+    optionIds: string[],
+    tenantId: string,
+  ) {
+    await this.assertModifierGroupAccess(groupId, tenantId);
+    const owned = await this.prisma.modifierOption.findMany({
+      where: { groupId },
+      select: { id: true },
+      orderBy: { sortOrder: "asc" },
+    });
+    const ownedIds = new Set(owned.map((o) => o.id));
+    const ordered = optionIds.filter((id) => ownedIds.has(id));
+    // Anything the caller left out keeps its place after the listed ones.
+    const rest = owned.map((o) => o.id).filter((id) => !ordered.includes(id));
+    const final = [...ordered, ...rest];
+    await this.prisma.$transaction(
+      final.map((id, i) =>
+        this.prisma.modifierOption.update({
+          where: { id },
           data: { sortOrder: i },
         }),
       ),

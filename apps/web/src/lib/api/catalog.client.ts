@@ -319,6 +319,14 @@ export const modifiersClient = {
   // Phase AL — attach/detach an existing modifier to/from a group.
   // Uses ModifierOption.modifierGroupIds[] under the hood; the
   // primary FK group is preserved.
+  /** Set the order a group's own modifiers are offered in. */
+  reorderInGroup: (groupId: string, optionIds: string[]) =>
+    apiClient
+      .post<{ ok: true; order: string[] }>(
+        `/v1/modifier-groups/${groupId}/options/reorder`,
+        { optionIds },
+      )
+      .then((r) => r.data),
   attachToGroup: (groupId: string, modifierId: string) =>
     apiClient
       .post(`/v1/modifier-groups/${groupId}/modifiers/${modifierId}`)

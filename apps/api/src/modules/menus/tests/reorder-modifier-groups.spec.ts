@@ -77,3 +77,54 @@ describe("reorderItemModifierGroups", () => {
     expect(svc.assertItemAccess).toHaveBeenCalledWith("i1", "t1");
   });
 });
+
+describe("reorderModifierGroupOptions", () => {
+  function build(owned: string[]) {
+    const updates: any[] = [];
+    const prisma: any = {
+      modifierOption: {
+        findMany: async () => owned.map((id) => ({ id })),
+        update: (args: any) => {
+          updates.push(args);
+          return args;
+        },
+      },
+      $transaction: async (ops: any[]) => ops,
+    };
+    const svc = Object.create(MenusService.prototype) as any;
+    svc.prisma = prisma;
+    svc.assertModifierGroupAccess = jest.fn(async () => undefined);
+    return { svc, updates };
+  }
+  const orderOf = (u: any[]) =>
+    u
+      .slice()
+      .sort((a, b) => a.data.sortOrder - b.data.sortOrder)
+      .map((x) => x.where.id);
+
+  it("numbers the group's own modifiers in the order on screen", async () => {
+    const { svc, updates } = build(["small", "medium", "large"]);
+    await svc.reorderModifierGroupOptions("g1", ["large", "small", "medium"], "t1");
+    expect(orderOf(updates)).toEqual(["large", "small", "medium"]);
+  });
+
+  it("never renumbers a modifier shared in from another group", async () => {
+    // Its sortOrder is its place in its own group; writing it here would
+    // reshuffle that group behind the operator's back.
+    const { svc, updates } = build(["small", "large"]);
+    await svc.reorderModifierGroupOptions("g1", ["shared", "large", "small"], "t1");
+    expect(orderOf(updates)).toEqual(["large", "small"]);
+  });
+
+  it("keeps an owned modifier the caller left out, after the listed ones", async () => {
+    const { svc, updates } = build(["a", "b", "c"]);
+    await svc.reorderModifierGroupOptions("g1", ["c", "a"], "t1");
+    expect(orderOf(updates)).toEqual(["c", "a", "b"]);
+  });
+
+  it("checks the group belongs to the tenant first", async () => {
+    const { svc } = build(["a"]);
+    await svc.reorderModifierGroupOptions("g1", ["a"], "t1");
+    expect(svc.assertModifierGroupAccess).toHaveBeenCalledWith("g1", "t1");
+  });
+});

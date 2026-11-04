@@ -15,8 +15,10 @@
 //   └──────────────┴─────────────────────────────────────────────────┘
 //
 // Reordering:
-//   - Categories drag-reorder via HTML5 native dnd → POST .../categories/reorder
-//   - Products inside a category drag-reorder → PATCH .../items/reorder
+//   - Categories: up/down arrows → POST .../categories/reorder
+//   - Products inside a category: up/down arrows → PATCH .../items/reorder
+//   Arrows, not drag-and-drop: they work on a touch screen and can't drop a
+//   row in the wrong place.
 //
 // Product attach pattern:
 //   - "+ Add product" opens AttachModal pulling from the brand catalog
@@ -26,7 +28,7 @@
 //   - Inline "Create new product" still lives on the Products tab — no
 //     duplicate forms here.
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -35,7 +37,6 @@ import {
   Pencil,
   Check,
   Trash2,
-  GripVertical,
   Eye,
   Search,
   Settings,
@@ -45,8 +46,6 @@ import {
   PoundSterling,
   Camera,
   ArrowDownAZ,
-  ChevronUp,
-  ChevronDown,
   X,
   ListTree,
   Copy,
@@ -73,6 +72,8 @@ import { ChartEditorModal } from "@/components/assembly-charts/chart-editor-moda
 import { AutoPublishModal } from "@/components/menu/auto-publish-modal";
 import { CloneCategoryModal } from "@/components/menu/clone-category-modal";
 import { formatDisplayPrice } from "@/lib/menu/display-price";
+import { moveInList } from "@/lib/menu/move-in-list";
+import { ReorderArrows } from "@/components/ui/reorder-arrows";
 import { useCurrency } from "@/hooks/use-currency";
 import { ChannelPricingModal } from "@/components/menu/channel-pricing-modal";
 import { BulkPriceModal } from "@/components/menu/bulk-price-modal";
@@ -93,7 +94,7 @@ const NAME_COLLATOR = new Intl.Collator("en", {
 });
 
 /**
- * A product card's PLU, copyable. The card is draggable, which blocks text
+ * A product card's PLU, copyable. The card used to be draggable, which blocks text
  * selection, so the code itself opts out of dragging (select-text) and a
  * button copies it in one click.
  */
@@ -215,11 +216,6 @@ export default function MenuEditorPage() {
   const [productEditorTarget, setProductEditorTarget] = useState<
     null | "new" | string
   >(null);
-
-  // Drag-drop bookkeeping. We keep the index of the row being dragged
-  // and call the reorder API in onDragEnd. No library needed.
-  const draggingCatIdx = useRef<number | null>(null);
-  const draggingProdIdx = useRef<number | null>(null);
 
   // ── Pick first category by default once data loads ─────────────────
   const categories = (menu?.categories ?? []) as any[];
@@ -400,17 +396,10 @@ export default function MenuEditorPage() {
     setShowAddProductModal(false);
   };
 
-  /**
-   * Move a category one place. The same payload the drag handler sends —
-   * HTML5 drag events never fire on a touch screen, so without this the
-   * order of a menu is frozen on a phone.
-   */
+  /** Move a category one place and save the whole order. */
   const moveCategory = (idx: number, delta: number) => {
-    const to = idx + delta;
-    if (to < 0 || to >= categories.length) return;
-    const next = [...categories];
-    const [moved] = next.splice(idx, 1);
-    next.splice(to, 0, moved);
+    const next = moveInList(categories, idx, delta);
+    if (next === categories) return;
     reorderCatMutation.mutate({
       items: next.map((c: any, i: number) => ({ id: c.id, sortOrder: i })),
     });
@@ -452,13 +441,16 @@ export default function MenuEditorPage() {
       )
     : products;
 
-  /** Same idea as moveCategory, for the products in the open category. */
+  /**
+   * Same idea as moveCategory, for the products in the open category. Over
+   * the WHOLE category: numbering only the rows a search left visible would
+   * push the hidden ones to the end — which is why the arrows are off while
+   * searching.
+   */
   const moveProduct = (idx: number, delta: number) => {
-    const to = idx + delta;
-    if (!activeCat || to < 0 || to >= filteredProducts.length) return;
-    const next = [...filteredProducts];
-    const [moved] = next.splice(idx, 1);
-    next.splice(to, 0, moved);
+    if (!activeCat) return;
+    const next = moveInList(products, idx, delta);
+    if (next === products) return;
     reorderItemsMutation.mutate({
       catId: activeCat.id,
       order: next.map((row: any, i: number) => ({
@@ -735,23 +727,6 @@ export default function MenuEditorPage() {
             {categories.map((cat: any, idx: number) => (
               <li
                 key={cat.id}
-                draggable
-                onDragStart={() => {
-                  draggingCatIdx.current = idx;
-                }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => {
-                  const from = draggingCatIdx.current;
-                  if (from == null || from === idx) return;
-                  // Build new order array, then push to server.
-                  const next = [...categories];
-                  const [moved] = next.splice(from, 1);
-                  next.splice(idx, 0, moved);
-                  reorderCatMutation.mutate({
-                    items: next.map((c, i) => ({ id: c.id, sortOrder: i })),
-                  });
-                  draggingCatIdx.current = null;
-                }}
                 className={cn(
                   "group flex items-center gap-1 rounded-md cursor-pointer transition-colors",
                   effectiveCatId === cat.id
@@ -763,36 +738,14 @@ export default function MenuEditorPage() {
                   setCatsOpen(false);
                 }}
               >
-                {/* Native drag-and-drop does not fire on touch, so a phone
-                    gets buttons instead of the handle — otherwise the order
-                    of the menu simply cannot be changed there. */}
-                <span className="hidden cursor-grab px-1.5 py-2.5 text-zinc-300 hover:text-zinc-600 md:inline-block">
-                  <GripVertical className="h-3.5 w-3.5" />
-                </span>
-                <span className="flex flex-col md:hidden">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      moveCategory(idx, -1);
-                    }}
-                    disabled={idx === 0}
-                    className="px-1.5 text-zinc-400 disabled:opacity-25"
-                    aria-label={`Move ${cat.name} up`}
-                  >
-                    <ChevronUp className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      moveCategory(idx, 1);
-                    }}
-                    disabled={idx === categories.length - 1}
-                    className="px-1.5 text-zinc-400 disabled:opacity-25"
-                    aria-label={`Move ${cat.name} down`}
-                  >
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  </button>
-                </span>
+                <ReorderArrows
+                  label={cat.name}
+                  isFirst={idx === 0}
+                  isLast={idx === categories.length - 1}
+                  onMove={(delta) => moveCategory(idx, delta)}
+                  disabled={reorderCatMutation.isPending}
+                  className="py-0.5 pl-0.5"
+                />
                 {editingCatId === cat.id ? (
                   <input
                     autoFocus
@@ -1020,57 +973,23 @@ export default function MenuEditorPage() {
                     return (
                       <Card
                         key={p.id}
-                        draggable
-                        onDragStart={() => {
-                          draggingProdIdx.current = idx;
-                        }}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => {
-                          const from = draggingProdIdx.current;
-                          if (from == null || from === idx) return;
-                          const next = [...filteredProducts];
-                          const [moved] = next.splice(from, 1);
-                          next.splice(idx, 0, moved);
-                          reorderItemsMutation.mutate({
-                            catId: activeCat.id,
-                            order: next.map((row: any, i: number) => ({
-                              itemId: row.id,
-                              sortOrder: i,
-                            })),
-                          });
-                          draggingProdIdx.current = null;
-                        }}
-                        className="group relative flex flex-col p-4 bg-white cursor-move hover:shadow-md transition-shadow"
+                        className="group relative flex flex-col p-4 bg-white hover:shadow-md transition-shadow"
                       >
-                        {/* The drag handle on a laptop; arrows on a phone,
-                            where HTML5 drag never fires. Same mutation. */}
-                        <div className="absolute bottom-0 left-0 top-0 hidden w-8 place-items-center text-zinc-200 transition-colors group-hover:text-zinc-400 md:grid">
-                          <GripVertical className="h-4 w-4" />
-                        </div>
-                        <div className="absolute bottom-0 left-0 top-0 flex w-8 flex-col items-center justify-center gap-1 text-zinc-300 md:hidden">
-                          <button
-                            type="button"
-                            onClick={() => moveProduct(idx, -1)}
-                            disabled={idx === 0}
-                            className="disabled:opacity-25"
-                            aria-label={`Move ${p.name} up`}
-                          >
-                            <ChevronUp className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => moveProduct(idx, 1)}
-                            disabled={idx === filteredProducts.length - 1}
-                            className="disabled:opacity-25"
-                            aria-label={`Move ${p.name} down`}
-                          >
-                            <ChevronDown className="h-4 w-4" />
-                          </button>
-                        </div>
+                        <ReorderArrows
+                          label={p.name}
+                          isFirst={idx === 0}
+                          isLast={idx === products.length - 1}
+                          onMove={(delta) => moveProduct(idx, delta)}
+                          disabled={
+                            !!productSearch.trim() ||
+                            reorderItemsMutation.isPending
+                          }
+                          className="absolute left-0.5 top-1/2 -translate-y-1/2"
+                        />
                         {/* Name and actions share the top row, so the name gets the full
                             width instead of a narrow strip beside absolutely-placed icons.
                             The footer pins to the bottom: PLU + groups left, price right. */}
-                        <div className="flex flex-1 flex-col pl-7 md:pl-3">
+                        <div className="flex flex-1 flex-col pl-6">
                           <div className="flex items-start justify-between gap-2">
                             <h3 className="min-w-0 flex-1 text-base font-bold leading-tight text-zinc-900">
                               {p.name}
