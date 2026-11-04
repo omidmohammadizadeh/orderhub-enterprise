@@ -14,8 +14,10 @@ import { HubRiseOrderSyncService } from "../integrations/hubrise/hubrise-order-s
 import { SocketService } from "../../infrastructure/socket/socket.service";
 import { ChatService } from "../chat/chat.service";
 import { CustomerPushService } from "../customer-push/customer-push.service";
-import { coercePostcodeFees, isCashPayment, matchPostcodeFee } from "../dispatch/driver-earnings.service";
+import { coercePostcodeFees, creditedOn, creditedStopsIn, isCashPayment, matchPostcodeFee, stopPostcode } from "../dispatch/driver-earnings.service";
 import { TERMINAL_ORDER_STATUSES } from "../dispatch/dispatch-settlement.service";
+import { ensureCallLine, eflCallNumber } from "../eat-for-less/efl-calls.service";
+import { MAX_PIN_ATTEMPTS, callLineOpen, checkDeliveryPin } from "../eat-for-less/efl-rules";
 import {
   coordsFromDeliveryAddress,
   resolveDeliveryAddress,
@@ -332,6 +334,13 @@ export class DriverAppService {
             deliveryLng: true,
             specialInstructions: true,
             platform: true,
+            orderSource: true,
+            deliveredAt: true,
+            updatedAt: true,
+            // Read to say whether a PIN is needed — never sent to the driver.
+            deliveryPin: true,
+            deliveryPinVerifiedAt: true,
+            deliveryPinAttempts: true,
             courierPhone: true,
             courierPhoneAccessCode: true,
             scheduledFor: true,
@@ -350,15 +359,33 @@ export class DriverAppService {
     ];
     // Attach a computed deadlineAt to every order (drops the raw prep fields the
     // app doesn't need), so the job card can render a minutes-to-deadline pill.
-    const withDeadline = assignments.map((a) => {
+    const callNumber = eflCallNumber();
+    const withDeadline = await Promise.all(assignments.map(async (a) => {
       const {
         scheduledFor,
         estimatedReadyAt,
         preparationMinutes,
         createdAt,
         customerInfo,
+        deliveryPin,
+        deliveryPinVerifiedAt,
+        deliveryPinAttempts,
+        deliveredAt: _deliveredAt,
+        updatedAt: _updatedAt,
         ...orderRest
       } = a.order as typeof a.order & { customerInfo?: any };
+      // Eat For Less: the driver rings the customer through our private line.
+      // The app already dials "number, pause, code" for marketplaces, so the
+      // builds on drivers' phones do this without an update.
+      let maskedPhone: { phone: string; code: string } | null = null;
+      if (
+        orderRest.orderSource === "EAT_FOR_LESS" &&
+        callNumber &&
+        callLineOpen(a.order as any, new Date())
+      ) {
+        const line = await ensureCallLine(this.prisma, a.order.id);
+        maskedPhone = { phone: callNumber, code: line.driverCode };
+      }
       // Fill the address columns from the deliveryAddress blob when they are
       // empty, which is EVERY marketplace and online order: ingestCanonical
       // writes only the blob. The app reads these columns to show the address
@@ -388,10 +415,15 @@ export class DriverAppService {
           // the app can dial it after a pause instead of the driver reading
           // it off a ticket and keying it in on a doorstep. Adapters have
           // used two homes for it, so check both.
+          customerPhone: maskedPhone?.phone ?? orderRest.customerPhone,
           customerPhoneAccessCode:
+            maskedPhone?.code ??
             (customerInfo as any)?.phoneAccessCode ??
             (orderRest as any).courierPhoneAccessCode ??
             null,
+          // The PIN itself stays on the server; the app only learns to ask.
+          deliveryPinRequired: !!deliveryPin && !deliveryPinVerifiedAt,
+          deliveryPinAttemptsLeft: Math.max(0, MAX_PIN_ATTEMPTS - (deliveryPinAttempts ?? 0)),
           deadlineAt: deadlineFor({
             scheduledFor,
             estimatedReadyAt,
@@ -400,18 +432,16 @@ export class DriverAppService {
           })?.toISOString() ?? null,
         },
       };
-    });
+    }));
 
     const active = withDeadline.filter((a) => ACTIVE.includes(a.status));
     const history = withDeadline.filter((a) => !ACTIVE.includes(a.status));
 
     // Cash-up: today's delivered jobs, split by cash vs card.
-    const deliveredToday = assignments.filter(
-      (a) =>
-        a.status === DriverAssignmentStatus.DELIVERED &&
-        a.deliveredAt &&
-        a.deliveredAt >= startOfDay,
-    );
+    const deliveredToday = assignments.filter((a) => {
+      const countedOn = creditedOn(a);
+      return !!countedOn && countedOn >= startOfDay;
+    });
     let cashTotal = 0;
     let cardTotal = 0;
     let deliveryFees = 0;
@@ -420,7 +450,7 @@ export class DriverAppService {
       const total = Number(a.order.total);
       if (isCashPayment(a.order.paymentMethod)) cashTotal += total;
       else cardTotal += total;
-      deliveryFees += matchPostcodeFee(rules, a.order.postcode);
+      deliveryFees += matchPostcodeFee(rules, stopPostcode(a.order as any));
     }
     // Phase BG — the driver's own live earning: start-up fee (once, when
     // they've done at least one delivery today) + per-postcode delivery fees.
@@ -458,10 +488,9 @@ export class DriverAppService {
     const delivered = await this.prisma.driverAssignment.findMany({
       where: {
         driverId: driver.id,
-        status: DriverAssignmentStatus.DELIVERED,
-        deliveredAt: { gte: start, lte: end },
+        ...creditedStopsIn({ gte: start, lte: end }),
       },
-      include: { order: { select: { total: true, paymentMethod: true, postcode: true } } },
+      include: { order: { select: { total: true, paymentMethod: true, postcode: true, deliveryAddress: true } } },
     });
 
     let cashCount = 0;
@@ -480,7 +509,7 @@ export class DriverAppService {
         cardCount += 1;
         cardTotal += t;
       }
-      deliveryFees += matchPostcodeFee(rules, a.order.postcode);
+      deliveryFees += matchPostcodeFee(rules, stopPostcode(a.order as any));
       if (a.deliveredAt) workedDays.add(new Date(a.deliveredAt).toISOString().slice(0, 10));
     }
     // Phase BG — start-up fee is charged once per day the driver worked in
@@ -504,7 +533,12 @@ export class DriverAppService {
     };
   }
 
-  async jobAction(user: AuthenticatedUser, orderId: string, action: JobAction) {
+  async jobAction(
+    user: AuthenticatedUser,
+    orderId: string,
+    action: JobAction,
+    opts: { pin?: string | null } = {},
+  ) {
     const driver = await this.resolveDriver(user);
     const assignment = await this.prisma.driverAssignment.findFirst({
       where: { orderId, driverId: driver.id },
@@ -536,6 +570,13 @@ export class DriverAppService {
     }
 
     const now = new Date();
+
+    // Eat For Less: the food only changes hands with the customer's PIN.
+    // Checked here, not in the app, so no build — old or tampered — can
+    // skip it. A closed order is left alone: the shop finished it.
+    if (action === "delivered" && !orderIsClosed) {
+      await this.checkHandoverPin(orderId, opts.pin, now);
+    }
 
     switch (action) {
       case "accept":
@@ -668,6 +709,44 @@ export class DriverAppService {
     }
 
     return { ok: true, action };
+  }
+
+  private async checkHandoverPin(orderId: string, pin: string | null | undefined, now: Date) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: { deliveryPin: true, deliveryPinVerifiedAt: true, deliveryPinAttempts: true },
+    });
+    if (!order?.deliveryPin) return;
+    const result = checkDeliveryPin({
+      expected: order.deliveryPin,
+      given: pin,
+      attempts: order.deliveryPinAttempts,
+      verified: !!order.deliveryPinVerifiedAt,
+    });
+    if (result.ok) {
+      if (!order.deliveryPinVerifiedAt) {
+        await this.prisma.order.update({ where: { id: orderId }, data: { deliveryPinVerifiedAt: now } });
+      }
+      return;
+    }
+    // An empty PIN is a question, not a guess: it doesn't use up a try.
+    if (String(pin ?? "").replace(/\D/g, "") && !result.locked) {
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { deliveryPinAttempts: { increment: 1 } },
+      });
+    } else if (result.locked && order.deliveryPinAttempts < MAX_PIN_ATTEMPTS) {
+      // The guess that locked it still counts, so the lock survives a retry.
+      await this.prisma.order.update({
+        where: { id: orderId },
+        data: { deliveryPinAttempts: MAX_PIN_ATTEMPTS },
+      });
+    }
+    throw new BadRequestException({
+      message: result.message,
+      code: result.locked ? "PIN_LOCKED" : "PIN_REQUIRED",
+      attemptsLeft: result.attemptsLeft,
+    });
   }
 
   /** Best-effort, like the board emit: never fails the driver's action. */

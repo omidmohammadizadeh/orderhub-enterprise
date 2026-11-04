@@ -1,4 +1,5 @@
 import {
+  UseGuards,
   Body,
   Controller,
   Delete,
@@ -8,6 +9,7 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
+import { TabletShopGuard } from "../../common/guards/tablet-shop.guard";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
 import { TablesService, type LayoutNode } from "./tables.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -38,10 +40,13 @@ const MANAGE = [
   "OWNER",
   "DARK_KITCHEN_MANAGER",
 ] as const;
-const OPERATE = [...MANAGE, "MANAGER", "CASHIER", "STAFF"] as const;
+// LOCATION_TABLET is the shop's shared counter tablet: it runs service like
+// STAFF, and TabletShopGuard keeps every request on its own shop.
+const OPERATE = [...MANAGE, "MANAGER", "CASHIER", "STAFF", "LOCATION_TABLET"] as const;
 
 @ApiTags("tables")
 @ApiBearerAuth()
+@UseGuards(TabletShopGuard)
 @Controller({ path: "tables", version: "1" })
 export class TablesController {
   constructor(private readonly tables: TablesService) {}

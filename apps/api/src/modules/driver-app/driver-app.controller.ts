@@ -129,7 +129,9 @@ export class DriverAppController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("orderId") orderId: string,
     @Param("action") action: JobAction,
+    // Eat For Less handovers send the customer's PIN with "delivered".
+    @Body() body?: { pin?: string },
   ) {
-    return this.driverApp.jobAction(user, orderId, action);
+    return this.driverApp.jobAction(user, orderId, action, { pin: body?.pin ?? null });
   }
 }

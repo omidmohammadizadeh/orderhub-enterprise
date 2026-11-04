@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Archivo } from "next/font/google";
+import localFont from "next/font/local";
 
 // The guest side of a barber or salon: booking, manage-my-booking, the
 // walk-in queue and the screen by the door. Archivo's width axis gives the
 // condensed, sign-painted headings a barber's window has, from the same
 // family as the body text.
-const archivo = Archivo({
-  subsets: ["latin"],
-  axes: ["wdth"],
+const archivo = localFont({
+  src: "../../fonts/archivo-latin-var.woff2",
+  weight: "100 900",
+  declarations: [{ prop: "font-stretch", value: "62% 125%" }],
   variable: "--font-salon",
   display: "swap",
 });

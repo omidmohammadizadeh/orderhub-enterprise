@@ -280,6 +280,11 @@ export interface JobOrder {
   // Same idea for the customer's own masked number (Uber Eats puts the code
   // on customerInfo; the API flattens it onto the job).
   customerPhoneAccessCode: string | null;
+  // Eat For Less: the customer must give a 4-digit PIN before "delivered".
+  // The PIN itself never reaches the app — the server checks it. Absent on
+  // APIs older than Phase 4.
+  deliveryPinRequired?: boolean;
+  deliveryPinAttemptsLeft?: number;
   // When the order is "due" (ISO) — mirrors the dispatch console countdown.
   deadlineAt: string | null;
 }
@@ -353,8 +358,8 @@ export async function registerPushToken(token: string, format?: "data") {
   await api.post("/v1/driver/push-token", format ? { token, format } : { token });
 }
 export type JobActionType = "accept" | "start" | "arrived" | "delivered" | "skip" | "cancel";
-export async function jobAction(orderId: string, action: JobActionType) {
-  await api.post(`/v1/driver/jobs/${orderId}/${action}`);
+export async function jobAction(orderId: string, action: JobActionType, opts: { pin?: string } = {}) {
+  await api.post(`/v1/driver/jobs/${orderId}/${action}`, opts.pin ? { pin: opts.pin } : undefined);
 }
 
 // ── Chat ─────────────────────────────────────────────────────────────────────

@@ -34,7 +34,8 @@ export type SupportedChannel =
   | "HUBRISE"
   | "GLOVO"
   | "KEETA"
-  | "TALABAT";
+  | "TALABAT"
+  | "EAT_FOR_LESS";
 
 export type DurationPreset =
   | "1h"

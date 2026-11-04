@@ -97,5 +97,19 @@ export async function accessibleLocationIdsForRealtime(
     });
     return locations.map((l) => l.id);
   }
-  return scope.allowedLocationIds;
+  return realtimeLocationIds(scope);
+}
+
+/**
+ * The location rooms a non-admin may subscribe to. A room carries EVERY order
+ * at its shop (customer name, total, print jobs) with no brand filter, so it
+ * can only be granted where the board itself shows every order: the user's
+ * own locations. Brand-derived locations stand in only for a brand-only
+ * account, matching the location switcher. Granting them on top of direct
+ * locations was a leak: nearly every shop sits under one parent brand
+ * ("Order Hub") that most shop logins also carry, so one Kingston Pizza
+ * owner's board was being pushed live orders from 61 other shops.
+ */
+export function realtimeLocationIds(scope: OrderScope): string[] {
+  return scope.directLocationIds.length ? scope.directLocationIds : scope.allowedLocationIds;
 }

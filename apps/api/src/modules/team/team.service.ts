@@ -158,7 +158,9 @@ export class TeamService {
     callerUserId?: string,
   ) {
     const users = await this.prisma.user.findMany({
-      where: { tenantId, isActive: true },
+      // Shop tablet logins are managed under Team → Tablet logins, not as
+      // people in this list.
+      where: { tenantId, isActive: true, role: { not: "LOCATION_TABLET" as any } },
       select: {
         id: true,
         email: true,

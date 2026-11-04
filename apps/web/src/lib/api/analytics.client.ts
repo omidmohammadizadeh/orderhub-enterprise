@@ -57,6 +57,8 @@ export interface AnalyticsOverview {
   byChannel: Array<{
     name: string;
     revenue: number;
+    /** subtotal + tax − discount: same basis as summary.netRevenue. */
+    netRevenue: number;
     orders: number;
     share: number;
   }>;
@@ -64,6 +66,8 @@ export interface AnalyticsOverview {
     id: string;
     name: string;
     revenue: number;
+    /** subtotal + tax − discount: same basis as summary.netRevenue. */
+    netRevenue: number;
     orders: number;
     cashRevenue: number;
     cashOrders: number;
@@ -76,6 +80,7 @@ export interface AnalyticsOverview {
     id: string;
     name: string;
     revenue: number;
+    netRevenue: number;
     orders: number;
   }>;
   topProducts: Array<{ name: string; quantity: number; revenue: number }>;

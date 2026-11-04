@@ -45,11 +45,10 @@
       "type": "boolean"
     },
     "google": {
-      "description": "Native Sign in with Google. Omit until the brand's iOS OAuth client exists (README → Sign-in setup).",
+      "description": "Native Sign in with Google. iosClientId turns on iOS; {} alone turns on Android only (README → Sign-in setup).",
       "type": ["object", "null"],
-      "required": ["iosClientId"],
       "properties": {
-        "iosClientId": { "description": "iOS OAuth client for this bundle id, in OrderHub's Google Cloud project.", "type": "string", "pattern": "^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$" },
+        "iosClientId": { "description": "iOS OAuth client for this bundle id, in OrderHub's Google Cloud project. Omit for Android only.", "type": "string", "pattern": "^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$" },
         "webClientId": { "description": "Audience of the ID token. Defaults to OrderHub's web client (the API's GOOGLE_CLIENT_ID).", "type": "string", "pattern": "^[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com$" },
         "android": { "description": "Offer Google on Android (default true). Needs an Android OAuth client with the Play app-signing SHA-1.", "type": "boolean" }
       }

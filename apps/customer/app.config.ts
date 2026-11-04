@@ -81,6 +81,8 @@ const config: ExpoConfig = {
     ],
   },
   plugins: [
+    // Google Pay on hosted checkout pages inside the app (PaymentSheet).
+    "./plugins/with-google-pay-webview",
     ...(brand.appleSignIn ? ["expo-apple-authentication"] : []),
     // Nearest-shop picker. Only a multi-shop app asks for location; the rest
     // block the permissions below so Play's Data safety form stays simple.
@@ -96,7 +98,7 @@ const config: ExpoConfig = {
       : []),
     // Only with a client id: the iOS SDK throws (and the app dies) if asked to
     // sign in without its URL scheme registered.
-    ...(brand.google
+    ...(brand.google?.iosUrlScheme
       ? [["@react-native-google-signin/google-signin", { iosUrlScheme: brand.google.iosUrlScheme }] as [string, object]]
       : []),
     [

@@ -33,7 +33,7 @@ export type AuthState = {
 
 type SignInConfig = {
   apple: boolean;
-  google: { iosClientId: string; webClientId: string; android: boolean } | null;
+  google: { iosClientId: string | null; webClientId: string; android: boolean } | null;
 };
 
 const signInConfig: SignInConfig = brand.signIn ?? { apple: false, google: null };
@@ -111,7 +111,7 @@ async function buildProviders(): Promise<Provider[]> {
     if (apple && (await apple.isAvailableAsync().catch(() => false))) out.push("apple");
   }
   const g = signInConfig.google;
-  if (g && (Platform.OS === "ios" || (Platform.OS === "android" && g.android)) && googleModule()) {
+  if (g && ((Platform.OS === "ios" && g.iosClientId) || (Platform.OS === "android" && g.android)) && googleModule()) {
     out.push("google");
   }
   return out;
@@ -208,7 +208,7 @@ async function googleIdToken(): Promise<{ idToken: string }> {
   if (!googleConfigured) {
     // webClientId makes the ID token's audience the web client the API
     // checks, on both platforms.
-    GoogleSignin.configure({ webClientId: g.webClientId, iosClientId: g.iosClientId });
+    GoogleSignin.configure({ webClientId: g.webClientId, iosClientId: g.iosClientId ?? undefined });
     googleConfigured = true;
   }
   try {

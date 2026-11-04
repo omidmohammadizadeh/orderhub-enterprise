@@ -24,7 +24,7 @@ import { listZonesCached } from "@/lib/pos/offline-cache";
 import { useState, useEffect } from "react";
 import { useCurrency } from "@/hooks/use-currency";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Trash2, X } from "lucide-react";
+import { Check, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { deliveryZonesClient, type DeliveryZone } from "@/lib/api/pos.client";
 import { zoneMode, defaultZoneModeForCountry } from "@orderhub/shared";
 
@@ -55,6 +55,13 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
   const [newFee, setNewFee] = useState("");
   const [newMin, setNewMin] = useState("");
   const [error, setError] = useState<string | null>(null);
+  /** The row being edited, as typed. One at a time, so Save is never ambiguous. */
+  const [editing, setEditing] = useState<{
+    id: string;
+    name: string;
+    fee: string;
+    min: string;
+  } | null>(null);
 
   const invalidate = () =>
     qc.invalidateQueries({ queryKey: ["delivery-zones", locationId] });
@@ -103,6 +110,59 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
       deliveryZonesClient.update(id, { isActive }),
     onSuccess: invalidate,
+  });
+
+  const startEdit = (z: DeliveryZone) => {
+    setError(null);
+    setEditing({
+      id: z.id,
+      name: z.areaName ?? z.postcodePrefix ?? "",
+      fee: String(Number(z.fee)),
+      min: z.minOrderValue ? String(Number(z.minOrderValue)) : "",
+    });
+  };
+
+  const save = useMutation({
+    mutationFn: (z: DeliveryZone) => {
+      if (!editing) throw new Error("Nothing to save");
+      // Number("") is 0, so a cleared box would otherwise save free delivery.
+      const fee = editing.fee.trim() === "" ? NaN : Number(editing.fee);
+      if (!Number.isFinite(fee) || fee < 0) throw new Error("Fee must be ≥ 0");
+      const min = editing.min.trim() === "" ? null : Number(editing.min);
+      if (min !== null && (!Number.isFinite(min) || min < 0)) {
+        throw new Error("Min order must be ≥ 0");
+      }
+      const body: Parameters<typeof deliveryZonesClient.update>[1] = {
+        fee,
+        minOrderValue: min,
+      };
+      // A distance zone has no name to change; it's defined by its miles.
+      if (z.areaName || z.postcodePrefix) {
+        const key = (v: string) =>
+          z.areaName ? v.trim().toLowerCase() : normalisePrefix(v);
+        const name = key(editing.name);
+        if (!name) {
+          throw new Error(z.areaName ? "Area name required" : "Postcode prefix required");
+        }
+        const taken = (zonesQuery.data ?? []).some(
+          (other) =>
+            other.id !== z.id &&
+            key((z.areaName ? other.areaName : other.postcodePrefix) ?? "") === name,
+        );
+        if (taken) throw new Error(`${editing.name.trim()} is already on the list`);
+        if (z.areaName) body.areaName = editing.name.trim();
+        else body.postcodePrefix = name;
+      }
+      return deliveryZonesClient.update(z.id, body);
+    },
+    onSuccess: () => {
+      setEditing(null);
+      setError(null);
+      invalidate();
+    },
+    onError: (err: any) => {
+      setError(err?.response?.data?.message ?? err.message ?? "Failed");
+    },
   });
 
   // Auto-clear error after a few seconds so it doesn't linger.
@@ -166,7 +226,97 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {zones.map((z) => (
+                {zones.map((z) =>
+                  editing?.id === z.id ? (
+                    <tr
+                      key={z.id}
+                      className="border-b border-zinc-50 bg-zinc-50 last:border-0"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") save.mutate(z);
+                        if (e.key === "Escape") setEditing(null);
+                      }}
+                    >
+                      <td className="px-3 py-1.5">
+                        {z.areaName || z.postcodePrefix ? (
+                          <input
+                            value={editing.name}
+                            onChange={(e) =>
+                              setEditing({
+                                ...editing,
+                                name: z.areaName
+                                  ? e.target.value
+                                  : e.target.value.toUpperCase(),
+                              })
+                            }
+                            aria-label={z.areaName ? "Area" : "Postcode"}
+                            maxLength={z.areaName ? 60 : 8}
+                            className={`w-full min-w-20 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs font-semibold focus:border-zinc-900 focus:outline-none ${
+                              z.areaName ? "" : "font-mono uppercase"
+                            }`}
+                          />
+                        ) : (
+                          <span className="font-mono font-semibold">
+                            {Number(z.maxDistanceMiles)} mi
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-1.5 text-right">
+                        <input
+                          value={editing.fee}
+                          onChange={(e) => setEditing({ ...editing, fee: e.target.value })}
+                          aria-label={`Fee (${symbol.trim()})`}
+                          autoFocus
+                          onFocus={(e) => e.target.select()}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="w-20 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-right text-xs focus:border-zinc-900 focus:outline-none"
+                        />
+                      </td>
+                      <td className="px-3 py-1.5 text-right">
+                        <input
+                          value={editing.min}
+                          onChange={(e) => setEditing({ ...editing, min: e.target.value })}
+                          aria-label={`Min order (${symbol.trim()})`}
+                          placeholder="None"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="w-20 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-right text-xs focus:border-zinc-900 focus:outline-none"
+                        />
+                      </td>
+                      {/* Pinned: on a phone the table scrolls sideways, and the
+                          row's buttons must stay in reach. */}
+                      <td colSpan={2} className="sticky right-0 bg-zinc-50 px-2 py-1.5">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => save.mutate(z)}
+                            disabled={save.isPending}
+                            aria-label="Save"
+                            title="Save"
+                            className="grid h-8 w-8 place-items-center rounded-md bg-zinc-900 text-white hover:bg-zinc-800 disabled:opacity-50"
+                          >
+                            {save.isPending ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Check className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditing(null)}
+                            disabled={save.isPending}
+                            aria-label="Cancel"
+                            title="Cancel"
+                            className="grid h-8 w-8 place-items-center rounded-md border border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-100"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
                   <tr key={z.id} className="border-b border-zinc-50 last:border-0">
                     <td
                       className={
@@ -197,20 +347,32 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
                         className="h-3 w-3"
                       />
                     </td>
-                    <td className="px-3 py-1.5 text-right">
+                    <td className="sticky right-0 whitespace-nowrap bg-white px-2 py-1.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => startEdit(z)}
+                        aria-label={`Edit ${z.areaName ?? z.postcodePrefix ?? "zone"}`}
+                        title="Edit"
+                        className="rounded p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => {
                           const label = z.areaName ?? z.postcodePrefix ?? "this zone";
                           if (confirm(`Delete ${label}?`)) remove.mutate(z.id);
                         }}
-                        className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                        aria-label={`Delete ${z.areaName ?? z.postcodePrefix ?? "zone"}`}
+                        title="Delete"
+                        className="rounded p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-600"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </td>
                   </tr>
-                ))}
+                  ),
+                )}
               </tbody>
             </table>
           )}
@@ -221,7 +383,7 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
             Add zone
           </p>
-          <div className="grid grid-cols-[1fr,auto,auto,auto] items-center gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr),auto,auto,auto] items-center gap-2">
             <input
               value={newPrefix}
               onChange={(e) =>
@@ -231,8 +393,8 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
               maxLength={byArea ? 60 : 8}
               className={
                 byArea
-                  ? "rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-                  : "rounded-md border border-zinc-200 px-2 py-1.5 text-xs font-mono uppercase focus:border-zinc-900 focus:outline-none"
+                  ? "w-full rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+                  : "w-full rounded-md border border-zinc-200 px-2 py-1.5 text-xs font-mono uppercase focus:border-zinc-900 focus:outline-none"
               }
             />
             <input
@@ -242,7 +404,7 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
               type="number"
               step="0.01"
               min="0"
-              className="w-20 rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+              className="w-14 rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none sm:w-20"
             />
             <input
               value={newMin}
@@ -251,7 +413,7 @@ export function DeliveryFeeModal({ locationId, onClose }: Props) {
               type="number"
               step="0.01"
               min="0"
-              className="w-20 rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
+              className="w-14 rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none sm:w-20"
             />
             <button
               type="button"

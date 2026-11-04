@@ -34,12 +34,16 @@ import { CustomerNativeSignInDto } from "./dto/native-sign-in.dto";
 import { CustomerSignupDto } from "./dto/signup.dto";
 import { CustomerLoginDto } from "./dto/login.dto";
 import { UpdateCustomerProfileDto } from "./dto/update-profile.dto";
+import { eflWordmarkHtml } from "../eat-for-less/efl-brand";
 
 /** Our own sites. Brand custom domains are checked against the database. */
 const OWN_STOREFRONT_ORIGINS = new Set([
   "https://www.orderhubsolutions.com",
   "https://orderhubsolutions.com",
   "https://orderhub-web.onrender.com",
+  // Eat For Less: its website and the app's email sign-ups land here.
+  "https://eatforless.co.uk",
+  "https://www.eatforless.co.uk",
   "http://localhost:3000",
 ]);
 
@@ -731,25 +735,34 @@ export class CustomerAuthService {
       ? `/order/${encodeURIComponent(opts.storeSlug)}/auth/confirm?token=${opts.token}${brandSuffix}`
       : `/auth/confirm?token=${opts.token}`;
     const url = `${webUrl}${confirmPath}`;
+    // An Eat For Less sign-up (its website, or the app, which names the
+    // site as its origin) gets an Eat For Less email, not an OrderHub one.
+    const efl = /^https:\/\/(www\.)?eatforless\.co\.uk$/.test(webUrl);
+    const product = efl ? "Eat For Less" : "Order Hub";
+    const header = efl
+      ? `<tr><td style="background:#0B0B0B;padding:20px 32px;border-radius:12px 12px 0 0">${eflWordmarkHtml(22)}</td></tr>`
+      : "";
+    const button = efl ? "background: #0B0B0B; color: #D4FF3F;" : "background: #059669; color: #fff;";
 
     const html = `
 <!doctype html>
 <html><body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: #f8fafc; padding: 32px 16px; margin: 0;">
   <table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width: 480px; background: #fff; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-    <tr><td>
+    ${header}
+    <tr><td style="${efl ? "padding-top: 24px;" : ""}">
       <h1 style="margin: 0 0 16px; font-size: 20px; color: #0f172a;">Welcome, ${escapeHtml(opts.firstName)}</h1>
       <p style="margin: 0 0 20px; font-size: 14px; color: #475569; line-height: 1.5;">
         Tap the button below to confirm your email and start ordering.
       </p>
       <p style="margin: 24px 0;">
-        <a href="${url}" style="background: #059669; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">Confirm my email</a>
+        <a href="${url}" style="${button} padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">Confirm my email</a>
       </p>
       <p style="margin: 24px 0 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
         Or copy this link into your browser:<br>
         <span style="color: #64748b; word-break: break-all;">${url}</span>
       </p>
       <p style="margin: 24px 0 0; font-size: 11px; color: #94a3b8;">
-        If you didn't create an Order Hub account, you can ignore this email.
+        If you didn't create an ${product} account, you can ignore this email.
       </p>
     </td></tr>
   </table>
@@ -758,7 +771,7 @@ export class CustomerAuthService {
     try {
       await this.email.send({
         to: opts.to,
-        subject: "Confirm your Order Hub account",
+        subject: `Confirm your ${product} account`,
         html,
       });
     } catch (err: any) {

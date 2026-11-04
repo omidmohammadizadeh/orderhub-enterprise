@@ -591,27 +591,79 @@ export class MollieService {
   }
 
   /** Every brand of the tenant with its Mollie state, for the Payments page. */
-  async listStatus(tenantId: string) {
+  async listStatus(tenantId: string, locationId?: string) {
+    // Same scoping as the Stripe list (listBrandConnectStatus), so a selected
+    // location shows the same brands in both sections of the Payments page.
+    const where: any = { tenantId, deletedAt: null };
+    if (locationId) {
+      const loc = await this.prisma.location.findFirst({
+        where: { id: locationId, brand: { tenantId } },
+        select: { id: true, brandId: true },
+      });
+      if (!loc) return { ...this.platformStatus(), brands: [] };
+      where.OR = [{ id: loc.brandId }, { primaryLocationId: loc.id }];
+    }
     const [brands, conns] = await Promise.all([
       this.prisma.brand.findMany({
-        where: { tenantId, deletedAt: null },
-        select: { id: true, name: true, locations: { where: { deletedAt: null }, select: { country: true }, take: 1 } } as any,
+        where,
+        select: {
+          id: true,
+          name: true,
+          primaryLocationId: true,
+          directOrderingEnabled: true,
+          country: true,
+          locations: {
+            where: { deletedAt: null },
+            select: { country: true },
+            take: 1,
+            orderBy: { createdAt: "asc" },
+          },
+        } as any,
         orderBy: { name: "asc" },
       }),
       (this.prisma as any).mollieConnection.findMany({ where: { tenantId } }),
     ]);
+    // A brand that "lives at" a kitchen via primaryLocationId has no locations
+    // of its own and Brand.country defaults to GB, so its shop's country is
+    // the one that says whether it trades in the Gulf.
+    const primaryIds = [
+      ...new Set((brands as any[]).map((b) => b.primaryLocationId).filter(Boolean)),
+    ] as string[];
+    const primaryCountry = new Map<string, string>();
+    if (primaryIds.length) {
+      const locs = await this.prisma.location.findMany({
+        where: { id: { in: primaryIds } },
+        select: { id: true, country: true },
+      });
+      for (const l of locs) primaryCountry.set(l.id, l.country);
+    }
     const byBrand = new Map<string, any>(conns.map((c: any) => [c.brandId, c]));
+    const rows = (brands as any[])
+      // Brands that sell online, as in the Stripe list — plus any already
+      // connected, which must stay reachable to manage or disconnect.
+      .filter((b) => b.directOrderingEnabled || byBrand.get(b.id)?.refreshTokenEnc)
+      .map((b) => ({
+        brandId: b.id,
+        brandName: b.name,
+        // Gulf brands are Tap's; the page shows them greyed out.
+        eligible: !usesTap(
+          primaryCountry.get(b.primaryLocationId) ?? b.locations?.[0]?.country ?? b.country,
+        ),
+        ...this.view(byBrand.get(b.id)),
+      }));
+    return {
+      ...this.platformStatus(),
+      // Connected brands first (stable, so each group stays alphabetical): in
+      // the all-locations view they'd otherwise be buried among the rest.
+      brands: [...rows].sort((x, y) => Number(y.connected) - Number(x.connected)),
+    };
+  }
+
+  private platformStatus() {
     return {
       configured: this.configured(),
       clientLinksAvailable: this.configured() && !!this.platformToken,
       testmode: this.testmode(),
-      brands: (brands as any[]).map((b) => ({
-        brandId: b.id,
-        brandName: b.name,
-        // Gulf brands are Tap's; the page shows them greyed out.
-        eligible: !usesTap(b.locations?.[0]?.country),
-        ...this.view(byBrand.get(b.id)),
-      })),
     };
   }
 

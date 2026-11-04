@@ -1,0 +1,26 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "donatellos",
+  "name": "Donatellos Pizza",
+  "brandId": "cmvsv7sc500178s1kk8kaiigp",
+  "locationId": "cmvsv7rvh00158s1kw1pb1jep",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmvsv7rvh00158s1kw1pb1jep?brand=cmvsv7sc500178s1kk8kaiigp",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#006F51",
+  "backgroundColor": "#006F51",
+  "icon": "brands/donatellos/icon.png",
+  "adaptiveIcon": "brands/donatellos/adaptive-icon.png",
+  "splash": "brands/donatellos/splash.png",
+  "notificationIcon": "brands/donatellos/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.donatellos",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.donatellos"
+  },
+  "google": {},
+  "easProjectId": "76c5b55b-ad8b-4b5e-9971-7f9c605a3c94"
+}

@@ -219,6 +219,8 @@ exports.Prisma.CustomerAccountScalarFieldEnum = {
   isVerified: 'isVerified',
   emailVerificationToken: 'emailVerificationToken',
   marketingOptIn: 'marketingOptIn',
+  phoneVerifiedAt: 'phoneVerifiedAt',
+  eflMarketingOptIn: 'eflMarketingOptIn',
   lastLoginAt: 'lastLoginAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -382,6 +384,7 @@ exports.Prisma.LocationScalarFieldEnum = {
   status: 'status',
   googleReviewUrl: 'googleReviewUrl',
   busyModeJson: 'busyModeJson',
+  payOnDispatch: 'payOnDispatch',
   shopCode: 'shopCode',
   printToken: 'printToken',
   slug: 'slug',
@@ -930,6 +933,7 @@ exports.Prisma.OrderScalarFieldEnum = {
   platform: 'platform',
   displayId: 'displayId',
   orderNumber: 'orderNumber',
+  ticketNumber: 'ticketNumber',
   orderSource: 'orderSource',
   integrationSource: 'integrationSource',
   viaHubrise: 'viaHubrise',
@@ -999,6 +1003,11 @@ exports.Prisma.OrderScalarFieldEnum = {
   cancelReason: 'cancelReason',
   metadata: 'metadata',
   sourceMetadata: 'sourceMetadata',
+  deliveryPin: 'deliveryPin',
+  deliveryPinVerifiedAt: 'deliveryPinVerifiedAt',
+  deliveryPinAttempts: 'deliveryPinAttempts',
+  eflCommissionPercent: 'eflCommissionPercent',
+  eflAdRecovered: 'eflAdRecovered',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   loyaltyMemberId: 'loyaltyMemberId'
@@ -1007,6 +1016,13 @@ exports.Prisma.OrderScalarFieldEnum = {
 exports.Prisma.OrderNumberSequenceScalarFieldEnum = {
   tenantId: 'tenantId',
   nextValue: 'nextValue',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OrderTicketSequenceScalarFieldEnum = {
+  locationId: 'locationId',
+  businessDate: 'businessDate',
+  lastValue: 'lastValue',
   updatedAt: 'updatedAt'
 };
 
@@ -1525,7 +1541,8 @@ exports.Prisma.DriverAssignmentScalarFieldEnum = {
   acceptedAt: 'acceptedAt',
   pickedUpAt: 'pickedUpAt',
   arrivedAt: 'arrivedAt',
-  deliveredAt: 'deliveredAt'
+  deliveredAt: 'deliveredAt',
+  creditedAt: 'creditedAt'
 };
 
 exports.Prisma.DeliveryTrackingScalarFieldEnum = {
@@ -2158,6 +2175,177 @@ exports.Prisma.OutboxEventScalarFieldEnum = {
   idempotencyKey: 'idempotencyKey',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflListingScalarFieldEnum = {
+  id: 'id',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  listed: 'listed',
+  status: 'status',
+  hiddenReason: 'hiddenReason',
+  commissionPercent: 'commissionPercent',
+  deliveryMode: 'deliveryMode',
+  acceptsDelivery: 'acceptsDelivery',
+  acceptsCollection: 'acceptsCollection',
+  description: 'description',
+  heroImageUrl: 'heroImageUrl',
+  logoUrl: 'logoUrl',
+  cuisines: 'cuisines',
+  fsaEstablishmentId: 'fsaEstablishmentId',
+  hygieneRating: 'hygieneRating',
+  hygieneCheckedAt: 'hygieneCheckedAt',
+  lastDeviceSeenAt: 'lastDeviceSeenAt',
+  offlineSince: 'offlineSince',
+  statementEmail: 'statementEmail',
+  stripeAccountId: 'stripeAccountId',
+  stripePayoutsEnabled: 'stripePayoutsEnabled',
+  approvedAt: 'approvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflAdCampaignScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  active: 'active',
+  weeklyBudget: 'weeklyBudget',
+  maxBid: 'maxBid',
+  pausedByAdmin: 'pausedByAdmin',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflAdTapScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  viewerKey: 'viewerKey',
+  cost: 'cost',
+  orderId: 'orderId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EflAdShowScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  viewerKey: 'viewerKey',
+  day: 'day',
+  count: 'count'
+};
+
+exports.Prisma.EflCampaignScalarFieldEnum = {
+  id: 'id',
+  channel: 'channel',
+  title: 'title',
+  body: 'body',
+  ctaLabel: 'ctaLabel',
+  ctaUrl: 'ctaUrl',
+  status: 'status',
+  targeted: 'targeted',
+  delivered: 'delivered',
+  createdBy: 'createdBy',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflStatementSendScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  weekStart: 'weekStart',
+  sentTo: 'sentTo',
+  sentAt: 'sentAt'
+};
+
+exports.Prisma.EflApplicationScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  businessName: 'businessName',
+  companyNumber: 'companyNumber',
+  cuisine: 'cuisine',
+  addressLine1: 'addressLine1',
+  city: 'city',
+  postcode: 'postcode',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  email: 'email',
+  menuUrl: 'menuUrl',
+  hygieneUrl: 'hygieneUrl',
+  idDocPath: 'idDocPath',
+  bankDocPath: 'bankDocPath',
+  checks: 'checks',
+  decisionNote: 'decisionNote',
+  decidedAt: 'decidedAt',
+  decidedBy: 'decidedBy',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflPushDeviceScalarFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  token: 'token',
+  platform: 'platform',
+  marketingOptIn: 'marketingOptIn',
+  isActive: 'isActive',
+  revokedAt: 'revokedAt',
+  lastSentAt: 'lastSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflSavedAddressScalarFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  label: 'label',
+  line1: 'line1',
+  line2: 'line2',
+  city: 'city',
+  postcode: 'postcode',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  instructions: 'instructions',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflCallLineScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  customerCode: 'customerCode',
+  driverCode: 'driverCode',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EflFavouriteScalarFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  listingId: 'listingId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EflConfigScalarFieldEnum = {
+  id: 'id',
+  defaultCommissionPercent: 'defaultCommissionPercent',
+  pinMinOrderTotal: 'pinMinOrderTotal',
+  pinForNewCustomers: 'pinForNewCustomers',
+  firstOrderMaxTotal: 'firstOrderMaxTotal',
+  maxOrdersPerHour: 'maxOrdersPerHour',
+  minHygieneRating: 'minHygieneRating',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflPhoneVerificationScalarFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  phone: 'phone',
+  codeHash: 'codeHash',
+  attempts: 'attempts',
+  expiresAt: 'expiresAt',
+  consumedAt: 'consumedAt',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.VideoStudioAccountScalarFieldEnum = {
@@ -2991,6 +3179,29 @@ exports.Prisma.AutoDispatchRunScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.ProspectScalarFieldEnum = {
+  id: 'id',
+  shopName: 'shopName',
+  sourceUrl: 'sourceUrl',
+  city: 'city',
+  postcode: 'postcode',
+  logoUrl: 'logoUrl',
+  bannerUrl: 'bannerUrl',
+  previewToken: 'previewToken',
+  previewExpiresAt: 'previewExpiresAt',
+  menu: 'menu',
+  menuStatus: 'menuStatus',
+  menuError: 'menuError',
+  hygiene: 'hygiene',
+  statements: 'statements',
+  statementStatus: 'statementStatus',
+  statementError: 'statementError',
+  assumptions: 'assumptions',
+  createdByUserId: 'createdByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -3539,11 +3750,17 @@ exports.Prisma.OrderOrderByRelevanceFieldEnum = {
   discountType: 'discountType',
   paymentProvider: 'paymentProvider',
   cancelReason: 'cancelReason',
+  deliveryPin: 'deliveryPin',
   loyaltyMemberId: 'loyaltyMemberId'
 };
 
 exports.Prisma.OrderNumberSequenceOrderByRelevanceFieldEnum = {
   tenantId: 'tenantId'
+};
+
+exports.Prisma.OrderTicketSequenceOrderByRelevanceFieldEnum = {
+  locationId: 'locationId',
+  businessDate: 'businessDate'
 };
 
 exports.Prisma.OrderItemOrderByRelevanceFieldEnum = {
@@ -4263,6 +4480,119 @@ exports.Prisma.OutboxEventOrderByRelevanceFieldEnum = {
   idempotencyKey: 'idempotencyKey'
 };
 
+exports.Prisma.EflListingOrderByRelevanceFieldEnum = {
+  id: 'id',
+  locationId: 'locationId',
+  brandId: 'brandId',
+  hiddenReason: 'hiddenReason',
+  description: 'description',
+  heroImageUrl: 'heroImageUrl',
+  logoUrl: 'logoUrl',
+  cuisines: 'cuisines',
+  fsaEstablishmentId: 'fsaEstablishmentId',
+  hygieneRating: 'hygieneRating',
+  statementEmail: 'statementEmail',
+  stripeAccountId: 'stripeAccountId'
+};
+
+exports.Prisma.EflAdCampaignOrderByRelevanceFieldEnum = {
+  id: 'id',
+  listingId: 'listingId'
+};
+
+exports.Prisma.EflAdTapOrderByRelevanceFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  viewerKey: 'viewerKey',
+  orderId: 'orderId'
+};
+
+exports.Prisma.EflAdShowOrderByRelevanceFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  viewerKey: 'viewerKey',
+  day: 'day'
+};
+
+exports.Prisma.EflCampaignOrderByRelevanceFieldEnum = {
+  id: 'id',
+  channel: 'channel',
+  title: 'title',
+  body: 'body',
+  ctaLabel: 'ctaLabel',
+  ctaUrl: 'ctaUrl',
+  status: 'status',
+  createdBy: 'createdBy'
+};
+
+exports.Prisma.EflStatementSendOrderByRelevanceFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  sentTo: 'sentTo'
+};
+
+exports.Prisma.EflApplicationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  businessName: 'businessName',
+  companyNumber: 'companyNumber',
+  cuisine: 'cuisine',
+  addressLine1: 'addressLine1',
+  city: 'city',
+  postcode: 'postcode',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phone: 'phone',
+  email: 'email',
+  menuUrl: 'menuUrl',
+  hygieneUrl: 'hygieneUrl',
+  idDocPath: 'idDocPath',
+  bankDocPath: 'bankDocPath',
+  decisionNote: 'decisionNote',
+  decidedBy: 'decidedBy'
+};
+
+exports.Prisma.EflPushDeviceOrderByRelevanceFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  token: 'token',
+  platform: 'platform'
+};
+
+exports.Prisma.EflSavedAddressOrderByRelevanceFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  label: 'label',
+  line1: 'line1',
+  line2: 'line2',
+  city: 'city',
+  postcode: 'postcode',
+  instructions: 'instructions'
+};
+
+exports.Prisma.EflCallLineOrderByRelevanceFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  customerCode: 'customerCode',
+  driverCode: 'driverCode'
+};
+
+exports.Prisma.EflFavouriteOrderByRelevanceFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  listingId: 'listingId'
+};
+
+exports.Prisma.EflConfigOrderByRelevanceFieldEnum = {
+  id: 'id'
+};
+
+exports.Prisma.EflPhoneVerificationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  customerAccountId: 'customerAccountId',
+  phone: 'phone',
+  codeHash: 'codeHash'
+};
+
 exports.Prisma.VideoStudioAccountOrderByRelevanceFieldEnum = {
   id: 'id',
   tenantId: 'tenantId',
@@ -4820,6 +5150,22 @@ exports.Prisma.AutoDispatchRunOrderByRelevanceFieldEnum = {
   jobId: 'jobId',
   error: 'error'
 };
+
+exports.Prisma.ProspectOrderByRelevanceFieldEnum = {
+  id: 'id',
+  shopName: 'shopName',
+  sourceUrl: 'sourceUrl',
+  city: 'city',
+  postcode: 'postcode',
+  logoUrl: 'logoUrl',
+  bannerUrl: 'bannerUrl',
+  previewToken: 'previewToken',
+  menuStatus: 'menuStatus',
+  menuError: 'menuError',
+  statementStatus: 'statementStatus',
+  statementError: 'statementError',
+  createdByUserId: 'createdByUserId'
+};
 exports.TenantPlan = exports.$Enums.TenantPlan = {
   STARTER: 'STARTER',
   PROFESSIONAL: 'PROFESSIONAL',
@@ -4846,7 +5192,8 @@ exports.UserRole = exports.$Enums.UserRole = {
   ONBOARDING_AGENT: 'ONBOARDING_AGENT',
   FINANCIAL_AGENT: 'FINANCIAL_AGENT',
   KIOSK: 'KIOSK',
-  KITCHEN_DISPLAY: 'KITCHEN_DISPLAY'
+  KITCHEN_DISPLAY: 'KITCHEN_DISPLAY',
+  LOCATION_TABLET: 'LOCATION_TABLET'
 };
 
 exports.LeadSource = exports.$Enums.LeadSource = {
@@ -4980,7 +5327,8 @@ exports.OrderPlatform = exports.$Enums.OrderPlatform = {
   GLOVO: 'GLOVO',
   KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
-  VOICE: 'VOICE'
+  VOICE: 'VOICE',
+  EAT_FOR_LESS: 'EAT_FOR_LESS'
 };
 
 exports.OrderSource = exports.$Enums.OrderSource = {
@@ -4998,7 +5346,8 @@ exports.OrderSource = exports.$Enums.OrderSource = {
   GLOVO: 'GLOVO',
   KEETA: 'KEETA',
   WHATSAPP: 'WHATSAPP',
-  VOICE: 'VOICE'
+  VOICE: 'VOICE',
+  EAT_FOR_LESS: 'EAT_FOR_LESS'
 };
 
 exports.IntegrationSource = exports.$Enums.IntegrationSource = {
@@ -5275,6 +5624,25 @@ exports.OutboxEventStatus = exports.$Enums.OutboxEventStatus = {
   DEAD: 'DEAD'
 };
 
+exports.EflListingStatus = exports.$Enums.EflListingStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  SUSPENDED: 'SUSPENDED'
+};
+
+exports.EflDeliveryMode = exports.$Enums.EflDeliveryMode = {
+  OWN_DRIVERS: 'OWN_DRIVERS',
+  COURIER: 'COURIER',
+  OWN_THEN_COURIER: 'OWN_THEN_COURIER'
+};
+
+exports.EflApplicationStatus = exports.$Enums.EflApplicationStatus = {
+  NEW: 'NEW',
+  WAITING_INFO: 'WAITING_INFO',
+  APPROVED: 'APPROVED',
+  DECLINED: 'DECLINED'
+};
+
 exports.VideoCreditReason = exports.$Enums.VideoCreditReason = {
   GRANT: 'GRANT',
   TOPUP: 'TOPUP',
@@ -5335,6 +5703,7 @@ exports.Prisma.ModelName = {
   LocationPaymentConfig: 'LocationPaymentConfig',
   Order: 'Order',
   OrderNumberSequence: 'OrderNumberSequence',
+  OrderTicketSequence: 'OrderTicketSequence',
   OrderItem: 'OrderItem',
   OrderStatusHistory: 'OrderStatusHistory',
   WebhookEvent: 'WebhookEvent',
@@ -5409,6 +5778,19 @@ exports.Prisma.ModelName = {
   WebPushSubscription: 'WebPushSubscription',
   SystemSecret: 'SystemSecret',
   OutboxEvent: 'OutboxEvent',
+  EflListing: 'EflListing',
+  EflAdCampaign: 'EflAdCampaign',
+  EflAdTap: 'EflAdTap',
+  EflAdShow: 'EflAdShow',
+  EflCampaign: 'EflCampaign',
+  EflStatementSend: 'EflStatementSend',
+  EflApplication: 'EflApplication',
+  EflPushDevice: 'EflPushDevice',
+  EflSavedAddress: 'EflSavedAddress',
+  EflCallLine: 'EflCallLine',
+  EflFavourite: 'EflFavourite',
+  EflConfig: 'EflConfig',
+  EflPhoneVerification: 'EflPhoneVerification',
   VideoStudioAccount: 'VideoStudioAccount',
   VideoCreditTxn: 'VideoCreditTxn',
   VideoGeneration: 'VideoGeneration',
@@ -5455,7 +5837,8 @@ exports.Prisma.ModelName = {
   AssemblyChart: 'AssemblyChart',
   MenuAutoPublish: 'MenuAutoPublish',
   AutoDispatchRule: 'AutoDispatchRule',
-  AutoDispatchRun: 'AutoDispatchRun'
+  AutoDispatchRun: 'AutoDispatchRun',
+  Prospect: 'Prospect'
 };
 
 /**

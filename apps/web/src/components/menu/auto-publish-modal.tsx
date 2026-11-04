@@ -23,6 +23,7 @@ const CHANNELS: Array<{ id: AutoPublishChannel; label: string; logo: string }> =
   { id: "DELIVEROO", label: "Deliveroo", logo: "DELIVEROO" },
   { id: "UBER_EATS", label: "Uber Eats", logo: "UBER_EATS" },
   { id: "HUBRISE", label: "HubRise", logo: "HUBRISE" },
+  { id: "CAREEM", label: "Careem", logo: "CAREEM" },
 ];
 
 // Shown Monday-first; stored 0 = Sunday … 6 = Saturday.
@@ -182,6 +183,8 @@ export function AutoPublishModal({ open, menuId, menuName, onClose }: Props) {
                 {CHANNELS.map((c) => {
                   const on = channels.includes(c.id);
                   const where = targets?.[c.id] ?? [];
+                  // Only offered where this menu's brand is actually on Careem.
+                  if (c.id === "CAREEM" && !on && where.length === 0) return null;
                   return (
                     <button
                       key={c.id}

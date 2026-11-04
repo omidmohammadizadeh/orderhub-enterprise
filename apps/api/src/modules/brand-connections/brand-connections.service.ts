@@ -48,7 +48,7 @@ export class BrandConnectionsService {
     const rows = await this.prisma.brandPlatformConnection.findMany({
       where: { tenantId, brandId },
     });
-    return SUPPORTED_PLATFORMS.map((platform) => {
+    const placeholders = SUPPORTED_PLATFORMS.map((platform) => {
       const existing = rows.find((r) => r.platform === platform);
       if (existing) return existing;
       return {
@@ -69,6 +69,13 @@ export class BrandConnectionsService {
         updatedAt: null,
       };
     });
+    // Connections made by a channel's own flow (Careem, Keeta, Glovo, Talabat…)
+    // and a brand's other locations. Without these their tiles read "Not
+    // connected" however connected they are.
+    return [
+      ...placeholders,
+      ...rows.filter((r) => !(placeholders as unknown[]).includes(r)),
+    ];
   }
 
   /** All connections at a location, across every brand. */

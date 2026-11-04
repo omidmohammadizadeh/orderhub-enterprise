@@ -188,6 +188,62 @@ export class SupabaseStorageService {
     return data.publicUrl;
   }
 
+  /**
+   * Store a file nobody may see without asking us — an ID document, a bank
+   * statement. Goes to a PRIVATE bucket (SUPABASE_PRIVATE_BUCKET, created on
+   * first use) and returns its path, never a URL; read it back with
+   * signedUrl().
+   */
+  async uploadPrivate(buffer: Buffer, contentType: string, folder: string, ext: string): Promise<string> {
+    if (!this.client) throw new Error("Supabase storage is not configured");
+    const bucket = await this.ensurePrivateBucket();
+    const path = `${folder}/${randomUUID()}.${ext}`;
+    const { error } = await this.client.storage
+      .from(bucket)
+      .upload(path, new Blob([buffer], { type: contentType }), { contentType, upsert: false });
+    if (error) {
+      this.logger.error(`Supabase private upload failed: ${error.message}`);
+      throw new Error(`Upload failed: ${error.message}`);
+    }
+    return path;
+  }
+
+  /** A link to a private file that stops working after `seconds`. */
+  async signedUrl(path: string, seconds = 600): Promise<string | null> {
+    if (!this.client) return null;
+    const { data, error } = await this.client.storage
+      .from(this.privateBucket())
+      .createSignedUrl(path, seconds);
+    if (error) {
+      this.logger.warn(`Signed URL for ${path} failed: ${error.message}`);
+      return null;
+    }
+    return data?.signedUrl ?? null;
+  }
+
+  private privateBucket(): string {
+    return this.config.get<string>("SUPABASE_PRIVATE_BUCKET") || "efl-private";
+  }
+
+  private privateBucketReady = false;
+
+  private async ensurePrivateBucket(): Promise<string> {
+    const bucket = this.privateBucket();
+    if (this.privateBucketReady || !this.client) return bucket;
+    const { data } = await this.client.storage.getBucket(bucket);
+    if (!data) {
+      const { error } = await this.client.storage.createBucket(bucket, { public: false });
+      if (error && !/already exists/i.test(error.message)) {
+        throw new Error(`Couldn't create the private bucket: ${error.message}`);
+      }
+    } else if (data.public) {
+      // A public bucket here would publish people's ID documents.
+      throw new Error(`Bucket "${bucket}" is public — private files must not go there`);
+    }
+    this.privateBucketReady = true;
+    return bucket;
+  }
+
   private extFor(contentType: string): string {
     switch (contentType) {
       case "image/jpeg":

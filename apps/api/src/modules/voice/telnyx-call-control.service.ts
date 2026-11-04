@@ -178,6 +178,32 @@ export class TelnyxCallControlService {
   }
 
   /**
+   * Say something and collect keypad digits, ending in `call.gather.ended`.
+   *
+   * Parameter names are gather_using_speak's own (checked against its API
+   * reference, 27 Oct 2026) — not borrowed from speak or transcription_start,
+   * which is how three live calls were lost before. `maximum_tries: 1` because
+   * the caller of this method decides what a wrong entry hears next.
+   */
+  gatherDigits(
+    callControlId: string,
+    prompt: string,
+    opts: { maxDigits: number; timeoutMs?: number },
+  ) {
+    return this.command(callControlId, "gather_using_speak", {
+      payload: prompt,
+      voice: this.voice,
+      language: this.relayLanguage,
+      minimum_digits: 1,
+      maximum_digits: opts.maxDigits,
+      maximum_tries: 1,
+      terminating_digit: "#",
+      timeout_millis: opts.timeoutMs ?? 20_000,
+      inter_digit_timeout_millis: 5_000,
+    });
+  }
+
+  /**
    * Start live transcription of the CALLER only.
    *
    * Only documented parameters go in here. The first attempt carried a `hints`

@@ -181,6 +181,22 @@ function VoiceLogo({ size, rounded = true }: LogoProps) {
   );
 }
 
+function EatForLessLogo({ size, rounded = true }: LogoProps) {
+  // Eat For Less — our own marketplace app: the words stacked on black,
+  // "less" on its lime tag, as on the app icon.
+  return (
+    <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="Eat For Less">
+      <rect width="100" height="100" fill="#0B0B0B" />
+      <g fontFamily="ui-sans-serif, system-ui, sans-serif" fontWeight="800" fontSize="25" letterSpacing="-1">
+        <text x="24" y="35" fill="white">eat</text>
+        <text x="24" y="57" fill="white">for</text>
+        <rect x="21" y="62" width="56" height="25" rx="4.5" fill="#D4FF3F" />
+        <text x="24" y="81" fill="#0B0B0B">less</text>
+      </g>
+    </svg>
+  );
+}
+
 function HubRiseLogo({ size, rounded = true }: LogoProps) {
   return (
     <svg viewBox="0 0 100 100" style={tileStyle(size, rounded)} aria-label="HubRise">
@@ -309,6 +325,8 @@ const PLATFORM_META: Record<
   // "did this come from the robot?" is the first question a shop asks about
   // any order it didn't hear taken.
   VOICE:       { slug: "voice",      bg: "#4f46e5", svg: (p) => <VoiceLogo {...p} /> },
+  // Our own marketplace app (black + lime).
+  EAT_FOR_LESS: { slug: "eatforless", bg: "#0B0B0B", svg: (p) => <EatForLessLogo {...p} /> },
   // Phase AW — brand-level direct online ordering. Same wordmark as
   // DIRECT/POS so the Order Hub identity stays consistent across the
   // three sister channels.
@@ -324,6 +342,7 @@ const LABELS: Record<string, string> = {
   ONLINE: "Online ordering",
   WHATSAPP: "WhatsApp",
   VOICE: "AI Voice",
+  EAT_FOR_LESS: "Eat For Less",
   HUBRISE: "HubRise",
   STUART: "Stuart",
   UBER_DIRECT: "Uber Direct",

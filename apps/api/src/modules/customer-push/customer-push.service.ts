@@ -352,6 +352,10 @@ export class CustomerPushService {
       if (!isPushTrigger(args.status) || args.status === REVIEW_TRIGGER) return;
       const trigger: PushTrigger = args.status;
 
+      // An Eat For Less order is the app's customer, not the shop's: it goes
+      // to the phones signed in to that account, in Eat For Less's words.
+      if (!args.onlySubscriptionId && (await this.notifyEflCustomer(args.orderId, trigger, args))) return;
+
       const links = await this.db().customerPushOrder.findMany({
         where: {
           orderId: args.orderId,
@@ -440,6 +444,53 @@ export class CustomerPushService {
     }
   }
 
+  /**
+   * Order update for an Eat For Less order. Returns false when the order
+   * isn't one, so the caller carries on with the shop's own subscribers.
+   */
+  private async notifyEflCustomer(
+    orderId: string,
+    trigger: PushTrigger,
+    args: { status: string; orderNumber?: number | null; displayId?: string | null; fulfillmentType?: string | null },
+  ): Promise<boolean> {
+    const order = await this.db().order.findUnique({
+      where: { id: orderId },
+      select: {
+        orderSource: true,
+        customerAccountId: true,
+        outForDeliveryAt: true,
+        brand: { select: { name: true } },
+        location: { select: { name: true } },
+      },
+    });
+    if (order?.orderSource !== "EAT_FOR_LESS") return false;
+    if (!order.customerAccountId) return true;
+    // Same rule as the shop path: a courier at the SHOP is not at the door.
+    if (trigger === "RIDER_ARRIVED" && !order.outForDeliveryAt) return true;
+
+    const devices = await this.db().eflPushDevice.findMany({
+      where: { customerAccountId: order.customerAccountId, isActive: true },
+    });
+    if (devices.length === 0) {
+      this.logger.log(`efl push ${args.status} order=${orderId} — no devices`);
+      return true;
+    }
+    const message = resolveMessage({
+      trigger,
+      fulfillmentType: args.fulfillmentType,
+      orderRef: args.displayId ?? (args.orderNumber ? `#${args.orderNumber}` : null),
+      shopName: order.brand?.name ?? order.location?.name ?? null,
+    });
+    if (!message) return true;
+    const delivered = await this.deliverExpo(
+      devices.map((d: any) => ({ id: d.id, kind: "EXPO", endpoint: d.token })),
+      { ...message, tag: `order-${orderId}`, data: { orderId, status: args.status, app: "eatforless" } },
+      "efl",
+    );
+    this.logger.log(`efl push ${args.status} order=${orderId} delivered=${delivered}/${devices.length}`);
+    return true;
+  }
+
   /** One ask per order, however many times COMPLETED fires — upsert on the
    *  unique orderId rather than create-and-catch. */
   private async queueReviewRequest(tenantId: string, orderId: string, businessRow?: AutomationRow | null) {
@@ -475,6 +526,17 @@ export class CustomerPushService {
    * Send one push to many subscriptions, browsers and app installs alike.
    * Never throws; returns how many the push services accepted.
    */
+  /** Eat For Less marketing: send to app installs from the EFL table, so
+   *  sent-at and revoked tokens are written back there. */
+  async sendToEflDevices(devices: Array<{ id: string; token: string }>, content: PushContent): Promise<number> {
+    let delivered = 0;
+    for (let i = 0; i < devices.length; i += EXPO_BATCH) {
+      const chunk = devices.slice(i, i + EXPO_BATCH).map((d) => ({ id: d.id, kind: "EXPO", endpoint: d.token }));
+      delivered += await this.deliverExpo(chunk, content, "efl");
+    }
+    return delivered;
+  }
+
   async sendTo(subs: any[], content: PushContent): Promise<{ delivered: number; failed: number }> {
     const web = subs.filter((s) => (s.kind ?? "WEB") === "WEB");
     const apps = subs.filter((s) => s.kind === "EXPO");
@@ -632,7 +694,12 @@ export class CustomerPushService {
    * app-world 410 — uninstalled, or notifications turned off — and gets the
    * same treatment.
    */
-  private async deliverExpo(subs: any[], content: PushContent): Promise<number> {
+  private async deliverExpo(
+    subs: any[],
+    content: PushContent,
+    /** Which table the subs are rows of — sent-at and revocations go back there. */
+    store: "subscription" | "efl" = "subscription",
+  ): Promise<number> {
     const messages = subs.map((sub) => {
       const url = content.urlFor?.(sub) ?? null;
       return {
@@ -671,12 +738,15 @@ export class CustomerPushService {
         else if (t?.details?.error === "DeviceNotRegistered") gone.push(sub.id);
         else this.logger.warn(`Expo push ticket error: ${t?.message ?? "unknown"} [${t?.details?.error ?? "?"}]`);
       });
+      const table = store === "efl" ? this.db().eflPushDevice : this.db().customerPushSubscription;
       if (ok.length) {
-        await this.db()
-          .customerPushSubscription.updateMany({ where: { id: { in: ok } }, data: { lastSentAt: new Date() } })
+        await table.updateMany({ where: { id: { in: ok } }, data: { lastSentAt: new Date() } }).catch(() => undefined);
+      }
+      if (gone.length) {
+        await table
+          .updateMany({ where: { id: { in: gone } }, data: { isActive: false, revokedAt: new Date() } })
           .catch(() => undefined);
       }
-      if (gone.length) await this.revoke(gone);
       return ok.length;
     } catch (e: any) {
       this.logger.warn(`Expo push failed for ${subs.length} app install(s): ${e?.message ?? e}`);

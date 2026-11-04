@@ -14,7 +14,12 @@ import type { Queue } from "bull";
 import type { Prisma } from "@orderhub/database";
 import { withDeliverooModifierType } from "./deliveroo-modifier-type";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
-import { carryGuideOnRename, copyGuideToName, copyGuidesToBrand } from "../build-guides/build-guide-carry";
+import {
+  carryGuideOnRename,
+  copyGuideToName,
+  copyGuidesToBrand,
+  fillGuidesFromTwinBrand,
+} from "../build-guides/build-guide-carry";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 import { PluService, randomPlu } from "./plu.service";
 import { MenuAssignmentsService } from "./menu-assignments.service";
@@ -565,8 +570,13 @@ export class MenusService {
       data: { brandId, brandIds: [brandId] },
     });
     const carry = { items: before, toBrandId: brandId };
-    const chartsCopied = await copyGuidesToBrand(this.prisma as any, carry, "assemblyChart");
-    const guidesCopied = await copyGuidesToBrand(this.prisma as any, carry, "buildGuide");
+    let chartsCopied = await copyGuidesToBrand(this.prisma as any, carry, "assemblyChart");
+    let guidesCopied = await copyGuidesToBrand(this.prisma as any, carry, "buildGuide");
+    // The old brand may never have had them (FIESTA MEXA sells as PAPI TACO,
+    // its charts live under another brand) — take them from the twin brand.
+    const fill = { tenantId, items: before.map((i) => ({ brandId, name: i.name })) };
+    chartsCopied += await fillGuidesFromTwinBrand(this.prisma as any, fill, "assemblyChart");
+    guidesCopied += await fillGuidesFromTwinBrand(this.prisma as any, fill, "buildGuide");
     return { updated: itemIds.length, menuRebranded: true, chartsCopied, guidesCopied };
   }
 
@@ -603,7 +613,7 @@ export class MenusService {
     const usedPlus = new Set<string>();
     await this.seedUsedPlus(tenantId, usedPlus);
 
-    return this.prisma.$transaction(
+    const cloned = await this.prisma.$transaction(
       async (tx) => {
       const cloned = await tx.menu.create({
         // Inherit the source's home location so the clone shows up on the
@@ -727,6 +737,16 @@ export class MenusService {
       // budget is not enough for large menus.
       { timeout: 120_000, maxWait: 20_000 },
     );
+
+    // A copied menu must arrive with its kitchen charts and guides. The copy
+    // keeps brand + name, so it shares whatever its brand already has; fill in
+    // any product whose brand never had one from the brand that does.
+    // Best-effort, after the transaction — a chart must never fail a clone.
+    const items = source.categories.flatMap((c: any) => c.items.map((l: any) => l.item).filter(Boolean));
+    const fill = { tenantId, items: items.map((i: any) => ({ brandId: i.brandId, name: i.name })) };
+    await fillGuidesFromTwinBrand(this.prisma as any, fill, "assemblyChart");
+    await fillGuidesFromTwinBrand(this.prisma as any, fill, "buildGuide");
+    return cloned;
   }
 
   /**

@@ -78,6 +78,7 @@ describe("CHANNEL_VARIANT_PRESETS", () => {
       "JUST_EAT",
       "ONLINE",
       "WHATSAPP",
+      "EAT_FOR_LESS",
       "POS",
     ]);
   });

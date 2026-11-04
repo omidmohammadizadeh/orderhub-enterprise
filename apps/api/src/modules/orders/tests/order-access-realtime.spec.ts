@@ -96,6 +96,26 @@ describe("accessibleLocationIdsForRealtime", () => {
     expect(ids).toEqual(["l9"]);
   });
 
+  // The leak this pins: Kingston Pizza's owner carries the parent "Order Hub"
+  // brand that 61 shops sit under, and their board was pushed every one of
+  // those shops' orders. Rooms carry all orders unfiltered, so a user with
+  // their own locations never gains a room through a brand.
+  it("never widens a user's own locations with their brands' locations", async () => {
+    const prisma = makePrisma({
+      tenantLocations: ["kingston", "pizza-uno", "best-kebab"],
+      userLocations: ["kingston"],
+      userBrands: ["order-hub"],
+      brandLocations: { "order-hub": ["pizza-uno", "kingston", "best-kebab"] },
+    });
+    const ids = await accessibleLocationIdsForRealtime(prisma, {
+      tenantId: "t1",
+      userId: "ashkan",
+      role: "OWNER",
+      permissions: [],
+    } as any);
+    expect(ids).toEqual(["kingston"]);
+  });
+
   it("returns nothing for a scoped user with no assignments at all", async () => {
     const prisma = makePrisma({ tenantLocations: ["l1", "l2"] });
     const ids = await accessibleLocationIdsForRealtime(prisma, {
@@ -105,5 +125,30 @@ describe("accessibleLocationIdsForRealtime", () => {
       permissions: [],
     } as any);
     expect(ids).toEqual([]);
+  });
+});
+
+describe("OrdersGateway room:join — a brand never opens another shop's room", () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { OrdersGateway } = require("../../../infrastructure/socket/gateways/orders.gateway");
+  const gatewayWith = (own: string[], brandHits: number) => {
+    const gw: any = Object.create(OrdersGateway.prototype);
+    gw.prisma = {
+      userLocation: { findMany: jest.fn(async () => own.map((locationId) => ({ locationId }))) },
+      userBrand: { count: jest.fn(async () => brandHits) },
+    };
+    return gw;
+  };
+
+  it("keeps a user with their own shop out of the parent brand's other shops", async () => {
+    const gw = gatewayWith(["kingston"], 1);
+    expect(await gw.userCanAccessLocation("ashkan", "OWNER", "pizza-uno")).toBe(false);
+    expect(await gw.userCanAccessLocation("ashkan", "OWNER", "kingston")).toBe(true);
+    expect(gw.prisma.userBrand.count).not.toHaveBeenCalled();
+  });
+
+  it("still lets a brand-only account into its brand's shops", async () => {
+    const gw = gatewayWith([], 1);
+    expect(await gw.userCanAccessLocation("u9", "OWNER", "l9")).toBe(true);
   });
 });

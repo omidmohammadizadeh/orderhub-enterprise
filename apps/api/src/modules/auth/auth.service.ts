@@ -12,6 +12,7 @@ import { ROLE_PERMISSIONS } from "@orderhub/shared";
 import { AUDIT_EVENTS } from "@orderhub/shared";
 import type { AuthenticatedUser } from "./interfaces/jwt-payload.interface";
 import type { RequestMeta } from "./interfaces/request-meta.interface";
+import { normalizeLoginIdentifier } from "../../common/access/tablet-login";
 import type {
   AuthTokensDto,
   LoginResponseDto,
@@ -38,7 +39,9 @@ export class AuthService {
     password: string,
   ): Promise<AuthenticatedUser | null> {
     const user = await this.prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+      // A shop's tablet signs in with a bare username; real emails pass
+      // through unchanged.
+      where: { email: normalizeLoginIdentifier(email) },
     });
 
     if (!user || !user.password) return null;

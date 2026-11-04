@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
+import { useSelectedLocationStore } from "@/stores/selected-location.store";
 
 interface MollieBrandRow {
   brandId: string;
@@ -71,9 +72,16 @@ const errorText = (e: any) =>
 
 export function MollieSection() {
   const qc = useQueryClient();
+  // The location picked in the sidebar, same as the Brand payouts list above.
+  const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
   const q = useQuery({
-    queryKey: ["mollie-status"],
-    queryFn: () => apiClient.get<MollieStatus>("/v1/payments/mollie/status").then((r) => r.data),
+    queryKey: ["mollie-status", locationId],
+    queryFn: () =>
+      apiClient
+        .get<MollieStatus>("/v1/payments/mollie/status", {
+          params: locationId ? { locationId } : undefined,
+        })
+        .then((r) => r.data),
   });
 
   // Back from Mollie's consent screen: say what happened, once.
@@ -139,6 +147,9 @@ export function MollieSection() {
         </div>
       ) : (
         <ul className="mt-4 divide-y divide-zinc-100">
+          {s.brands.length === 0 && (
+            <li className="py-3 text-sm text-zinc-500">No brands selling online at this location.</li>
+          )}
           {s.brands.map((b) => (
             <MollieBrand key={b.brandId} row={b} clientLinks={s.clientLinksAvailable} onChange={refresh} />
           ))}

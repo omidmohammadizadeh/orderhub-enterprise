@@ -13,12 +13,23 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, Loader2, Paintbrush, RotateCcw, X } from "lucide-react";
 import {
+  CATEGORY_PLACEMENTS,
+  CATEGORY_SIZES,
   TILE_PALETTE,
   TILE_SIZES,
+  type CategoryPlacement,
+  type CategorySize,
   type TileColours,
   type TileSize,
   paletteEntry,
 } from "@/lib/pos/tile-colours";
+
+export interface TileSettings {
+  colours: TileColours;
+  size: TileSize;
+  categoryPlacement: CategoryPlacement;
+  categorySize: CategorySize;
+}
 import { cn } from "@/lib/utils";
 
 interface Category {
@@ -32,6 +43,8 @@ export function TileColoursModal({
   categories,
   initial,
   initialSize,
+  initialCategoryPlacement,
+  initialCategorySize,
   saving,
   onSave,
   onClose,
@@ -40,12 +53,16 @@ export function TileColoursModal({
   categories: Category[];
   initial: TileColours;
   initialSize: TileSize;
+  initialCategoryPlacement: CategoryPlacement;
+  initialCategorySize: CategorySize;
   saving: boolean;
-  onSave: (next: TileColours, size: TileSize) => void;
+  onSave: (next: TileSettings) => void;
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState<TileColours>(initial);
   const [size, setSize] = useState<TileSize>(initialSize);
+  const [placement, setPlacement] = useState<CategoryPlacement>(initialCategoryPlacement);
+  const [catSize, setCatSize] = useState<CategorySize>(initialCategorySize);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   // Remount on open so a cancelled edit doesn't linger into the next one.
@@ -54,6 +71,8 @@ export function TileColoursModal({
     setSeen(true);
     setDraft(initial);
     setSize(initialSize);
+    setPlacement(initialCategoryPlacement);
+    setCatSize(initialCategorySize);
   }
   if (!open && seen) setSeen(false);
 
@@ -86,7 +105,7 @@ export function TileColoursModal({
       <div className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-t-2xl bg-white sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-3.5">
           <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900">
-            <Paintbrush className="h-4 w-4" /> Tile size &amp; colours
+            <Paintbrush className="h-4 w-4" /> Tiles, categories &amp; colours
           </h2>
           <button
             onClick={onClose}
@@ -135,8 +154,65 @@ export function TileColoursModal({
             })}
           </div>
           <p className="mt-1.5 text-[11px] text-zinc-400">
-            Changes the item tiles and the category buttons together.
+            The item tiles, and the category tiles on a phone.
           </p>
+        </div>
+
+        {/* Shop-wide, like the tile size: every till at this shop follows. */}
+        <div className="border-b border-zinc-100 px-5 py-3">
+          <p className="mb-2 text-xs font-medium text-zinc-600">Categories on a tablet</p>
+          <div className="grid grid-cols-3 gap-2">
+            {(Object.keys(CATEGORY_PLACEMENTS) as CategoryPlacement[]).map((k) => {
+              const p = CATEGORY_PLACEMENTS[k];
+              const active = placement === k;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setPlacement(k)}
+                  aria-pressed={active}
+                  className={cn(
+                    "rounded-lg border px-2 py-2 text-center",
+                    active
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 text-zinc-700 hover:bg-zinc-50",
+                  )}
+                >
+                  <span className="block text-xs font-semibold">{p.label}</span>
+                  <span
+                    className={cn(
+                      "block text-[10px]",
+                      active ? "text-zinc-300" : "text-zinc-400",
+                    )}
+                  >
+                    {p.hint}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mb-2 mt-3 text-xs font-medium text-zinc-600">Category button size</p>
+          <div className="grid grid-cols-4 gap-2">
+            {(Object.keys(CATEGORY_SIZES) as CategorySize[]).map((k) => {
+              const active = catSize === k;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setCatSize(k)}
+                  aria-pressed={active}
+                  className={cn(
+                    "rounded-lg border px-2 py-2 text-center text-xs font-semibold",
+                    active
+                      ? "border-zinc-900 bg-zinc-900 text-white"
+                      : "border-zinc-200 text-zinc-700 hover:bg-zinc-50",
+                  )}
+                >
+                  {CATEGORY_SIZES[k].label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-3">
@@ -240,12 +316,19 @@ export function TileColoursModal({
           </button>
           <button
             type="button"
-            onClick={() => onSave(draft, size)}
+            onClick={() =>
+              onSave({
+                colours: draft,
+                size,
+                categoryPlacement: placement,
+                categorySize: catSize,
+              })
+            }
             disabled={saving}
             className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save colours
+            Save
           </button>
         </div>
       </div>

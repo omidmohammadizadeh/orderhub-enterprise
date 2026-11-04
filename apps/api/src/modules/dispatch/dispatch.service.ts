@@ -13,7 +13,7 @@ import {
 } from "@orderhub/database";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
-import { coercePostcodeFees, isCashPayment, matchPostcodeFee } from "./driver-earnings.service";
+import { canSeeDriverPay, coercePostcodeFees, creditedStopsIn, summariseStops } from "./driver-earnings.service";
 import { driverIdsForLocations } from "../../common/access/accessible-locations";
 import { GeocodingService } from "./geocoding.service";
 import { TERMINAL_ORDER_STATUSES } from "./dispatch-settlement.service";
@@ -186,6 +186,8 @@ export interface OperatorDriverJob {
   status: DriverAssignmentStatus;
   sequence: number | null;
   address: string | null;
+  /** Already counted in the driver's pay (shop's count-on-dispatch rule). */
+  credited: boolean;
 }
 export interface OperatorDriverRow {
   id: string;
@@ -197,12 +199,13 @@ export interface OperatorDriverRow {
   cashTotal: string;
   cardTotal: string;
   total: string;
-  // Phase BG — home location + pay config (for the Manage/earnings panel) and
-  // the driver's computed earning so far today.
-  homeLocationId: string | null;
-  startupFee: string;
-  postcodeFees: { postcode: string; fee: number }[];
-  earningToday: string;
+  // Phase BG — home location + pay config for the Earnings tab. Only sent to
+  // owners and admins (DRIVER_PAY_ROLES); managers and staff never get it.
+  homeLocationId?: string | null;
+  startupFee?: string;
+  postcodeFees?: { postcode: string; fee: number }[];
+  // Everything since the driver's last cash-up, so settling takes it to zero.
+  earning: string;
 }
 export interface OperatorFailedRow {
   id: string;
@@ -214,6 +217,7 @@ export interface OperatorFailedRow {
 }
 export interface OperatorDashboard {
   scope: string[];
+  shops: { id: string; name: string; payOnDispatch: boolean }[];
   stats: OperatorStats;
   attention: OperatorOrderRow[];
   outForDelivery: OperatorOrderRow[];
@@ -949,6 +953,17 @@ export class DispatchService {
       select: { pushToken: true, pushJobFormat: true },
     });
 
+    // Shops with "count on dispatch" on credit the driver from this moment.
+    const creditingShops = await this.prisma.location.findMany({
+      where: { id: { in: [...new Set(found.map((o) => o.locationId).filter((id): id is string => !!id))] }, payOnDispatch: true },
+      select: { id: true },
+    });
+    const creditingShopIds = new Set(creditingShops.map((l) => l.id));
+    const creditedAtFor = (orderId: string) => {
+      const locationId = found.find((o) => o.id === orderId)?.locationId;
+      return locationId && creditingShopIds.has(locationId) ? new Date() : null;
+    };
+
     // All or nothing. ids[] is the operator's stop order → sequence 1..N.
     const firstAssignmentId = await this.prisma.$transaction(async (tx) => {
       let first: string | null = null;
@@ -960,6 +975,7 @@ export class DispatchService {
             driverId,
             status: DriverAssignmentStatus.ASSIGNED,
             sequence: i + 1,
+            creditedAt: creditedAtFor(orderId),
           },
           update: {
             driverId,
@@ -970,6 +986,7 @@ export class DispatchService {
             pickedUpAt: null,
             arrivedAt: null,
             deliveredAt: null,
+            creditedAt: creditedAtFor(orderId),
           },
         });
         first = first ?? a.id;
@@ -1069,6 +1086,39 @@ export class DispatchService {
    * scoped to the selected location(s); drivers are the whole fleet (they aren't
    * bound to one location), mirroring the dispatch map.
    */
+  /** Turn a shop's "count in cash-up on dispatch" rule on or off. */
+  async setPayOnDispatch(user: AuthenticatedUser, locationId: string, on: boolean) {
+    const accessible = await this.resolveAccessibleLocationIds(user);
+    if (!accessible.includes(locationId)) {
+      throw new ForbiddenException("No access to that location");
+    }
+    await this.prisma.location.update({
+      where: { id: locationId },
+      data: { payOnDispatch: on },
+    });
+    // Switching on also covers what's already out with drivers, which is the
+    // cash-up the shop is usually staring at. Switching off leaves credited
+    // stops alone: some may already be settled, and clearing them would count
+    // those again when delivered.
+    const { count } = on
+      ? await this.prisma.driverAssignment.updateMany({
+          where: {
+            creditedAt: null,
+            status: {
+              in: [
+                DriverAssignmentStatus.ASSIGNED,
+                DriverAssignmentStatus.ACCEPTED,
+                DriverAssignmentStatus.PICKED_UP,
+              ],
+            },
+            order: { locationId },
+          },
+          data: { creditedAt: new Date() },
+        })
+      : { count: 0 };
+    return { locationId, payOnDispatch: on, creditedNow: count };
+  }
+
   async getOperatorDashboard(
     user: AuthenticatedUser,
     locationParam?: string,
@@ -1092,7 +1142,7 @@ export class DispatchService {
       failedToday: 0,
     };
     if (scope.length === 0) {
-      return { scope: [], stats: emptyStats, attention: [], outForDelivery: [], drivers: [], recentFailed: [] };
+      return { scope: [], shops: [], stats: emptyStats, attention: [], outForDelivery: [], drivers: [], recentFailed: [] };
     }
 
     // Team Roles decides which shops a driver works at — the same resolve the
@@ -1208,30 +1258,24 @@ export class DispatchService {
           presence: { select: { status: true, lastPingAt: true } },
           assignments: {
             where: {
-              OR: [
-                {
-                  status: {
-                    in: [
-                      DriverAssignmentStatus.ASSIGNED,
-                      DriverAssignmentStatus.ACCEPTED,
-                      DriverAssignmentStatus.PICKED_UP,
-                    ],
-                  },
-                },
-                { status: DriverAssignmentStatus.DELIVERED, deliveredAt: { gte: startOfDay } },
-              ],
+              status: {
+                in: [
+                  DriverAssignmentStatus.ASSIGNED,
+                  DriverAssignmentStatus.ACCEPTED,
+                  DriverAssignmentStatus.PICKED_UP,
+                ],
+              },
             },
             select: {
               orderId: true,
               status: true,
               sequence: true,
+              creditedAt: true,
               order: {
                 select: {
                   displayId: true,
                   orderNumber: true,
                   customerName: true,
-                  total: true,
-                  paymentMethod: true,
                   addressLine1: true,
                   city: true,
                   postcode: true,
@@ -1245,6 +1289,37 @@ export class DispatchService {
         orderBy: { firstName: "asc" },
       }),
     ]);
+
+    const canSeePay = canSeeDriverPay(user.role);
+
+    // What each driver is owed: the same stops the Cash up window would settle,
+    // not today's. A card counting "today" stayed at £x after settling.
+    const driverIds = drivers.map((d) => d.id);
+    const lastCashUps = await this.prisma.driverCashUp.groupBy({
+      by: ["driverId"],
+      where: { driverId: { in: driverIds } },
+      _max: { periodEnd: true },
+    });
+    const lastCashUpEnd = new Map(lastCashUps.map((c) => [c.driverId, c._max.periodEnd]));
+    const outstandingTo = new Date();
+    const outstandingStops = await this.prisma.driverAssignment.findMany({
+      where: {
+        OR: driverIds.map((driverId) => {
+          const from = lastCashUpEnd.get(driverId);
+          return {
+            driverId,
+            ...creditedStopsIn({ ...(from ? { gt: from } : {}), lte: outstandingTo }),
+          };
+        }),
+      },
+      select: {
+        driverId: true,
+        status: true,
+        creditedAt: true,
+        deliveredAt: true,
+        order: { select: { total: true, paymentMethod: true, postcode: true, deliveryAddress: true } },
+      },
+    });
 
     // Build the order rows (attention = overdue + still active).
     const toRow = (o: (typeof activeOrders)[number]): OperatorOrderRow => {
@@ -1273,41 +1348,35 @@ export class DispatchService {
     // Phase BG — show EVERY driver of the location (not just online ones) so
     // the operator can open Manage and set up pay for any of them.
     const driverRows: OperatorDriverRow[] = drivers.map((d) => {
-      const active = d.assignments.filter((a) => a.status !== DriverAssignmentStatus.DELIVERED);
-      const delivered = d.assignments.filter((a) => a.status === DriverAssignmentStatus.DELIVERED);
       const fees = coercePostcodeFees((d as any).postcodeFees);
-      let cash = 0;
-      let card = 0;
-      let deliveryFees = 0;
-      for (const a of delivered) {
-        const t = Number(a.order.total);
-        if (isCashPayment(a.order.paymentMethod)) cash += t;
-        else card += t;
-        deliveryFees += matchPostcodeFee(fees, a.order.postcode);
-      }
       const startup = Number((d as any).startupFee) || 0;
-      const earningToday = (delivered.length > 0 ? startup : 0) + deliveryFees;
+      const owed = summariseStops(d, outstandingStops.filter((stop) => stop.driverId === d.id));
       return {
         id: d.id,
         name: `${d.firstName} ${d.lastName}`.trim(),
         status: d.presence?.status ?? DriverPresenceStatus.OFFLINE,
         lastPingAt: d.presence?.lastPingAt ? d.presence.lastPingAt.toISOString() : null,
-        activeJobs: active.map((a) => ({
+        activeJobs: d.assignments.map((a) => ({
           orderId: a.orderId,
           ref: ref(a.order, a.orderId),
           customerName: a.order.customerName,
           status: a.status,
           sequence: a.sequence,
           address: addr(a.order),
+          credited: !!a.creditedAt,
         })),
-        delivered: delivered.length,
-        cashTotal: cash.toFixed(2),
-        cardTotal: card.toFixed(2),
-        total: (cash + card).toFixed(2),
-        homeLocationId: (d as any).locationId ?? null,
-        startupFee: startup.toFixed(2),
-        postcodeFees: fees,
-        earningToday: earningToday.toFixed(2),
+        delivered: owed.deliveries,
+        cashTotal: owed.cashCollected.toFixed(2),
+        cardTotal: owed.cardCollected.toFixed(2),
+        total: (owed.cashCollected + owed.cardCollected).toFixed(2),
+        ...(canSeePay
+          ? {
+              homeLocationId: (d as any).locationId ?? null,
+              startupFee: startup.toFixed(2),
+              postcodeFees: fees,
+            }
+          : {}),
+        earning: owed.driverEarning.toFixed(2),
       };
     });
 
@@ -1329,6 +1398,12 @@ export class DispatchService {
       at: o.updatedAt.toISOString(),
     }));
 
-    return { scope, stats, attention, outForDelivery, drivers: driverRows, recentFailed };
+    const shops = await this.prisma.location.findMany({
+      where: { id: { in: scope } },
+      select: { id: true, name: true, payOnDispatch: true },
+      orderBy: { name: "asc" },
+    });
+
+    return { scope, shops, stats, attention, outForDelivery, drivers: driverRows, recentFailed };
   }
 }

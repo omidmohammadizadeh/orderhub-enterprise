@@ -52,6 +52,11 @@ export interface SendEmailOpts {
    * all.
    */
   fromName?: string;
+  /** A full `Name <address>` replacing the platform sender — for mail from
+   *  another verified domain (Eat For Less statements). */
+  fromAddress?: string;
+  /** Files to attach. Content is base64. */
+  attachments?: Array<{ filename: string; content: string }>;
 }
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
@@ -213,12 +218,13 @@ export class EmailService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: this.fromWithName(opts.fromName),
+          from: opts.fromAddress ?? this.fromWithName(opts.fromName),
           to: [opts.to],
           subject: opts.subject,
           html: opts.html,
           text: opts.text,
           reply_to: opts.replyTo,
+          ...(opts.attachments?.length ? { attachments: opts.attachments } : {}),
         }),
       });
       if (!res.ok) {

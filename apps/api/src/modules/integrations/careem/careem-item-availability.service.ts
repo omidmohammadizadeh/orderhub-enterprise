@@ -73,18 +73,74 @@ export class CareemItemAvailabilityService {
     if (!args.items.length) return;
     if (!this.client.configured()) return;
 
-    const location = await this.locationFor(args.tenantId, args.locationId);
-    if (!location) return;
+    const connections = await this.prisma.brandPlatformConnection.findMany({
+      where: {
+        tenantId: args.tenantId,
+        platform: "CAREEM",
+        externalStoreId: { not: null },
+        status: { not: "not_connected" },
+        ...(args.locationId ? { locationId: args.locationId } : {}),
+      },
+      select: { externalStoreId: true, brandId: true, metadata: true },
+    });
 
-    for (let i = 0; i < args.items.length; i += MAX_ITEMS_PER_CALL) {
-      const chunk = args.items.slice(i, i + MAX_ITEMS_PER_CALL);
+    if (connections.length) {
+      const aliases = await this.twins(args.items.map((i) => i.id));
+      for (const conn of connections) {
+        // Only what this branch was actually sent, so another brand's item at
+        // the same kitchen never goes to it. Nothing published = nothing to do.
+        const published = new Set<string>(
+          ((conn.metadata as any)?.careemCatalog?.itemIds as string[]) ?? [],
+        );
+        const items = args.items.flatMap((item) =>
+          (aliases.get(item.id) ?? [item.id])
+            .filter((id) => published.has(id))
+            .map((id) => ({ id, active: item.active })),
+        );
+        await this.send(conn.externalStoreId!, conn.brandId, items);
+      }
+      return;
+    }
+
+    // The branch registered from the Careem page uses the location's own id.
+    const location = await this.locationFor(args.tenantId, args.locationId);
+    if (location) await this.send(location.id, location.brandId, args.items);
+  }
+
+  /** A menu may have been published from a same-named row of the same brand. */
+  private async twins(ids: string[]): Promise<Map<string, string[]>> {
+    const rows = await this.prisma.menuItem.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true, brandId: true },
+    });
+    const out = new Map<string, string[]>();
+    for (const row of rows) {
+      const same = await this.prisma.menuItem.findMany({
+        where: {
+          brandId: row.brandId,
+          name: { equals: row.name, mode: "insensitive" },
+        },
+        select: { id: true },
+      });
+      out.set(row.id, [...new Set([row.id, ...same.map((t) => t.id)])]);
+    }
+    return out;
+  }
+
+  private async send(
+    branchId: string,
+    brandId: string,
+    items: Array<{ id: string; active: boolean }>,
+  ): Promise<void> {
+    for (let i = 0; i < items.length; i += MAX_ITEMS_PER_CALL) {
+      const chunk = items.slice(i, i + MAX_ITEMS_PER_CALL);
       try {
         await this.client.request(
-          `/catalogs/${encodeURIComponent(location.id)}/items`,
+          `/catalogs/${encodeURIComponent(branchId)}/items`,
           {
             method: "PATCH",
-            brandId: location.brandId,
-            branchId: location.id,
+            brandId,
+            branchId,
             body: {
               items: chunk.map((item) => ({
                 // Our MenuItem.id is the catalog id we published, which is
@@ -98,19 +154,12 @@ export class CareemItemAvailabilityService {
       } catch (err) {
         this.logger.warn(
           `Careem availability push failed for ${chunk.length} item(s) at ` +
-            `${location.id}: ${(err as Error).message}`,
+            `${branchId}: ${(err as Error).message}`,
         );
       }
     }
   }
 
-  /**
-   * The Careem-connected location this snooze belongs to.
-   *
-   * A snooze can arrive without one — the operator was on "all locations" —
-   * and there is no safe guess. Pushing to whichever shop happened to be first
-   * would 86 an item at a branch nobody touched.
-   */
   private async locationFor(tenantId: string, locationId?: string | null) {
     if (!locationId) return null;
     return this.prisma.location.findFirst({

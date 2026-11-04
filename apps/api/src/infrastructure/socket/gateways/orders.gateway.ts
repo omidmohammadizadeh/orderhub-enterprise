@@ -100,6 +100,14 @@ export class OrdersGateway
     }
 
     client.join(`location:${locationId}`);
+    // A shop device: this socket opened THIS shop, as the shop's own staff.
+    // It's what "the shop is online" means for Eat For Less — a platform
+    // admin looking at a board, or an all-locations view, would otherwise
+    // make every shop look staffed.
+    if (role !== "PLATFORM_ADMIN") {
+      const data = client.data as { shopLocationIds?: string[] };
+      data.shopLocationIds = [...new Set([...(data.shopLocationIds ?? []), locationId])];
+    }
     this.logger.debug(`${client.id} (tenant:${tenantId}) joined location:${locationId}`);
   }
 
@@ -111,10 +119,14 @@ export class OrdersGateway
     locationId: string,
   ): Promise<boolean> {
     if (["PLATFORM_ADMIN", "TENANT_OWNER"].includes(role)) return true;
-    const byLocation = await (this.prisma as any).userLocation.count({
-      where: { userId, locationId },
+    // Own locations are authoritative (see realtimeLocationIds): a user with
+    // any of their own never gains a room through a brand, or the parent
+    // brand most shops sit under would open every shop's room to them.
+    const own = await (this.prisma as any).userLocation.findMany({
+      where: { userId },
+      select: { locationId: true },
     });
-    if (byLocation > 0) return true;
+    if (own.length) return own.some((l: { locationId: string }) => l.locationId === locationId);
     const byBrand = await (this.prisma as any).userBrand.count({
       where: {
         userId,
@@ -159,6 +171,8 @@ export class OrdersGateway
     @MessageBody() locationId: string,
   ) {
     client.leave(`location:${locationId}`);
+    const data = client.data as { shopLocationIds?: string[] };
+    if (data.shopLocationIds) data.shopLocationIds = data.shopLocationIds.filter((id) => id !== locationId);
   }
 
   // "All locations" board has no single locationId to join against — this

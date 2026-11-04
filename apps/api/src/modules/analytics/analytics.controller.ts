@@ -7,11 +7,13 @@ import {
   Body,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from "@nestjs/swagger";
 import { AnalyticsService } from "./analytics.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { TabletAnalyticsGuard } from "./tablet-analytics.guard";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 function parseDate(value: string | undefined, fallback: Date): Date {
@@ -39,7 +41,10 @@ function thirtyDaysAgo(): Date {
 
 @ApiTags("analytics")
 @ApiBearerAuth()
-@Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN")
+// LOCATION_TABLET is the shop's shared counter tablet; TabletAnalyticsGuard
+// narrows it to its own shop's reports, and only when an owner allows it.
+@Roles("OWNER", "DARK_KITCHEN_MANAGER", "MANAGER", "TENANT_OWNER", "PLATFORM_ADMIN", "LOCATION_TABLET")
+@UseGuards(TabletAnalyticsGuard)
 @Controller({ path: "analytics", version: "1" })
 export class AnalyticsController {
   constructor(private readonly analytics: AnalyticsService) {}

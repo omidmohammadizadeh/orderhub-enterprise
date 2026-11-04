@@ -155,6 +155,7 @@ export class CustomersService {
       TALABAT: ["TALABAT"],
       GLOVO: ["GLOVO"],
       KEETA: ["KEETA"],
+      EAT_FOR_LESS: ["EAT_FOR_LESS"],
     };
 
     // Location scoping: a scoped user only sees customers from their accessible
@@ -486,6 +487,8 @@ export class CustomersService {
           // Only orders this shop can act on or repeat. A marketplace order
           // belongs to the marketplace: we cannot amend it, and its items are
           // priced on somebody else's menu.
+          // Eat For Less is out for the same reason: its customer reaches the
+          // shop through a private number, never their own.
           orderSource: { in: ["VOICE", "POS", "ONLINE", "DIRECT"] },
         },
         orderBy: { createdAt: "desc" },

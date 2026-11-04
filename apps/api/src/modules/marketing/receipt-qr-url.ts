@@ -154,6 +154,8 @@ const QR_EXCLUDED_SOURCES = new Set([
   "VOICE",
   "WHATSAPP",
   "WHATS_APP",
+  // Our own marketplace app: its customers already order from us.
+  "EAT_FOR_LESS",
 ]);
 
 export function isMarketplaceSource(

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useCurrency } from "@/hooks/use-currency";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import {
   formatMoney,
   extractSizeKey,
@@ -95,6 +95,13 @@ interface Props {
    * group is faster as a plain list.
    */
   flow?: "scroll" | "stepped";
+  /**
+   * How options are laid out. "list" is one row per option (customer screens).
+   * "tiles" is a grid of squares in a wider dialog, so a long group like 29
+   * toppings fits without scrolling (the till). Only the layout differs: both
+   * call the same selection handlers.
+   */
+  layout?: "list" | "tiles";
   /** Drawn fallback for an item with no usable photo (storefront only). */
   heroFallback?: React.ReactNode;
 }
@@ -105,6 +112,7 @@ export function ModifierSelectionModal({
   currency,
   presentation = "modal",
   flow = "scroll",
+  layout = "list",
   heroFallback,
   open,
   onClose,
@@ -120,6 +128,7 @@ export function ModifierSelectionModal({
         formatMoney(Number(n ?? 0), currency)
     : lookedUpMoney;
   const isSheet = presentation === "sheet";
+  const tiles = layout === "tiles";
   // Sheet only: has the hero scrolled out of the way? Drives the compact
   // header, the way a native app hands the title over as the photo leaves.
   const [scrolledPastHero, setScrolledPastHero] = useState(false);
@@ -366,7 +375,11 @@ export function ModifierSelectionModal({
         className={
           isSheet
             ? "sf-sheet-enter relative flex h-[92vh] [color-scheme:light] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-lg sm:rounded-2xl"
-            : "flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            : `flex w-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ${
+                // One width for every step, so Next doesn't move under the
+                // operator's finger between questions.
+                tiles ? "max-h-[94vh] max-w-5xl" : "max-h-[90vh] max-w-2xl"
+              }`
         }
       >
         {isSheet && (
@@ -493,34 +506,61 @@ export function ModifierSelectionModal({
               notes={notes}
               setNotes={setNotes}
               lineTotal={breakdown.lineTotal}
+              tiles={tiles}
             />
           ) : (
           <>
           {isMultiSku && (
             <Section title="Size">
-              <div className="grid grid-cols-1 gap-2">
+              <div className={tiles ? SIZE_TILE_GRID : "grid grid-cols-1 gap-2"}>
                 {(item.productSkus ?? []).map((sku) => (
                   <label
                     key={sku.name}
-                    className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 ${
-                      selectedSku?.name === sku.name
-                        ? "border-zinc-900 bg-zinc-50"
-                        : "border-zinc-200 hover:border-zinc-300"
-                    }`}
+                    className={
+                      tiles
+                        ? tileClass(selectedSku?.name === sku.name)
+                        : `flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 ${
+                            selectedSku?.name === sku.name
+                              ? "border-zinc-900 bg-zinc-50"
+                              : "border-zinc-200 hover:border-zinc-300"
+                          }`
+                    }
                   >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="sku"
-                        checked={selectedSku?.name === sku.name}
-                        onChange={() => {
-                          setSelectedSku(sku);
-                          setSelections({}); // reset, modifier groups differ per SKU
-                        }}
-                      />
-                      <span className="text-sm font-medium text-zinc-900">{sku.name}</span>
-                    </div>
-                    <span className="text-sm text-zinc-700">{money(Number(sku.price))}</span>
+                    {tiles ? (
+                      <>
+                        <input
+                          type="radio"
+                          name="sku"
+                          className="sr-only"
+                          checked={selectedSku?.name === sku.name}
+                          onChange={() => {
+                            setSelectedSku(sku);
+                            setSelections({}); // reset, modifier groups differ per SKU
+                          }}
+                        />
+                        <TileText
+                          name={sku.name}
+                          price={money(Number(sku.price))}
+                          selected={selectedSku?.name === sku.name}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            name="sku"
+                            checked={selectedSku?.name === sku.name}
+                            onChange={() => {
+                              setSelectedSku(sku);
+                              setSelections({}); // reset, modifier groups differ per SKU
+                            }}
+                          />
+                          <span className="text-sm font-medium text-zinc-900">{sku.name}</span>
+                        </div>
+                        <span className="text-sm text-zinc-700">{money(Number(sku.price))}</span>
+                      </>
+                    )}
                   </label>
                 ))}
               </div>
@@ -534,6 +574,7 @@ export function ModifierSelectionModal({
               onToggle={toggle}
               onStep={step}
               money={money}
+              tiles={tiles}
             />
           ))}
 
@@ -674,12 +715,15 @@ function GroupNode({
   onToggle,
   onStep,
   money,
+  tiles = false,
 }: {
   node: ModifierTreeNode;
   onToggle: (node: ModifierTreeNode, optionId: string) => void;
   onStep: (node: ModifierTreeNode, optionId: string, delta: number) => void;
   /** Bound to the location's currency by the parent — never format here. */
   money: (n: number | string | null | undefined) => string;
+  /** Square tiles instead of one row per option. */
+  tiles?: boolean;
 }) {
   const selectionType = node.group.selectionType ?? "VARIANT";
   const min = node.group.minSelections ?? 0;
@@ -711,6 +755,40 @@ function GroupNode({
               }`
         }
       >
+        {tiles ? (
+          <>
+            <div className={OPTION_TILE_GRID}>
+              {node.options.map((entry) => (
+                <OptionTile
+                  key={entry.option.id}
+                  entry={entry}
+                  node={node}
+                  repeatable={repeatable}
+                  atMax={atMax}
+                  inputType={selectionType === "VARIANT" ? "radio" : "checkbox"}
+                  onToggle={onToggle}
+                  onStep={onStep}
+                  money={money}
+                />
+              ))}
+            </div>
+            {/* What a chosen option opens goes full width underneath: inside
+                a grid cell it would be squeezed to the width of one tile. */}
+            {node.options.flatMap((entry) =>
+              entry.children.map((child) => (
+                <div key={child.key} className="mt-3">
+                  <GroupNode
+                    node={child}
+                    onToggle={onToggle}
+                    onStep={onStep}
+                    money={money}
+                    tiles
+                  />
+                </div>
+              )),
+            )}
+          </>
+        ) : (
         <div className="grid grid-cols-1 gap-2">
           {node.options.map((entry) => (
             <div key={entry.option.id}>
@@ -798,7 +876,152 @@ function GroupNode({
             </div>
           ))}
         </div>
+        )}
       </Section>
+    </div>
+  );
+}
+
+// As many columns as fit: 9 across the till's dialog, 3 on a phone.
+const OPTION_TILE_GRID =
+  "grid grid-cols-[repeat(auto-fill,minmax(6.25rem,1fr))] gap-2";
+// Sizes are few and their names longer ("12\" Stuffed Crust"), so a bit wider.
+const SIZE_TILE_GRID =
+  "grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-2";
+
+function tileClass(selected: boolean): string {
+  return `relative flex aspect-square cursor-pointer flex-col justify-between overflow-hidden rounded-xl border p-2.5 text-left transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-zinc-900 has-[:focus-visible]:ring-offset-1 ${
+    selected
+      ? "border-zinc-900 bg-zinc-900 text-white"
+      : "border-zinc-200 bg-white text-zinc-900 hover:border-zinc-400"
+  }`;
+}
+
+function TileText({
+  name,
+  price,
+  selected,
+  reserveCorner = false,
+}: {
+  name: string;
+  price: string;
+  selected: boolean;
+  /** Keeps the name clear of a badge in the top-right corner. */
+  reserveCorner?: boolean;
+}) {
+  return (
+    <>
+      <span
+        title={name}
+        className={`line-clamp-3 text-sm font-semibold leading-tight ${
+          reserveCorner ? "pr-5" : ""
+        }`}
+      >
+        {name}
+      </span>
+      <span
+        className={`text-xs font-medium tabular-nums ${
+          selected ? "text-white/75" : "text-zinc-500"
+        }`}
+      >
+        {price}
+      </span>
+    </>
+  );
+}
+
+/**
+ * One option as a square. Calls the same handlers as the list row: a repeatable
+ * option steps its count, anything else keeps a real (visually hidden) radio or
+ * checkbox, so "pick one", maximums and keyboard use all behave as in the list.
+ */
+function OptionTile({
+  entry,
+  node,
+  repeatable,
+  atMax,
+  inputType,
+  onToggle,
+  onStep,
+  money,
+}: {
+  entry: ModifierTreeNode["options"][number];
+  node: ModifierTreeNode;
+  repeatable: boolean;
+  atMax: boolean;
+  inputType: "radio" | "checkbox";
+  onToggle: (node: ModifierTreeNode, optionId: string) => void;
+  onStep: (node: ModifierTreeNode, optionId: string, delta: number) => void;
+  money: (n: number | string | null | undefined) => string;
+}) {
+  const name = entry.option.name;
+  const price = entry.price > 0 ? `+${money(entry.price)}` : "";
+
+  if (!repeatable) {
+    return (
+      <label className={tileClass(entry.selected)}>
+        <input
+          type={inputType}
+          className="sr-only"
+          // The branch key, not the group id: the same group can be open twice
+          // under different parents, and a shared name would link the two.
+          name={`group-${node.key}`}
+          checked={entry.selected}
+          onChange={() => onToggle(node, entry.option.id)}
+        />
+        <TileText
+          name={name}
+          price={price}
+          selected={entry.selected}
+          reserveCorner={entry.selected}
+        />
+        {entry.selected && (
+          <Check
+            aria-hidden
+            className="absolute right-2 top-2 h-4 w-4 text-white"
+          />
+        )}
+      </label>
+    );
+  }
+
+  // Tap the tile for one more; the minus only exists once there's one to take.
+  return (
+    <div className={`${tileClass(entry.selected)} !p-0`}>
+      <button
+        type="button"
+        disabled={atMax}
+        onClick={() => onStep(node, entry.option.id, 1)}
+        aria-label={`Add one ${name}${entry.quantity ? `, ${entry.quantity} chosen` : ""}`}
+        className={`flex h-full w-full flex-col justify-between p-2.5 text-left focus-visible:outline-none disabled:cursor-not-allowed ${
+          atMax && !entry.selected ? "opacity-40" : ""
+        }`}
+      >
+        <TileText
+          name={name}
+          price={price}
+          selected={entry.selected}
+          reserveCorner={entry.quantity > 0}
+        />
+      </button>
+      {entry.quantity > 0 && (
+        <>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute right-1.5 top-1.5 grid h-6 min-w-6 place-items-center rounded-full bg-white px-1 text-xs font-bold tabular-nums text-zinc-900"
+          >
+            {entry.quantity}
+          </span>
+          <button
+            type="button"
+            aria-label={`Remove one ${name}`}
+            onClick={() => onStep(node, entry.option.id, -1)}
+            className="absolute bottom-1 right-1 grid h-9 w-9 place-items-center rounded-lg bg-white/15 text-lg leading-none text-white hover:bg-white/25"
+          >
+            −
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -851,6 +1074,7 @@ function SteppedBody({
   notes,
   setNotes,
   lineTotal,
+  tiles,
 }: {
   money: (n: number | string | null | undefined) => string;
   step: { kind: "size" } | { kind: "group"; node: ModifierTreeNode } | { kind: "review" };
@@ -868,6 +1092,7 @@ function SteppedBody({
   notes: string;
   setNotes: (v: string) => void;
   lineTotal: number;
+  tiles: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -894,23 +1119,37 @@ function SteppedBody({
       </div>
 
       {step.kind === "size" && (
-        <div className="grid grid-cols-1 gap-2">
+        <div className={tiles ? SIZE_TILE_GRID : "grid grid-cols-1 gap-2"}>
           {productSkus.map((sku) => (
             <button
               key={sku.name}
               onClick={() => onPickSku(sku)}
-              className={`flex items-center justify-between rounded-xl border px-4 py-4 text-left active:bg-zinc-50 ${
-                selectedSku?.name === sku.name
-                  ? "border-zinc-900 bg-zinc-50"
-                  : "border-zinc-200"
-              }`}
+              className={
+                tiles
+                  ? `${tileClass(selectedSku?.name === sku.name)} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1`
+                  : `flex items-center justify-between rounded-xl border px-4 py-4 text-left active:bg-zinc-50 ${
+                      selectedSku?.name === sku.name
+                        ? "border-zinc-900 bg-zinc-50"
+                        : "border-zinc-200"
+                    }`
+              }
             >
-              <span className="text-[15px] font-medium text-zinc-900">
-                {sku.name}
-              </span>
-              <span className="text-[15px] text-zinc-700">
-                {money(Number(sku.price))}
-              </span>
+              {tiles ? (
+                <TileText
+                  name={sku.name}
+                  price={money(Number(sku.price))}
+                  selected={selectedSku?.name === sku.name}
+                />
+              ) : (
+                <>
+                  <span className="text-[15px] font-medium text-zinc-900">
+                    {sku.name}
+                  </span>
+                  <span className="text-[15px] text-zinc-700">
+                    {money(Number(sku.price))}
+                  </span>
+                </>
+              )}
             </button>
           ))}
         </div>
@@ -922,6 +1161,7 @@ function SteppedBody({
           onToggle={onToggle}
           onStep={onStep}
           money={money}
+          tiles={tiles}
         />
       )}
 

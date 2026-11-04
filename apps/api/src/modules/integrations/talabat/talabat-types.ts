@@ -70,6 +70,7 @@ export interface TalabatAddress {
   deliveryAreaPostcode?: string;
   deliveryInstructions?: string | null;
   deliveryMainArea?: string;
+  deliveryMainAreaPostcode?: string;
   entrance?: string;
   flatNumber?: string;
   floor?: string;

@@ -44,6 +44,7 @@ const CHANNEL_LABELS: Record<PauseChannel, string> = {
   HUBRISE: "HubRise",
   KEETA: "Keeta",
   TALABAT: "Talabat",
+  EAT_FOR_LESS: "Eat For Less",
 };
 
 const DURATION_LABELS: Record<PauseDuration, string> = {

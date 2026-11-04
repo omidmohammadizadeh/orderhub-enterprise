@@ -12,6 +12,7 @@ export const CHANNELS = [
   "HUBRISE",
   "KEETA",
   "TALABAT",
+  "EAT_FOR_LESS",
 ] as const;
 export type PauseChannel = (typeof CHANNELS)[number];
 

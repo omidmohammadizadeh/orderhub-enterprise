@@ -272,6 +272,7 @@ export class OrderProcessingProcessor {
       type,
       orderId: order.id,
       displayId: order.displayId,
+      ticketNumber: order.ticketNumber ?? null,
       platform: order.platform,
       orderSource: order.orderSource,
       fulfillmentType: order.fulfillmentType,

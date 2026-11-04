@@ -60,6 +60,7 @@ const CHANNELS = [
   ["POS", "POS"],
   ["VOICE", "AI Voice"],
   ["WHATSAPP", "WhatsApp"],
+  ["EAT_FOR_LESS", "Eat For Less"],
   ["UBER_EATS", "Uber Eats"],
   ["DELIVEROO", "Deliveroo"],
   ["JUST_EAT", "Just Eat"],

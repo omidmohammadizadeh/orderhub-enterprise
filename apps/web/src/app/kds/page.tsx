@@ -79,6 +79,7 @@ interface KdsTicket {
     id: string;
     displayId: string | null;
     orderNumber?: number | null;
+    ticketNumber?: number | null;
     orderSource: string;
     platform: string;
     fulfillmentType: string;
@@ -107,6 +108,7 @@ const CHANNEL_CHIP: Record<string, { label: string; cls: string }> = {
   POS: { label: "POS", cls: "bg-violet-950 text-violet-300" },
   WHATSAPP: { label: "WhatsApp", cls: "bg-green-950 text-green-300" },
   VOICE: { label: "AI Voice", cls: "bg-indigo-950 text-indigo-300" },
+  EAT_FOR_LESS: { label: "Eat For Less", cls: "bg-lime-950 text-lime-300" },
   HUBRISE: { label: "Marketplace", cls: "bg-zinc-800 text-zinc-300" },
   DIRECT: { label: "Direct", cls: "bg-sky-950 text-sky-300" },
 };
@@ -857,6 +859,7 @@ function TicketCard({
       )}
       <div className={cn("px-3 py-2 flex items-center justify-between", headerCls)}>
         <span className="font-bold text-lg leading-none">
+          {order.ticketNumber != null && <span className="mr-1.5">T{order.ticketNumber} ·</span>}
           #{order.displayId ?? order.orderNumber ?? order.id.slice(-4).toUpperCase()}
           {order.customerName ? (
             <span className="font-medium text-sm opacity-70">
@@ -1062,6 +1065,7 @@ function CancelledCard({
       </div>
       <div className="px-3 py-2 flex items-center justify-between bg-red-950 text-red-100">
         <span className="font-bold text-lg leading-none">
+          {order.ticketNumber != null && <span className="mr-1.5">T{order.ticketNumber} ·</span>}
           #{order.displayId ?? order.orderNumber ?? order.id.slice(-4).toUpperCase()}
           {order.customerName ? (
             <span className="font-medium text-sm opacity-70">

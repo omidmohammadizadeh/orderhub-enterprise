@@ -10,6 +10,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import MapView, { Polyline } from "react-native-maps";
@@ -65,6 +66,11 @@ export function JobScreen({
   const [submitting, setSubmitting] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  // Eat For Less handover: the customer's PIN, checked by the server.
+  const [pinOpen, setPinOpen] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [pinBusy, setPinBusy] = useState(false);
   const [sheetH, setSheetH] = useState(360);
   const [, tick] = useState(0); // re-render so the deadline pill counts down
   const mapRef = useRef<MapView | null>(null);
@@ -232,6 +238,39 @@ export function JobScreen({
     }
     if (action === "start" || action === "arrived") setSubmitting(false);
     // For terminal actions keep the spinner until App unmounts this card.
+  }
+
+  function slideDelivered() {
+    if (!o.deliveryPinRequired) return act("delivered");
+    setPin("");
+    setPinError(null);
+    setPinOpen(true);
+  }
+
+  async function submitPin() {
+    if (pin.length !== 4 || pinBusy) return;
+    setPinBusy(true);
+    setPinError(null);
+    try {
+      await jobAction(o.id, "delivered", { pin });
+      setPinOpen(false);
+      setSubmitting(true); // App unmounts this card on the next refresh
+      onChanged();
+      onBack?.();
+    } catch (err) {
+      const data = (err as any)?.response?.data;
+      const message = (Array.isArray(data?.message) ? data.message.join("\n") : data?.message) || "Couldn't check the PIN. Try again.";
+      if (data?.code === "PIN_LOCKED") {
+        setPinOpen(false);
+        Alert.alert("Handover locked", message);
+        onChanged();
+      } else {
+        setPin("");
+        setPinError(message);
+      }
+    } finally {
+      setPinBusy(false);
+    }
   }
 
   function confirmSkip() {
@@ -428,7 +467,7 @@ export function JobScreen({
           ) : !arrived ? (
             <SlideToConfirm label="Arrived at customer" color={C.warn} icon="location" onConfirm={() => act("arrived")} />
           ) : (
-            <SlideToConfirm label="Slide to delivered" color={C.info} icon="checkmark" onConfirm={() => act("delivered")} />
+            <SlideToConfirm label="Slide to delivered" color={C.info} icon="checkmark" onConfirm={slideDelivered} />
           )}
         </View>
       </View>
@@ -459,6 +498,46 @@ export function JobScreen({
             <OptRow icon="close-circle-outline" label="Cancel job" color={C.danger} onPress={confirmCancel} />
             <Pressable style={styles.optClose} onPress={() => setOptionsOpen(false)}>
               <Text style={styles.optCloseText}>Close</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Eat For Less handover PIN */}
+      <Modal visible={pinOpen} transparent animationType="slide" onRequestClose={() => setPinOpen(false)}>
+        <Pressable style={styles.sheetBackdrop} onPress={() => !pinBusy && setPinOpen(false)}>
+          <Pressable style={[styles.optSheet, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]} onPress={() => {}}>
+            <View style={styles.handle} />
+            <Text style={styles.optTitle}>HANDOVER · {orderRef}</Text>
+            <Text style={styles.pinTitle}>Customer&apos;s PIN</Text>
+            <Text style={styles.pinSub}>Ask for the 4-digit PIN in their Eat For Less app. Don&apos;t hand the order over without it.</Text>
+            <TextInput
+              value={pin}
+              onChangeText={(t) => {
+                setPin(t.replace(/\D/g, "").slice(0, 4));
+                setPinError(null);
+              }}
+              keyboardType="number-pad"
+              maxLength={4}
+              autoFocus
+              textContentType="oneTimeCode"
+              accessibilityLabel="Customer's 4-digit PIN"
+              style={styles.pinInput}
+              placeholder="••••"
+              placeholderTextColor={C.textMute}
+              onSubmitEditing={submitPin}
+            />
+            {pinError ? <Text style={styles.pinError}>{pinError}</Text> : null}
+            <Pressable
+              onPress={submitPin}
+              disabled={pin.length !== 4 || pinBusy}
+              style={[styles.pinButton, (pin.length !== 4 || pinBusy) && { opacity: 0.4 }]}
+              accessibilityRole="button"
+            >
+              {pinBusy ? <ActivityIndicator color={C.onAccent} /> : <Text style={styles.pinButtonText}>Confirm delivered</Text>}
+            </Pressable>
+            <Pressable style={styles.optClose} onPress={() => setPinOpen(false)} disabled={pinBusy}>
+              <Text style={styles.optCloseText}>Not yet</Text>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -704,4 +783,22 @@ const styles = StyleSheet.create({
   optRowText: { fontSize: 16, fontWeight: "800" },
   optClose: { marginTop: 10, backgroundColor: C.surface3, borderRadius: R.md, paddingVertical: 15, alignItems: "center" },
   optCloseText: { fontSize: 16, fontWeight: "800", color: C.text },
+  pinTitle: { fontSize: 22, fontWeight: "900", color: C.text, marginTop: 4 },
+  pinSub: { fontSize: 14, color: C.textDim, marginTop: 6, lineHeight: 20 },
+  pinInput: {
+    marginTop: 18,
+    backgroundColor: C.surface2,
+    borderWidth: 1,
+    borderColor: C.borderStrong,
+    borderRadius: R.md,
+    paddingVertical: 14,
+    textAlign: "center",
+    fontSize: 34,
+    fontWeight: "900",
+    letterSpacing: 18,
+    color: C.text,
+  },
+  pinError: { color: C.danger, fontSize: 14, fontWeight: "700", marginTop: 10 },
+  pinButton: { marginTop: 16, backgroundColor: C.go, borderRadius: R.md, paddingVertical: 16, alignItems: "center" },
+  pinButtonText: { fontSize: 16, fontWeight: "900", color: C.onAccent },
 });

@@ -61,7 +61,8 @@ export class OrderConfirmationEmailService {
       const since = new Date(Date.now() - LOOKBACK_HOURS * 3600 * 1000);
       const orders = await this.prisma.order.findMany({
         where: {
-          platform: "ONLINE" as any,
+          // Storefront orders, and Eat For Less orders (sent as Eat For Less).
+          OR: [{ platform: "ONLINE" as any }, { orderSource: "EAT_FOR_LESS" as any }],
           createdAt: { gte: since },
           // Only orders that actually happened. A card order sits PENDING
           // until its webhook lands; a cancelled one must never be confirmed.
@@ -132,10 +133,18 @@ export class OrderConfirmationEmailService {
         }
 
         try {
+          const efl = order.orderSource === "EAT_FOR_LESS";
           await this.email?.send({
             to,
-            subject: `Order ${this.reference(order)} confirmed — ${this.shopName(order)}`,
-            fromName: this.shopName(order),
+            subject: efl
+              ? `Your Eat For Less order ${this.reference(order)} — ${this.shopName(order)}`
+              : `Order ${this.reference(order)} confirmed — ${this.shopName(order)}`,
+            ...(efl
+              ? {
+                  fromAddress: process.env.EFL_EMAIL_FROM || "Eat For Less <hello@eatforless.co.uk>",
+                  replyTo: "hello@eatforless.co.uk",
+                }
+              : { fromName: this.shopName(order) }),
             html: this.body(order),
           });
         } catch (e: any) {
@@ -402,10 +411,15 @@ export class OrderConfirmationEmailService {
       ? [order.location?.addressLine1, order.location?.city, order.location?.postcode].filter(Boolean).map((x: any) => this.esc(x)).join(", ")
       : "";
 
-    const powered = renderPoweredBy({
-      url: `${this.webBase()}/?utm_source=email&utm_medium=powered_by&utm_campaign=order_confirmation`,
-      logoUrl: `${this.webBase()}/email/orderhub-logo.png`,
-    });
+    // Eat For Less customers are the app's: tracked in the app, and the
+    // footer is ours, not "powered by".
+    const efl = order.orderSource === "EAT_FOR_LESS";
+    const powered = efl
+      ? `<div style="font-family:${FONT};font-size:12px;color:${muted};text-align:center;">Ordered on <a href="https://eatforless.co.uk" style="color:${ink};font-weight:700;text-decoration:none;">Eat For Less</a> · Eat For Less Ltd, company no. 17543774</div>`
+      : renderPoweredBy({
+          url: `${this.webBase()}/?utm_source=email&utm_medium=powered_by&utm_campaign=order_confirmation`,
+          logoUrl: `${this.webBase()}/email/orderhub-logo.png`,
+        });
 
     return `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Order confirmed</title></head>
@@ -439,12 +453,12 @@ export class OrderConfirmationEmailService {
 <tr><td align="center" style="padding:20px 32px 28px 32px;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
     <td bgcolor="${ink}" style="border-radius:10px;background:${ink};">
-      <a href="${this.trackingUrl(order)}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${FONT};font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">Track your order</a>
+      <a href="${efl ? "https://eatforless.co.uk" : this.trackingUrl(order)}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:${FONT};font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:10px;">${efl ? "Track it in the Eat For Less app" : "Track your order"}</a>
     </td>
   </tr></table>
 </td></tr>
 
-${this.appBlock(order, ink, muted, FONT)}
+${efl ? "" : this.appBlock(order, ink, muted, FONT)}
 <tr><td style="padding:0 32px;">
   <div style="font-family:${FONT};font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${muted};padding-bottom:4px;border-bottom:1px solid #e4e4e7;">Your order</div>
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>

@@ -1,0 +1,26 @@
+{
+  "$schema": "./brand.schema.json",
+  "slug": "gillssilksworth",
+  "name": "Gills Silksworth",
+  "brandId": "cmvv4mnyr08ae4vrgocumj7ta",
+  "locationId": "cmvv4mnfv08ac4vrg1f7jpuov",
+  "storefrontUrl": "https://www.orderhubsolutions.com/order/cmvv4mnfv08ac4vrg1f7jpuov?brand=cmvv4mnyr08ae4vrgocumj7ta",
+  "apiUrl": "https://orderhub-api-0re6.onrender.com/api",
+  "primaryColor": "#C91F33",
+  "backgroundColor": "#C91F33",
+  "icon": "brands/gillssilksworth/icon.png",
+  "adaptiveIcon": "brands/gillssilksworth/adaptive-icon.png",
+  "splash": "brands/gillssilksworth/splash.png",
+  "notificationIcon": "brands/gillssilksworth/notification-icon.png",
+  "version": "1.2.0",
+  "ios": {
+    "bundleId": "com.orderhubsolutions.gillssilksworth",
+    "appleTeamId": null,
+    "ascAppId": null
+  },
+  "android": {
+    "package": "com.orderhubsolutions.gillssilksworth"
+  },
+  "google": {},
+  "easProjectId": "05034414-64f9-412e-ab9d-dc7b4cdf42a2"
+}

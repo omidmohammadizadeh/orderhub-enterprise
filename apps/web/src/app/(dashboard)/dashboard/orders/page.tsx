@@ -29,7 +29,8 @@ type SimPlatform =
   | "KEETA"
   | "ONLINE"
   | "WHATSAPP"
-  | "VOICE";
+  | "VOICE"
+  | "EAT_FOR_LESS";
 
 const SIM_LABEL: Record<SimPlatform, string> = {
   DELIVEROO: "Deliveroo",
@@ -42,6 +43,7 @@ const SIM_LABEL: Record<SimPlatform, string> = {
   ONLINE: "Online ordering",
   WHATSAPP: "WhatsApp",
   VOICE: "AI Voice",
+  EAT_FOR_LESS: "Eat For Less",
 };
 
 const SIM_PLATFORMS = Object.keys(SIM_LABEL) as SimPlatform[];

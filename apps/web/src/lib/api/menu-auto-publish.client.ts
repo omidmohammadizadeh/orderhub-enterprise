@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 
-export type AutoPublishChannel = "JUST_EAT" | "DELIVEROO" | "UBER_EATS" | "HUBRISE";
+export type AutoPublishChannel = "JUST_EAT" | "DELIVEROO" | "UBER_EATS" | "HUBRISE" | "CAREEM";
 
 export interface AutoPublishSchedule {
   id: string;

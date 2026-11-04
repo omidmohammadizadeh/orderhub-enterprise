@@ -6,6 +6,7 @@ import {
   Optional,
 } from "@nestjs/common";
 import { activeSplash } from "./storefront-splash";
+import { publicHygiene } from "../hygiene/hygiene-settings";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
 import {
   currencyForCountry,
@@ -32,6 +33,7 @@ import { OrdersService } from "../orders/orders.service";
 import { PromoCodesService } from "../promo-codes/promo-codes.service";
 import { PaymentsService } from "../payments/payments.service";
 import { TapService, tapChargeWebhookUrl } from "../payments/tap.service";
+import { publicApiBase } from "../../common/public-api-url";
 import { MollieService } from "../payments/mollie/mollie.service";
 import { MenuAvailabilityService } from "../inventory/menu-availability.service";
 import { MenuAssignmentsService } from "../menus/menu-assignments.service";
@@ -151,6 +153,21 @@ export interface CheckoutDto {
    * unaffected.
    */
   embedded?: boolean;
+  /**
+   * Set by the storefront when it runs inside a restaurant app
+   * ("orderhub-<brand>", the app's URL scheme). On Android the app opens a
+   * hosted payment page in a Chrome tab (Google Pay can't run in its
+   * WebView without per-app Google approval), and the return pages carry
+   * `appReturn=<scheme>` so they can hand the customer back to the app.
+   */
+  appScheme?: string;
+  /**
+   * The app build can take the customer back automatically (Android Chrome
+   * tab): payment return URLs go through /v1/ordering/app-return, which
+   * redirects straight into the app. Only newer builds say so — an older
+   * build would be left on a blank page by that redirect.
+   */
+  appAutoReturn?: boolean;
   // Phase AP-5 — when the storefront customer is signed in, the
   // CustomerAccount id is threaded through here so the Order can be
   // attributed to them for the "My Orders" page. Null/undefined
@@ -322,6 +339,28 @@ export function brandOverrideServesLocation(input: {
   return (brand.locationIds ?? []).includes(location.id);
 }
 
+/**
+ * A channel that sells the storefront's menu through the storefront's
+ * checkout under its own name. Absent = the storefront itself.
+ *
+ * Eat For Less is the one user: same menu, same server pricing, same
+ * Stripe account, but its own order source, pause switch and price list,
+ * plus rules the storefront doesn't have (a first-order cap, a delivery PIN).
+ */
+export interface CheckoutChannel {
+  orderSource: "EAT_FOR_LESS";
+  /** ChannelPause.channel to honour instead of ONLINE. */
+  pauseChannel: string;
+  /** BrandChannelSource.channel whose prices apply, when the brand set one. */
+  priceChannel: string;
+  /** Runs once the server has priced the basket and before the order exists.
+   *  Throw to refuse the order. */
+  beforeCreate?: (totals: { subtotal: number; discount: number; total: number }) => Promise<void>;
+  /** Runs once the order exists and before payment starts — the place to
+   *  stamp channel fields the payment depends on (the commission rate). */
+  afterCreate?: (order: { id: string; total: unknown }) => Promise<void>;
+}
+
 /** Money rounding, shared by the line totals and the order totals below. */
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -404,6 +443,9 @@ export class OrderingService {
     slug: string,
     brandIdOverride?: string,
     channel: "ONLINE" | "POS" = "ONLINE",
+    // A price list to use instead of `channel`'s, when the brand has one.
+    // Eat For Less serves the storefront menu at its own prices.
+    priceChannel?: string,
   ) {
     // Where the time goes, logged only when it's slow. A table QR scan once
     // waited 10 s here and the access log could say no more than that.
@@ -675,10 +717,14 @@ export class OrderingService {
     // behaviour). Mutates the resolved menu's item/SKU/option prices in
     // place before it's returned to the customer.
     if (menu) {
-      const variantMap = await this.variantResolver.forBrandChannel({
-        brandId: menuBrandId,
-        channel,
-      });
+      const variantMap =
+        (priceChannel
+          ? await this.variantResolver.forBrandChannel({ brandId: menuBrandId, channel: priceChannel })
+          : null) ??
+        (await this.variantResolver.forBrandChannel({
+          brandId: menuBrandId,
+          channel,
+        }));
       if (variantMap) this.applyVariantPriceOverrides(menu, variantMap);
     }
 
@@ -836,6 +882,16 @@ export class OrderingService {
         // Phase BA — this location's own 86s apply on top of global ones.
         location.id,
       );
+      // A channel selling this menu under its own name (Eat For Less) also
+      // honours what was 86'd for that channel alone.
+      if (priceChannel) {
+        const own = await this.menuAvailability.getSnoozedItemIdsForChannel(
+          priceChannel as any,
+          itemIds,
+          location.id,
+        );
+        for (const id of own) snoozed.add(id);
+      }
       if (snoozed.size > 0) {
         for (const cat of (menu as any).categories ?? []) {
           cat.items = (cat.items ?? []).filter(
@@ -1019,7 +1075,12 @@ export class OrderingService {
       addressLine2: place?.addressLine2 ?? location.addressLine2,
       city: place?.city ?? location.city,
       postcode: place?.postcode ?? location.postcode,
-      country: place?.country ?? location.country,
+      // The SHOP's country, never the brand's: Brand.country is non-null and
+      // defaults to GB, so `place?.country ?? location.country` turned the
+      // Dubai test store into a GB shop on its storefront — London address
+      // lookup, UK phone rules — while checkout (reading the location)
+      // routed it to Tap. A brand never trades outside its shop's country.
+      country: location.country,
       // Currency is location-only on purpose — it follows the till and the
       // bank account, not the brand, so a brand trading in two countries does
       // not force one currency onto both shops. The storefront needs it to
@@ -1277,6 +1338,11 @@ export class OrderingService {
         channel === "ONLINE"
           ? activeSplash((location as any).settings, location.timezone)
           : null,
+      // The shop's FSA food hygiene rating for the storefront badge — kept
+      // fresh nightly by LocationHygieneService; null when hidden or unlinked.
+      // { rating, ratingDate, url }. Per LOCATION: the kitchen is inspected,
+      // not the brand on the sign.
+      hygiene: publicHygiene((location as any).settings),
       location: dedupeLogo(locationView, brandView),
       brand: brandView,
       // Phase BS — facts the storefront's server-rendered <head> needs, and
@@ -1706,7 +1772,13 @@ export class OrderingService {
     return { brand: { id: brand.id, name: brand.name, logoUrl: brand.logoUrl ?? null }, shops };
   }
 
-  async checkout(slug: string, dto: CheckoutDto, brandIdOverride?: string, appClient?: AppClient | null) {
+  async checkout(
+    slug: string,
+    dto: CheckoutDto,
+    brandIdOverride?: string,
+    appClient?: AppClient | null,
+    channel?: CheckoutChannel,
+  ) {
     const location = await this.prisma.location.findFirst({
       where: { OR: [{ onlineOrderingSlug: slug }, { slug }, { id: slug }] },
       include: { brand: { select: { tenantId: true } } },
@@ -1784,7 +1856,7 @@ export class OrderingService {
     const livePause = await this.pauses.isPaused({
       locationId: location.id,
       brandId: pinnedBrandId,
-      channel: "ONLINE",
+      channel: (channel?.pauseChannel ?? "ONLINE") as any,
     });
     if (livePause.paused) {
       throw new BadRequestException(
@@ -1851,7 +1923,7 @@ export class OrderingService {
     // Price every line again from the storefront the customer ordered from.
     // The browser's unitPrice / subtotal / discount are no longer trusted —
     // see checkout-pricing.ts for how an honest basket prices identically.
-    const served = await this.getStorefrontBySlug(slug, brandIdOverride, "ONLINE");
+    const served = await this.getStorefrontBySlug(slug, brandIdOverride, "ONLINE", channel?.priceChannel);
     const pricing = buildPricingContext(served);
     let basket: ReturnType<typeof priceBasket>;
     try {
@@ -2210,6 +2282,12 @@ export class OrderingService {
       ? await this.emailMarketing?.attributionFor(location.brand.tenantId, dto.emailRecipientId)
       : null;
 
+    await channel?.beforeCreate?.({
+      subtotal: serverSubtotal,
+      discount: serverDiscount,
+      total: serverTotal,
+    });
+
     const order = await this.ordersService.create(
       {
         locationId: location.id,
@@ -2217,7 +2295,7 @@ export class OrderingService {
         // one. Falls through to whatever OrdersService.create derives
         // from the location's primary brand otherwise.
         brandId: pinnedBrandId ?? undefined,
-        orderSource: "ONLINE",
+        orderSource: channel?.orderSource ?? "ONLINE",
         fulfillmentType: dto.fulfillmentType,
         customerInfo: dto.customerInfo,
         deliveryAddress: dto.deliveryAddress,
@@ -2254,6 +2332,8 @@ export class OrderingService {
       } as any,
       location.brand.tenantId,
     );
+
+    await channel?.afterCreate?.(order as any);
 
     // Spend the reward, now that there is an order id to attach it to.
     //
@@ -2339,7 +2419,19 @@ export class OrderingService {
       );
     } else if (dto.paymentMethod === "CARD") {
       const origin0 = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
-      const brandQs0 = pinnedBrandId ? `&brand=${encodeURIComponent(pinnedBrandId)}` : "";
+      // Only a well-formed app scheme is echoed into a URL a browser will
+      // follow — never arbitrary client input.
+      const appQs = /^orderhub-[a-z0-9]{1,40}$/.test(String(dto.appScheme ?? ""))
+        ? `&appReturn=${dto.appScheme}`
+        : "";
+      const brandQs0 = (pinnedBrandId ? `&brand=${encodeURIComponent(pinnedBrandId)}` : "") + appQs;
+      // A hosted page paid in an app's Chrome tab returns via our API, whose
+      // redirect into the app rides on the customer's Pay tap — Chrome lets
+      // that open the app, where a page's own script would need another tap.
+      const viaApp = (url: string) =>
+        appQs && dto.appAutoReturn === true
+          ? `${publicApiBase()}/v1/ordering/app-return?scheme=${dto.appScheme}&to=${encodeURIComponent(url)}`
+          : url;
       if (usesTap(location.country)) {
         // Tap is hosted-only here, including when the storefront asked for
         // the embedded flow. `src_all` renders Tap's own page with every
@@ -2352,7 +2444,7 @@ export class OrderingService {
         const { redirectUrl } = await this.tap.createCharge({
           tenantId: location.brand.tenantId,
           orderId: order.id,
-          redirectUrl: `${origin0}/order/${slug}/confirmation?orderId=${order.id}${brandQs0}`,
+          redirectUrl: viaApp(`${origin0}/order/${slug}/confirmation?orderId=${order.id}${brandQs0}`),
           // Tap posts the settled charge here. Must be publicly reachable —
           // the money is not marked received anywhere else.
           webhookUrl: tapChargeWebhookUrl(),
@@ -2376,8 +2468,8 @@ export class OrderingService {
         const { checkoutUrl } = await this.mollie.createPayment({
           tenantId: location.brand.tenantId,
           orderId: order.id,
-          redirectUrl: `${origin0}/order/${slug}/confirmation?orderId=${order.id}${brandQs0}`,
-          cancelUrl: `${origin0}/order/${slug}?canceledOrderId=${order.id}${brandQs0}`,
+          redirectUrl: viaApp(`${origin0}/order/${slug}/confirmation?orderId=${order.id}${brandQs0}`),
+          cancelUrl: viaApp(`${origin0}/order/${slug}?canceledOrderId=${order.id}${brandQs0}`),
           source: "storefront",
         });
         return { ...order, checkoutUrl } as any;
@@ -2392,15 +2484,16 @@ export class OrderingService {
       // than waiting on an authorisation staff have to Accept. Rejecting
       // one is therefore a refund, not a lapsed hold.
       if (dto.embedded) {
-        const { clientSecret, amountPence, stripeAccountId } =
+        const { clientSecret, amountPence, stripeAccountId, publishableKey } =
           await this.payments.createStorefrontPaymentIntent({
             tenantId: location.brand.tenantId,
             orderId: order.id,
           });
         // stripeAccountId is not decoration: this is a direct charge on the
         // restaurant's account, so the browser has to construct Stripe.js
-        // with it or the secret won't confirm.
-        return { ...order, clientSecret, amountPence, stripeAccountId } as any;
+        // with it or the secret won't confirm. (Null for an Eat For Less
+        // platform charge, which confirms with Eat For Less's own key.)
+        return { ...order, clientSecret, amountPence, stripeAccountId, publishableKey } as any;
       }
 
       const origin = (process.env.WEB_URL ?? "https://www.orderhubsolutions.com").replace(/\/+$/, "");
@@ -2408,9 +2501,8 @@ export class OrderingService {
       // post-payment storefront still renders the brand identity. The
       // confirmation page reads `?brand=<id>` and forwards it onto the
       // /order/<slug>?brand=… target it bounces to.
-      const brandQs = pinnedBrandId
-        ? `&brand=${encodeURIComponent(pinnedBrandId)}`
-        : "";
+      const brandQs =
+        (pinnedBrandId ? `&brand=${encodeURIComponent(pinnedBrandId)}` : "") + appQs;
       const successUrl = `${origin}/order/${slug}/confirmation?orderId=${order.id}&session_id={CHECKOUT_SESSION_ID}${brandQs}`;
       const cancelUrl = `${origin}/order/${slug}?canceledOrderId=${order.id}${brandQs}`;
 

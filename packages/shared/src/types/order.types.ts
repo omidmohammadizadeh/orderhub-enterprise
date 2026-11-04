@@ -24,6 +24,7 @@ export const OrderPlatformSchema = z.enum([
   "GLOVO",
   "KEETA",
   "WHATSAPP",
+  "EAT_FOR_LESS",
 ]);
 export type OrderPlatform = z.infer<typeof OrderPlatformSchema>;
 
@@ -44,6 +45,7 @@ export const OrderSourceSchema = z.enum([
   "GLOVO",
   "KEETA",
   "WHATSAPP",
+  "EAT_FOR_LESS",
 ]);
 export type OrderSource = z.infer<typeof OrderSourceSchema>;
 

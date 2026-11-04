@@ -41,6 +41,9 @@ export const TILL_ROLES = [
   "STAFF",
   "OWNER",
   "DARK_KITCHEN_MANAGER",
+  // The shop's shared counter tablet (Team → Tablet logins). It works the
+  // till like STAFF, pinned to its one location by DeviceLocationGuard.
+  "LOCATION_TABLET",
 ] as const satisfies readonly UserRole[];
 
 /**

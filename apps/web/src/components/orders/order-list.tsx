@@ -34,7 +34,10 @@ import {
   CalendarClock,
   ListChecks,
   Map as MapIcon,
+  Search,
+  LayoutDashboard,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePendingCallerStore } from "@/stores/pending-caller.store";
 import dynamic from "next/dynamic";
@@ -52,6 +55,7 @@ import { AppBadge, PlatformBadge, FulfillmentBadge, TableBadge } from "./platfor
 import { useLiveOrders } from "../../hooks/use-live-orders";
 import type { Order } from "../../lib/api/orders.client";
 import { isAwaitingOurPayment } from "@/lib/orders/awaiting-payment";
+import { orderMatchesSearch } from "@/lib/orders/order-search";
 import { OrdersFeedBanner, OrdersFeedError } from "./feed-status";
 
 // Only loaded once someone actually opens it — it pulls in three courier
@@ -73,6 +77,8 @@ type Bucket = {
   label: string;
   match: (o: Order) => boolean;
   pill: string; // tailwind classes for the status pill
+  /** Solid colour for the row's stage stripe and the counter dot. */
+  accent: string;
   icon: React.ElementType;
 };
 
@@ -132,6 +138,13 @@ const CHANNELS: Channel[] = [
     enabled: true,
   },
   {
+    // Our own marketplace app.
+    key: "EAT_FOR_LESS",
+    label: "Eat For Less",
+    match: (p) => p === "EAT_FOR_LESS",
+    enabled: true,
+  },
+  {
     // Direct integration (restaurant Partners API) — orders really arrive.
     key: "GLOVO",
     label: "Glovo",
@@ -180,6 +193,7 @@ const BUCKETS: Bucket[] = [
     label: "Waiting for payment",
     match: (o) => isWaitingForPayment(o),
     pill: "bg-violet-50 text-violet-700",
+    accent: "bg-violet-500",
     icon: CreditCard,
   },
   {
@@ -187,6 +201,7 @@ const BUCKETS: Bucket[] = [
     label: "Scheduled",
     match: (o) => isScheduledForLater(o as any),
     pill: "bg-indigo-50 text-indigo-700",
+    accent: "bg-indigo-500",
     icon: CalendarClock,
   },
   {
@@ -199,6 +214,7 @@ const BUCKETS: Bucket[] = [
       // a 9pm delivery at 5pm because it looked like every other new order.
       !isScheduledForLater(o as any),
     pill: "bg-blue-50 text-blue-700",
+    accent: "bg-blue-500",
     icon: Clock,
   },
   {
@@ -212,6 +228,7 @@ const BUCKETS: Bucket[] = [
       !isWaitingForPayment(o) &&
       !isScheduledForLater(o as any),
     pill: "bg-sky-50 text-sky-700",
+    accent: "bg-sky-500",
     icon: CheckCircle2,
   },
   {
@@ -219,6 +236,7 @@ const BUCKETS: Bucket[] = [
     label: "Preparing",
     match: (o) => o.status === "PREPARING" && !isWaitingForPayment(o),
     pill: "bg-amber-50 text-amber-700",
+    accent: "bg-amber-500",
     icon: ChefHat,
   },
   {
@@ -226,6 +244,7 @@ const BUCKETS: Bucket[] = [
     label: "Ready",
     match: (o) => o.status === "READY" && !isWaitingForPayment(o),
     pill: "bg-emerald-50 text-emerald-700",
+    accent: "bg-emerald-500",
     icon: CheckCircle2,
   },
   // Phase AV-2 follow-up — split the old single "Dispatch" bucket
@@ -247,6 +266,7 @@ const BUCKETS: Bucket[] = [
       o.status === "ACCEPTED_BY_DRIVER" ||
       (o.status === "RIDER_ARRIVED" && !o.outForDeliveryAt),
     pill: "bg-violet-50 text-violet-700",
+    accent: "bg-violet-500",
     icon: Truck,
   },
   {
@@ -255,6 +275,7 @@ const BUCKETS: Bucket[] = [
     match: (o) =>
       o.status === "OUT_FOR_DELIVERY" || o.status === "DISPATCHED",
     pill: "bg-orange-50 text-orange-700",
+    accent: "bg-orange-500",
     icon: Truck,
   },
   {
@@ -266,6 +287,7 @@ const BUCKETS: Bucket[] = [
     label: "At the customer",
     match: (o) => o.status === "RIDER_ARRIVED" && !!o.outForDeliveryAt,
     pill: "bg-amber-50 text-amber-700",
+    accent: "bg-yellow-500",
     icon: MapPin,
   },
   {
@@ -273,6 +295,7 @@ const BUCKETS: Bucket[] = [
     label: "Completed",
     match: (o) => o.status === "COMPLETED",
     pill: "bg-zinc-100 text-zinc-700",
+    accent: "bg-zinc-300",
     icon: CheckCircle2,
   },
   {
@@ -283,9 +306,41 @@ const BUCKETS: Bucket[] = [
       o.status === "REJECTED" ||
       o.status === "FAILED",
     pill: "bg-red-50 text-red-700",
+    accent: "bg-red-500",
     icon: XCircle,
   },
 ];
+
+/** The stages shown as counters across the top of the board, in order. */
+const KPI_BUCKETS = [
+  "PENDING",
+  "ACCEPTED",
+  "PREPARING",
+  "READY",
+  "DRIVER_ASSIGNED",
+  "OUT_FOR_DELIVERY",
+] as const;
+
+/** Phone-width names for the counters whose full label doesn't fit a third of 375px. */
+const KPI_SHORT: Partial<Record<string, string>> = {
+  DRIVER_ASSIGNED: "Driver",
+  OUT_FOR_DELIVERY: "On the way",
+};
+
+/** Still in the kitchen's hands — the stages where a long wait is a problem. */
+const KITCHEN_BUCKETS = new Set(["PENDING", "ACCEPTED", "PREPARING"]);
+
+/**
+ * How loudly the age of an order should read. Only while the kitchen still
+ * has it: a completed order being an hour old is not news.
+ */
+function ageTone(bucketKey: string, createdAt: string): string {
+  if (!KITCHEN_BUCKETS.has(bucketKey)) return "text-zinc-500";
+  const mins = (Date.now() - new Date(createdAt).getTime()) / 60_000;
+  if (mins >= 30) return "font-semibold text-red-600";
+  if (mins >= 15) return "font-semibold text-amber-600";
+  return "text-zinc-500";
+}
 
 interface Props {
   locationId?: string;
@@ -340,6 +395,7 @@ export function OrderList({ locationId }: Props) {
   // selected channel keys here; live filter narrows orders by
   // matching any selected channel's predicate.
   const [channelFilter, setChannelFilter] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   // The status stages used to be thirteen chips wrapping over four rows on a
@@ -432,8 +488,11 @@ export function OrderList({ locationId }: Props) {
       );
       list = list.filter((o) => matchers.some((m) => m(o.platform)));
     }
+    if (search.trim()) {
+      list = list.filter((o) => orderMatchesSearch(o, search));
+    }
     return list;
-  }, [orders, bucketFilter, channelFilter]);
+  }, [orders, bucketFilter, channelFilter, search]);
 
   if (isLoading) {
     return (
@@ -480,6 +539,48 @@ export function OrderList({ locationId }: Props) {
           </button>
         </div>
       )}
+
+      {/* Live counters — the stages a shift actually works through. Each
+          one is also the quickest way to filter to it; tap again for all. */}
+      <div className="mb-3 grid grid-cols-3 gap-2 md:grid-cols-6">
+        {KPI_BUCKETS.map((key) => {
+          const b = BUCKETS.find((x) => x.key === key)!;
+          const n = counts[key] ?? 0;
+          const active = bucketFilter === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setBucketFilter(active ? "ALL" : key)}
+              aria-pressed={active}
+              aria-label={`${b.label}: ${n}`}
+              className={`rounded-lg border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 ${
+                active
+                  ? "border-zinc-900 bg-white ring-1 ring-zinc-900"
+                  : "border-zinc-200 bg-white hover:border-zinc-300"
+              }`}
+            >
+              <span className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-500">
+                <span className="relative flex h-2 w-2">
+                  {key === "PENDING" && n > 0 && (
+                    <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${b.accent}`} />
+                  )}
+                  <span className={`relative inline-flex h-2 w-2 rounded-full ${n > 0 ? b.accent : "bg-zinc-200"}`} />
+                </span>
+                <span className="truncate sm:hidden">{KPI_SHORT[key] ?? b.label}</span>
+                <span className="hidden truncate sm:inline">{b.label}</span>
+              </span>
+              <span
+                className={`mt-1 block text-xl font-semibold tabular-nums leading-none ${
+                  n > 0 ? "text-zinc-900" : "text-zinc-300"
+                }`}
+              >
+                {n}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Status dropdown + channel Filter, one tidy row */}
       {/* Wraps on a phone: four controls don't fit in 375px, and a row
@@ -594,6 +695,45 @@ export function OrderList({ locationId }: Props) {
           Dispatch map
         </button>
 
+        {/* Straight to the live drivers, their runs and cash-ups. */}
+        <Link
+          href="/dashboard/dispatch/operator"
+          className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:border-zinc-300"
+        >
+          <LayoutDashboard className="h-3.5 w-3.5" aria-hidden="true" />
+          Operator dashboard
+        </Link>
+
+        {/* Find an order from what the customer says on the phone. */}
+        <div className="relative min-w-0 flex-1 basis-full md:max-w-sm md:basis-56">
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400"
+            aria-hidden="true"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setSearch("");
+            }}
+            autoComplete="off"
+            aria-label="Search orders by name, order ID, ticket number or phone number"
+            placeholder="Search name, order ID, ticket or phone…"
+            className="h-[30px] w-full rounded-md border border-zinc-200 bg-white pl-8 pr-8 text-xs text-zinc-900 placeholder:text-zinc-400 hover:border-zinc-300 focus:border-zinc-900 focus:outline-none"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              className="absolute right-1 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700"
+            >
+              <XIcon className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
+
         {/* Channel filter — Filter button with popover */}
         <div className="ml-auto relative" ref={filterRef}>
           <button
@@ -683,6 +823,13 @@ export function OrderList({ locationId }: Props) {
         </div>
       </div>
 
+      {search.trim() && filteredOrders.length > 0 && (
+        <p role="status" className="mb-3 text-xs text-zinc-500">
+          {filteredOrders.length} order{filteredOrders.length === 1 ? "" : "s"} found
+          for &ldquo;{search.trim()}&rdquo;
+        </p>
+      )}
+
       {/* Active channel chips — quick remove without re-opening popover */}
       {channelFilter.size > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-1.5">
@@ -728,7 +875,30 @@ export function OrderList({ locationId }: Props) {
       {/* The list */}
       {filteredOrders.length === 0 ? (
         <div className="rounded-lg border border-dashed border-zinc-200 bg-white px-6 py-12 text-center text-sm text-zinc-500">
-          No orders match this filter.
+          {search.trim() ? (
+            <>
+              <p role="status">
+                No orders found for &ldquo;{search.trim()}&rdquo;
+                {bucketFilter !== "ALL" || channelFilter.size > 0
+                  ? " with these filters."
+                  : " on the live board."}
+              </p>
+              {(bucketFilter !== "ALL" || channelFilter.size > 0) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBucketFilter("ALL");
+                    setChannelFilter(new Set());
+                  }}
+                  className="mt-2 rounded-md border border-zinc-200 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:border-zinc-300"
+                >
+                  Search all orders
+                </button>
+              )}
+            </>
+          ) : (
+            "No orders match this filter."
+          )}
         </div>
       ) : (
         <>
@@ -753,16 +923,17 @@ export function OrderList({ locationId }: Props) {
           {/* Auto width (not w-full) so columns hug their content — on a
               small tablet this removes the big inter-column gaps that
               pushed the Status column off-screen. */}
-          <table className="divide-y divide-zinc-200 text-sm">
+          <table className="divide-y divide-zinc-200 text-sm xl:w-full">
             <thead className="bg-zinc-50 text-[11px] uppercase tracking-wider text-zinc-500">
               <tr>
                 {bulkMode && (
-                  <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap">
+                  <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap xl:py-3.5">
                     <span className="sr-only">Pick</span>
                   </th>
                 )}
                 <Th>Time</Th>
-                <Th>Order #</Th>
+                <Th>Order ID</Th>
+                <Th>Ticket</Th>
                 <Th>Channel</Th>
                 <Th>Brand</Th>
                 <Th>Type</Th>
@@ -961,7 +1132,7 @@ function OrderCard({
   return (
     <div
       onClick={bulk ? (bulk.pickable ? bulk.onPick : undefined) : onOpen}
-      className={`rounded-lg border bg-white p-3 transition-colors ${
+      className={`relative overflow-hidden rounded-lg border bg-white p-3 pl-4 transition-colors ${
         bulk && !bulk.pickable
           ? "cursor-default border-zinc-200 opacity-45"
           : "cursor-pointer active:bg-zinc-50"
@@ -971,7 +1142,9 @@ function OrderCard({
           : "border-zinc-200"
       }`}
     >
-      {/* Order # + status — the two things worth seeing from arm's length. */}
+      {/* Stage stripe — the colour reads before the words do. */}
+      <span aria-hidden className={`absolute inset-y-0 left-0 w-1 ${bucket.accent}`} />
+      {/* Order ID + status — the two things worth seeing from arm's length. */}
       <div className="flex items-start justify-between gap-2">
         {bulk && (
           <div className="shrink-0 pt-0.5">
@@ -982,6 +1155,11 @@ function OrderCard({
           <span className="text-base font-semibold text-zinc-900">
             #{order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}
           </span>
+          {order.ticketNumber != null && (
+            <span className="ml-2 rounded-md bg-zinc-900 px-1.5 py-0.5 text-xs font-bold tabular-nums text-white">
+              Ticket {order.ticketNumber}
+            </span>
+          )}
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-zinc-500">
             <span>
               {new Date(order.createdAt).toLocaleTimeString([], {
@@ -990,7 +1168,7 @@ function OrderCard({
               })}
             </span>
             <span>·</span>
-            <span>{timeAgo(order.createdAt)}</span>
+            <span className={ageTone(bucket.key, order.createdAt)}>{timeAgo(order.createdAt)}</span>
             {/* When it's due, not when it arrived. On a pre-order the placed
                 time is the one number nobody needs — the slot the customer
                 chose is what the kitchen works back from. */}
@@ -1125,7 +1303,9 @@ function OrderRow({
           <PickBox bulk={bulk} label={ref} />
         </Td>
       )}
-      <Td>
+      <td className="relative py-2.5 pl-3 pr-1.5 align-middle xl:py-5">
+        {/* Stage stripe down the row's left edge. */}
+        <span aria-hidden className={`absolute inset-y-1.5 left-0 w-[3px] rounded-r ${bucket.accent}`} />
         <div className="flex flex-col">
           <span className="font-medium text-zinc-900">
             {new Date(order.createdAt).toLocaleTimeString([], {
@@ -1133,14 +1313,14 @@ function OrderRow({
               minute: "2-digit",
             })}
           </span>
-          <span className="text-[11px] text-zinc-500">
+          <span className={`text-[11px] ${ageTone(bucket.key, order.createdAt)}`}>
             {timeAgo(order.createdAt)}
           </span>
           {/* Expected delivery / collection time lives in the order
               detail popup now — keeping it out of the list row so the
               Status column stays visible on small tablets. */}
         </div>
-      </Td>
+      </td>
       <Td>
         <span className="font-semibold text-zinc-900">
           {/* Phase AW-30 — prefer the 5-char displayId ("AB31C"). It's
@@ -1151,6 +1331,18 @@ function OrderRow({
               sequential orderNumber for legacy rows. */}
           #{order.displayId ?? (order as any).orderNumber ?? order.id.slice(-6)}
         </span>
+      </Td>
+      <Td>
+        {order.ticketNumber != null ? (
+          <span
+            title={`Ticket ${order.ticketNumber}`}
+            className="inline-grid h-7 min-w-7 place-items-center rounded-md bg-zinc-900 px-1.5 text-sm font-bold tabular-nums text-white"
+          >
+            {order.ticketNumber}
+          </span>
+        ) : (
+          <span className="text-zinc-300">—</span>
+        )}
       </Td>
       <Td>
         {/* Phase AU — HubRise orders carry the original marketplace
@@ -1329,13 +1521,15 @@ function PrintOrderButton({ order }: { order: Order }) {
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap">
+    <th className="px-1.5 py-2.5 text-left font-semibold whitespace-nowrap xl:py-3.5">
       {children}
     </th>
   );
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="px-1.5 py-2.5 align-middle">{children}</td>;
+  // Taller rows from xl up, for reading across a kitchen. Vertical only, so the
+  // columns still fit: Status and Actions must stay on screen.
+  return <td className="px-1.5 py-2.5 align-middle xl:py-5">{children}</td>;
 }
 
 /**

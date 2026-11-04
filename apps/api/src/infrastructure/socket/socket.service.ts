@@ -17,6 +17,21 @@ export class SocketService {
     this.server = server;
   }
 
+  /**
+   * Shops with at least one of their own devices connected right now — a
+   * socket that opened that shop as the shop's staff (OrdersGateway tags it).
+   * Every dashboard page keeps the selected shop's feed open, so a tablet on
+   * any OrderHub screen counts.
+   */
+  async locationsWithShopDevices(): Promise<Set<string>> {
+    const out = new Set<string>();
+    if (!this.server) return out;
+    for (const socket of await this.server.fetchSockets()) {
+      for (const id of ((socket.data as { shopLocationIds?: string[] })?.shopLocationIds ?? [])) out.add(id);
+    }
+    return out;
+  }
+
   // Emit to all clients subscribed to a location room
   emitToLocation<K extends keyof ServerToClientEvents>(
     locationId: string,

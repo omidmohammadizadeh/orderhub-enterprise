@@ -81,4 +81,12 @@ describe("formatDisplayPrice", () => {
       "From £8.50",
     );
   });
+
+  it("prices in the shop's currency, with its own decimals", () => {
+    // Every caller passed nothing and the default was "£", so Gulf menus,
+    // POS tiles and kiosks showed pounds (2026-10-30).
+    expect(formatDisplayPrice({ basePrice: 16.45 }, "AED")).toContain("16.45");
+    expect(formatDisplayPrice({ basePrice: 16.45 }, "AED")).not.toContain("£");
+    expect(formatDisplayPrice({ basePrice: 1.25 }, "KWD")).toContain("1.250");
+  });
 });

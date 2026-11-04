@@ -56,6 +56,7 @@ export function Topbar() {
   const { title, description } = getPageMeta(pathname);
   const collapsed = useLayoutStore((s) => s.sidebarCollapsed);
   const toggleSidebar = useLayoutStore((s) => s.toggleSidebar);
+  const setDrawerOpen = useLayoutStore((s) => s.setDrawerOpen);
 
   // Kiosk mode lock (Locations → Lock kiosk mode, admin only). With it on,
   // the chrome a customer must never touch is hidden: sign-out, alerts,
@@ -82,6 +83,23 @@ export function Topbar() {
     <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-6">
       {/* Left: page title */}
       <div className="flex items-center gap-3 min-w-0">
+        {/* Fullscreen: the Order Hub mark opens the menu panel. */}
+        {collapsed && (
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open menu"
+            title="Open menu"
+            className="-ml-2 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg hover:bg-zinc-100"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-400 to-orange-600">
+              <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 text-white" aria-hidden="true">
+                <path d="M3 7h18M3 12h18M3 17h10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                <circle cx="19" cy="17" r="3" fill="currentColor" opacity="0.9" />
+              </svg>
+            </span>
+          </button>
+        )}
         <div className="min-w-0">
           <h1 className="text-[15px] font-semibold text-zinc-900 leading-tight">{title}</h1>
           {description && (
@@ -124,9 +142,9 @@ export function Topbar() {
         <button
           type="button"
           onClick={toggleSidebar}
-          aria-label={collapsed ? "Show sidebar" : "Hide sidebar"}
-          title={collapsed ? "Show sidebar" : "Expand to fullscreen"}
-          className="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-700"
+          aria-label={collapsed ? "Keep sidebar open" : "Hide sidebar"}
+          title={collapsed ? "Keep sidebar open" : "Expand to fullscreen"}
+          className="ml-1 hidden lg:inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-700"
         >
           {collapsed ? (
             <Minimize2 className="h-3.5 w-3.5" />

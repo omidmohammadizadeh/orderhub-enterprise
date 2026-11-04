@@ -6,6 +6,7 @@ import { HubRiseCatalogService } from "../../integrations/hubrise/hubrise-catalo
 import { DeliverooMenuPublishService } from "../../integrations/deliveroo/deliveroo-menu-publish.service";
 import { UberEatsMenuPublishService } from "../../integrations/ubereats/ubereats-menu-publish.service";
 import { JetMenuPublishService } from "../../integrations/jet/jet-menu-publish.service";
+import { CareemMenuPublishService } from "../../integrations/careem/careem-menu-publish.service";
 import { ActivityLogService } from "../../logs/activity-log.service";
 import {
   AUTO_PUBLISH_CHANNELS,
@@ -28,6 +29,7 @@ const CHANNEL_LABEL: Record<AutoPublishChannel, string> = {
   DELIVEROO: "Deliveroo",
   UBER_EATS: "Uber Eats",
   HUBRISE: "HubRise",
+  CAREEM: "Careem",
 };
 
 /**
@@ -52,6 +54,7 @@ export class MenuAutoPublishService {
     private readonly uberEats: UberEatsMenuPublishService,
     private readonly jet: JetMenuPublishService,
     @Optional() private readonly activity?: ActivityLogService,
+    @Optional() private readonly careem?: CareemMenuPublishService,
   ) {}
 
   // ── Read / write ───────────────────────────────────────────────────────────
@@ -228,6 +231,18 @@ export class MenuAutoPublishService {
         case "HUBRISE":
           await this.hubrise.publishMenu({ tenantId, menuId });
           return { ...base, ok: true, message: "Published" };
+        case "CAREEM": {
+          if (!this.careem) throw new Error("Careem isn't available here");
+          const r = await this.careem.publishMenu({
+            tenantId,
+            menuId,
+            locationId,
+            brandId: t.brandId ?? undefined,
+          });
+          return r.ok
+            ? { ...base, ok: true, message: "Sent — Careem is processing it" }
+            : { ...base, ok: false, message: `Not sent: ${r.errors[0]?.message ?? "menu problems"}` };
+        }
       }
     } catch (err: any) {
       const msg = err?.response?.message ?? err?.message ?? "failed";
@@ -260,6 +275,13 @@ export class MenuAutoPublishService {
         out[channel] = [{ locationId: menu.locationId, brandId: menu.brandId, locationName: home?.name ?? null }];
         continue;
       }
+      if (channel === "CAREEM") {
+        out[channel] = await this.careemTargets(
+          menu,
+          rows.filter((r) => r.channel === channel),
+        );
+        continue;
+      }
       const seen = new Set<string>();
       const list = rows
         .filter((r) => r.channel === channel)
@@ -270,6 +292,33 @@ export class MenuAutoPublishService {
         : [{ locationId: menu.locationId, brandId: menu.brandId, locationName: home?.name ?? null }];
     }
     return out;
+  }
+
+  /**
+   * Careem publish per brand × location, and only where that branch exists, so
+   * a menu at a UK shop has no Careem target to offer or to fail on.
+   */
+  private async careemTargets(
+    menu: { brandId: string },
+    assigned: Array<{ locationId: string; brandId: string; location?: { name: string } | null }>,
+  ) {
+    const conns = await this.prisma.brandPlatformConnection.findMany({
+      where: {
+        platform: "CAREEM",
+        brandId: { in: [...new Set([menu.brandId, ...assigned.map((a) => a.brandId)])] },
+        externalStoreId: { not: null },
+        status: { not: "not_connected" },
+      },
+      select: { brandId: true, locationId: true, location: { select: { name: true } } },
+    });
+    const wanted = assigned.length
+      ? conns.filter((c) => assigned.some((a) => a.brandId === c.brandId && a.locationId === c.locationId))
+      : conns.filter((c) => c.brandId === menu.brandId);
+    return wanted.map((c) => ({
+      locationId: c.locationId,
+      brandId: c.brandId,
+      locationName: c.location?.name ?? null,
+    }));
   }
 
   private async assertMenu(menuId: string, tenantId: string) {

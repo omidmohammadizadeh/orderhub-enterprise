@@ -51,6 +51,7 @@ const CHANNEL_LABEL: Record<string, string> = {
   POS: "POS / till",
   VOICE: "AI Voice",
   WHATSAPP: "WhatsApp",
+  EAT_FOR_LESS: "Eat For Less",
   JUST_EAT: "Just Eat",
   UBER_EATS: "Uber Eats",
   DELIVEROO: "Deliveroo",

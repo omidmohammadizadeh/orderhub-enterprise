@@ -71,7 +71,7 @@ interface Line {
 const IDLE_RESET_MS = 90_000;
 
 export default function KioskPage() {
-  const { money, country } = useCurrency();
+  const { money, country, currency } = useCurrency();
   const locationId = useSelectedLocationStore((s) => s.selectedLocationId);
 
   const menuQuery = useQuery({
@@ -452,7 +452,7 @@ export default function KioskPage() {
                   </p>
                 )}
                 <div className="mt-3 text-2xl font-bold text-zinc-900">
-                  {sold ? "Sold out" : formatDisplayPrice(item as any)}
+                  {sold ? "Sold out" : formatDisplayPrice(item as any, currency)}
                 </div>
                 </div>
               </button>

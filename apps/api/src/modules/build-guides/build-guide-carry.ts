@@ -133,6 +133,62 @@ export async function copyGuidesToBrand(
   }
 }
 
+/**
+ * Give products that have NO guide under their own brand a copy from the
+ * brand that already charts the same menu.
+ *
+ * copyGuidesToBrand only looks at the products' previous brand, and that is
+ * not always where the charts live: the FIESTA MEXA menu at Pizza Uno sells
+ * under "PAPI TACO", while its 38 charts were drawn under "Order Hub", Upper
+ * High Street and Wanstead. A clone of it tagged to a new shop's brand copied
+ * PAPI TACO's charts — none — and Kitchen training showed no Fiesta board.
+ *
+ * The source is chosen per menu, not per product: tenant brands are scored by
+ * how many of these product names they chart, and each missing name is taken
+ * from the best-scoring brand that has it. A brand matching a single name
+ * (every shop sells "Coca Cola") is never used. Never overwrites.
+ */
+export async function fillGuidesFromTwinBrand(
+  db: Db,
+  args: { tenantId: string; items: Array<{ brandId: string | null; name: string }> },
+  model: NameKeyedModel = "buildGuide",
+): Promise<number> {
+  try {
+    const wantedByBrand = new Map<string, Set<string>>();
+    for (const it of args.items) {
+      const nameKey = buildGuideNameKey(it.name);
+      if (!nameKey || !it.brandId) continue;
+      if (!wantedByBrand.has(it.brandId)) wantedByBrand.set(it.brandId, new Set());
+      wantedByBrand.get(it.brandId)!.add(nameKey);
+    }
+    if (!wantedByBrand.size) return 0;
+    const allKeys = [...new Set([...wantedByBrand.values()].flatMap((s) => [...s]))];
+    const rows: any[] = await db[model].findMany({ where: { tenantId: args.tenantId, nameKey: { in: allKeys } } });
+
+    const data: any[] = [];
+    for (const [brandId, keys] of wantedByBrand) {
+      const have = new Set(rows.filter((r) => r.brandId === brandId).map((r) => r.nameKey));
+      const missing = [...keys].filter((k) => !have.has(k));
+      if (!missing.length) continue;
+      const score = new Map<string, number>();
+      for (const r of rows) {
+        if (r.brandId !== brandId && keys.has(r.nameKey)) score.set(r.brandId, (score.get(r.brandId) ?? 0) + 1);
+      }
+      const ranked = [...score.entries()].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).map(([b]) => b);
+      for (const key of missing) {
+        const from = ranked.map((b) => rows.find((r) => r.brandId === b && r.nameKey === key)).find(Boolean);
+        if (from) data.push({ ...copyData(from, from.nameKey, from.name), brandId });
+      }
+    }
+    if (!data.length) return 0;
+    const res = await db[model].createMany({ data, skipDuplicates: true });
+    return res?.count ?? data.length;
+  } catch (err: any) {
+    logger.warn(`Guides not filled from a twin brand: ${err?.message ?? err}`);
+    return 0;
+  }
+}
+
 function sameTitle(a: unknown, b: string) {
   return String(a ?? "").trim().toLowerCase() === b.trim().toLowerCase();
 }

@@ -4,12 +4,12 @@
 // same build's name on a second brand), the burger photo, then the white
 // rounded stack of layers top to bottom — the laminated-poster look.
 
-import { Archivo_Black } from "next/font/google";
+import localFont from "next/font/local";
 import type { AssemblyChartDto, AssemblyLayer } from "@orderhub/shared";
 import { cn } from "@/lib/utils";
 import { LayerArt, isBun } from "./layer-art";
 
-const display = Archivo_Black({ weight: "400", subsets: ["latin"], display: "swap" });
+const display = localFont({ src: "../../fonts/archivo-black-latin-400.woff2", weight: "400", display: "swap" });
 
 export const BOARD_BG = "#d81b6a";
 

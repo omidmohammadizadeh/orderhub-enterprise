@@ -44,22 +44,24 @@ function loadBrand(slug) {
   if (!idRe.test(b.ios?.bundleId ?? "")) fail(`${slug}: ios.bundleId must look like com.orderhubsolutions.${slug}`);
   if (!idRe.test(b.android?.package ?? "")) fail(`${slug}: android.package must look like com.orderhubsolutions.${slug}`);
 
-  // Sign in with Google is optional per brand: it needs an iOS OAuth client
-  // made for this bundle id (the Android client is matched by package +
-  // signing SHA-1, so the app carries no id for it). Without one the app
-  // offers Apple (iOS) and the storefront's email sign-in only.
+  // Sign in with Google is optional per brand. iOS needs an OAuth client made
+  // for this bundle id; Android needs none in the app (its client is matched
+  // by package + signing SHA-1), so `"google": {}` turns on Android alone.
+  // Without the block the app offers Apple (iOS) and email sign-in only.
   const g = b.google || null;
   if (g) {
     for (const key of ["iosClientId", "webClientId"]) {
       if (g[key] && !GOOGLE_CLIENT_RE.test(g[key])) fail(`${slug}: google.${key} must look like 1234-abc.apps.googleusercontent.com`);
     }
   }
-  const google = g && g.iosClientId
+  const google = g && (g.iosClientId || g.android !== false)
     ? {
-        iosClientId: g.iosClientId,
+        iosClientId: g.iosClientId || null,
         webClientId: g.webClientId || DEFAULT_GOOGLE_WEB_CLIENT_ID,
         // What the iOS SDK opens to return to the app: the client id reversed.
-        iosUrlScheme: `com.googleusercontent.apps.${g.iosClientId.replace(/\.apps\.googleusercontent\.com$/, "")}`,
+        iosUrlScheme: g.iosClientId
+          ? `com.googleusercontent.apps.${g.iosClientId.replace(/\.apps\.googleusercontent\.com$/, "")}`
+          : null,
         android: g.android !== false,
       }
     : null;

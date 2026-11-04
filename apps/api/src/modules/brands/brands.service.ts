@@ -5,6 +5,7 @@ import {
   ConflictException,
   BadRequestException,
   Inject,
+  Optional,
   forwardRef,
 } from "@nestjs/common";
 import { PrismaService } from "../../infrastructure/database/prisma.service";
@@ -12,6 +13,7 @@ import { HubRiseLocationPauseService } from "../integrations/hubrise/hubrise-loc
 import { UberEatsConnectionService } from "../integrations/ubereats/ubereats-connection.service";
 import { UberEatsMenuPublishService } from "../integrations/ubereats/ubereats-menu-publish.service";
 import { JetStoreStatusService } from "../integrations/jet/jet-store-status.service";
+import { CareemConnectionService } from "../integrations/careem/careem-connection.service";
 import { DeliverooConnectionService } from "../integrations/deliveroo/deliveroo-connection.service";
 import { CloudflareService } from "./cloudflare.service";
 import { RenderDomainsService } from "./render-domains.service";
@@ -23,6 +25,7 @@ import { normalizePricingVariants } from "@orderhub/shared";
 import { SupabaseStorageService } from "../uploads/supabase-storage.service";
 import { rehostImageIfInline } from "../uploads/rehost-image";
 import { PaymentsService } from "../payments/payments.service";
+import { BRAND_MONEY_FIELDS, guardMoneyFields } from "../../common/access/money-fields";
 
 // Phase AN — Brand CRUD, extended with description/cuisine/logoUrl/
 // isSuspended/primaryLocationId. A brand can be tenant-wide (the franchise
@@ -137,6 +140,7 @@ export class BrandsService {
     // Apple Pay has to be told about each brand's custom domain, or its
     // button silently never renders there.
     private readonly payments: PaymentsService,
+    @Optional() private readonly careem?: CareemConnectionService,
   ) {}
 
   /** List brands for a tenant. When locationId is given, returns brands
@@ -246,6 +250,9 @@ export class BrandsService {
     // Keeta publishes through VariantPriceResolverService.forBrandChannel
     // ("KEETA"), so its variant menu must be pickable here.
     "KEETA",
+    // The Eat For Less app serves the storefront menu at this channel's
+    // prices when the brand picks a variant here.
+    "EAT_FOR_LESS",
   ] as const;
 
   async getChannelSources(brandId: string, tenantId: string) {
@@ -348,8 +355,21 @@ export class BrandsService {
     });
   }
 
-  async update(brandId: string, tenantId: string, dto: UpdateBrandDto) {
+  async update(
+    brandId: string,
+    tenantId: string,
+    dto: UpdateBrandDto,
+    /** Caller's role — payout account + fee fields are OrderHub-only. */
+    role?: string,
+  ) {
     await this.assertAccess(brandId, tenantId);
+    if (BRAND_MONEY_FIELDS.some((f) => (dto as any)[f] !== undefined)) {
+      const stored = await (this.prisma as any).brand.findUnique({
+        where: { id: brandId },
+        select: Object.fromEntries(BRAND_MONEY_FIELDS.map((f) => [f, true])),
+      });
+      guardMoneyFields(dto as any, stored, BRAND_MONEY_FIELDS, role);
+    }
     // A logo pasted in as base64 becomes a hosted file here, before it can
     // reach a column and start riding along on every storefront response.
     const logoUrl = await rehostImageIfInline(this.storage, dto.logoUrl, "logos");
@@ -1112,6 +1132,12 @@ export class BrandsService {
           );
         }
         return { channel, status: "ok", pushed: true };
+      }
+
+      case "CAREEM": {
+        if (!this.careem) throw new BadRequestException("Careem isn't available here.");
+        const res = await this.careem.publishHoursForBrand(tenantId, brandId);
+        return { channel, status: "ok", pushed: true, branches: res.pushed };
       }
 
       case "JUST_EAT": {

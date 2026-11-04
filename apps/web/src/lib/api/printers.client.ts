@@ -9,6 +9,9 @@ export interface Printer {
   kind: string;
   ipAddress: string | null;
   port: number | null;
+  // USB printers are addressed by vendor + product id instead of an address.
+  usbVendor?: number | null;
+  usbProduct?: number | null;
   isOnline: boolean;
   isActive: boolean;
   model: string | null;

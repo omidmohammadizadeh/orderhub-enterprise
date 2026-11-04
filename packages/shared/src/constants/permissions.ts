@@ -98,6 +98,15 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   // display reads and bumps tickets but must never create an order.
   KIOSK: [PERMISSIONS.MENUS.READ, PERMISSIONS.ORDERS.WRITE],
   KITCHEN_DISPLAY: [PERMISSIONS.KDS.VIEW, PERMISSIONS.KDS.OPERATE],
+  // The shared counter tablet for one shop: takes and runs orders like a
+  // cashier. Analytics access is a per-account switch the owner flips, not a
+  // role default, so it isn't listed here.
+  LOCATION_TABLET: [
+    PERMISSIONS.ORDERS.READ,
+    PERMISSIONS.ORDERS.WRITE,
+    PERMISSIONS.MENUS.READ,
+    PERMISSIONS.KDS.VIEW,
+  ],
   VIEWER: [
     PERMISSIONS.ORDERS.READ,
     PERMISSIONS.MENUS.READ,

@@ -13,11 +13,13 @@ import {
   ArrowRight,
   ClipboardCheck,
   Globe,
+  Handshake,
   KeyRound,
   LayoutList,
   Lock,
   Rocket,
   ShieldCheck,
+  Star,
   Wallet,
   Zap,
 } from "lucide-react";
@@ -31,6 +33,13 @@ interface AdminTool {
 }
 
 const TOOLS: AdminTool[] = [
+  {
+    href: "/dashboard/admin/prospects",
+    title: "Prospects",
+    blurb:
+      "Before a sales meeting: build a private preview of the shop from its own menu, and show what its marketplace statements say it pays in commission.",
+    icon: Handshake,
+  },
   {
     href: "/dashboard/admin/dashboard-access",
     title: "Dashboard access",
@@ -58,6 +67,13 @@ const TOOLS: AdminTool[] = [
     blurb:
       "Send deliveries to Stuart, Uber Direct, JET Go or Yango on their own — a fixed provider or the cheapest live quote, by brand and channel, at the moment you choose.",
     icon: Zap,
+  },
+  {
+    href: "/dashboard/admin/food-hygiene",
+    title: "Food hygiene",
+    blurb:
+      "Show each shop\u2019s FSA food hygiene rating on its storefront and app. One switch per location; ratings refresh from the FSA every night.",
+    icon: Star,
   },
   {
     href: "/dashboard/admin/website-showcase",

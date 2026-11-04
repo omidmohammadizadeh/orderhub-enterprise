@@ -69,6 +69,21 @@ export class PaymentsController {
     return this.payments.handleStripeWebhook(rawBody, signature ?? "");
   }
 
+  // POST /v1/payments/efl-webhook — Eat For Less Ltd's own Stripe account.
+  // A separate endpoint because it is a separate Stripe account with its own
+  // signing secret; it reads the exact bytes Stripe signed.
+  @Post("efl-webhook")
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Eat For Less Stripe webhook (raw body required)" })
+  handleEflWebhook(
+    @Req() req: Request & { rawBody?: Buffer },
+    @Headers("stripe-signature") signature: string,
+  ) {
+    const rawBody: Buffer = req.rawBody ?? (Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body)));
+    return this.payments.handleEflStripeWebhook(rawBody, signature ?? "");
+  }
+
   /**
    * POST /v1/payments/tap/webhook — Tap's charge/refund notifications.
    *

@@ -6,9 +6,23 @@ import { CareemItemAvailabilityService } from "../careem-item-availability.servi
 
 const location = { id: "loc-1", brandId: "brand-1" };
 
-const build = (over: { location?: unknown; request?: jest.Mock } = {}) => {
+const build = (
+  over: { location?: unknown; request?: jest.Mock; connections?: unknown[] } = {},
+) => {
   const request = over.request ?? jest.fn().mockResolvedValue({});
   const prisma = {
+    brandPlatformConnection: {
+      findMany: jest.fn().mockResolvedValue(over.connections ?? []),
+    },
+    menuItem: {
+      findMany: jest.fn().mockImplementation(({ where }: any) =>
+        Promise.resolve(
+          where.id
+            ? where.id.in.map((id: string) => ({ id, name: "Fries", brandId: "brand-2" }))
+            : [{ id: "twin-of-item" }],
+        ),
+      ),
+    },
     location: {
       findFirst: jest
         .fn()
@@ -26,6 +40,58 @@ const build = (over: { location?: unknown; request?: jest.Mock } = {}) => {
 };
 
 describe("CareemItemAvailabilityService", () => {
+  const branch = (brandId: string, itemIds: string[]) => ({
+    externalStoreId: `branch-${brandId}`,
+    brandId,
+    metadata: { careemCatalog: { itemIds } },
+  });
+
+  it("sends a brand's item only to the branch it was published on", async () => {
+    const { svc, request, prisma } = build({
+      connections: [branch("brand-2", ["item-1"]), branch("brand-3", ["other"])],
+    });
+    await svc.pushItemAvailability({
+      tenantId: "t",
+      itemId: "item-1",
+      locationId: "loc-1",
+      available: false,
+    });
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(request).toHaveBeenCalledWith(
+      "/catalogs/branch-brand-2/items",
+      expect.objectContaining({ brandId: "brand-2", branchId: "branch-brand-2" }),
+    );
+    expect(prisma.location.findFirst).not.toHaveBeenCalled();
+  });
+
+  it("finds an item published from a same-named row of the brand", async () => {
+    const { svc, request } = build({
+      connections: [branch("brand-2", ["twin-of-item"])],
+    });
+    await svc.pushItemAvailability({
+      tenantId: "t",
+      itemId: "item-1",
+      locationId: "loc-1",
+      available: true,
+    });
+    expect(request.mock.calls[0]![1].body.items).toEqual([
+      { id: "twin-of-item", status: "active" },
+    ]);
+  });
+
+  it("sends nothing to a branch with no published menu", async () => {
+    const { svc, request } = build({
+      connections: [{ externalStoreId: "b", brandId: "brand-2", metadata: {} }],
+    });
+    await svc.pushItemAvailability({
+      tenantId: "t",
+      itemId: "item-1",
+      locationId: "loc-1",
+      available: false,
+    });
+    expect(request).not.toHaveBeenCalled();
+  });
+
   it("sends inactive for a snoozed item", async () => {
     const { svc, request } = build();
     await svc.pushItemAvailability({
