@@ -89,7 +89,7 @@ export function toJetOpeningTimes(hours: unknown): JetOpeningTimes {
       const day = String(row?.day ?? "").toLowerCase();
       if ((DAYS as readonly string[]).includes(day)) push(day, row?.open, row?.close);
     }
-    return out;
+    return sortOpeningTimes(out);
   }
 
   if (hours && typeof hours === "object") {
@@ -105,7 +105,16 @@ export function toJetOpeningTimes(hours: unknown): JetOpeningTimes {
       }
     }
   }
-  return out;
+  return sortOpeningTimes(out);
+}
+
+/** Same time-ordering as the menu availability — see the note there. The two
+ *  are intersected, so they must describe the week the same way. */
+function sortOpeningTimes(map: JetOpeningTimes): JetOpeningTimes {
+  for (const day of Object.keys(map)) {
+    map[day]!.sort((a, b) => a.openingTime.localeCompare(b.openingTime));
+  }
+  return map;
 }
 
 /**

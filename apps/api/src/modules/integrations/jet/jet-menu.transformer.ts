@@ -272,7 +272,7 @@ export function toJetAvailability(hours: unknown): JetAvailability {
         push(day, row?.open, row?.close);
       }
     }
-    return out;
+    return sortWindows(out);
   }
 
   if (hours && typeof hours === "object") {
@@ -288,7 +288,22 @@ export function toJetAvailability(hours: unknown): JetAvailability {
       }
     }
   }
-  return out;
+  return sortWindows(out);
+}
+
+/**
+ * Put each day's windows in time order.
+ *
+ * A window that ran past midnight is appended to the NEXT day, and Sunday
+ * wraps round to Monday — which is walked first. So Monday, alone of the
+ * seven, could come out with its small-hours window after its afternoon one
+ * (Salt and Crust, restaurant 448194: `["13:00 - 23:45", "00:00 - 00:45"]`).
+ * Six days looked right, which is what made it easy to miss. The times are
+ * zero-padded "HH:MM", so a plain string sort is a time sort.
+ */
+function sortWindows(map: JetAvailability): JetAvailability {
+  for (const day of Object.keys(map)) map[day]!.sort();
+  return map;
 }
 
 /** The widest window JET accepts for a day. Used wherever we hold no hours:

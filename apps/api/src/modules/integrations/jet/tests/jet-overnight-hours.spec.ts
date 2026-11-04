@@ -126,3 +126,55 @@ describe("Opening hours that cross midnight", () => {
     });
   });
 });
+
+describe("Windows come out in time order", () => {
+  // Salt and Crust (restaurant 448194) trades 13:00–00:45 every day except
+  // Monday. Sunday's tail wraps round onto Monday — and because Sunday is the
+  // LAST day walked, that tail was appended after Monday's own window:
+  //
+  //   monday: [13:00-23:45, 00:00-00:45]   ← backwards
+  //
+  // Every other day is fine, because the spill arrives from the day before and
+  // so is written first. Monday is the only one that can come out reversed,
+  // which makes it the easiest kind of bug to miss: six days look right.
+  //
+  // Whether JET minds is not something we can see from here — it answers 202
+  // either way, like everything else on this integration. But a day whose
+  // windows run backwards is wrong on its face, and it is the only thing left
+  // in this payload that is.
+
+  const sundayLate = {
+    monday: { enabled: true, slots: [{ from: "13:00", to: "23:45" }] },
+    sunday: { enabled: true, slots: [{ from: "13:00", to: "00:45" }] },
+  };
+
+  it("puts Monday's small-hours window before its afternoon one", () => {
+    const out = toJetAvailability(sundayLate);
+
+    expect(out.monday).toEqual(["00:00 - 00:45", "13:00 - 23:45"]);
+  });
+
+  it("orders the service times the same way", () => {
+    const out = toJetOpeningTimes(sundayLate);
+
+    expect(out.monday).toEqual([
+      { openingTime: "00:00", closingTime: "00:45" },
+      { openingTime: "13:00", closingTime: "23:45" },
+    ]);
+  });
+
+  it("sorts a split shift that was entered out of order", () => {
+    // Nothing stops an operator typing the evening shift first.
+    const out = toJetAvailability({
+      monday: {
+        enabled: true,
+        slots: [
+          { from: "17:00", to: "23:00" },
+          { from: "09:00", to: "14:00" },
+        ],
+      },
+    });
+
+    expect(out.monday).toEqual(["09:00 - 14:00", "17:00 - 23:00"]);
+  });
+});
