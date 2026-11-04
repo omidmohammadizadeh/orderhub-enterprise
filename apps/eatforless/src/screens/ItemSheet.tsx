@@ -146,7 +146,10 @@ function Groups({
                 return (
                   <View key={entry.option.id}>
                     <PressScale
-                      onPress={() => onToggle(node, entry.option.id)}
+                      // Once a repeatable extra is in, its row is not a button:
+                      // a tap there added ANOTHER one, so a finger that just
+                      // missed the bin kept adding sauce. The stepper decides.
+                      onPress={dup && entry.quantity > 0 ? undefined : () => onToggle(node, entry.option.id)}
                       scaleTo={1}
                       unstable_pressDelay={90}
                       accessibilityRole={variant ? "radio" : "checkbox"}
@@ -158,7 +161,11 @@ function Groups({
                         {entry.price > 0 ? <T v="sub">+{money(entry.price)}</T> : null}
                       </View>
                       {dup && entry.quantity > 0 ? (
-                        <Stepper compact min={0} value={entry.quantity} onChange={(_n, delta) => onStep(node, entry.option.id, delta)} />
+                        // Swallows taps anywhere on the pill, so a near miss
+                        // lands on the stepper and not the row behind it.
+                        <View onStartShouldSetResponder={() => true}>
+                          <Stepper compact min={0} value={entry.quantity} onChange={(_n, delta) => onStep(node, entry.option.id, delta)} />
+                        </View>
                       ) : variant ? (
                         <Radio on={entry.selected} />
                       ) : (

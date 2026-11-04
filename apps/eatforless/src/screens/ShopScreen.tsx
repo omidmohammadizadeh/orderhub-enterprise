@@ -148,6 +148,7 @@ export function ShopScreen({ navigation, route }: RootScreen<"Shop">) {
   const sectionYsShared = useSharedValue<number[]>([]);
   const [active, setActive] = useState(0);
   const jumping = useSharedValue(false);
+  const activeShared = useSharedValue(0);
 
   const store = menuQ.data?.store;
   const sections: MenuSection[] = useMemo(() => (store ? menuSections(store, "DELIVERY") : []), [store]);
@@ -168,7 +169,12 @@ export function ShopScreen({ navigation, route }: RootScreen<"Shop">) {
       const probe = e.contentOffset.y + headerH + TABS_HEIGHT + 24;
       let idx = 0;
       for (let i = 0; i < ys.length; i++) if (ys[i]! <= probe) idx = i;
-      runOnJS(setActiveIfChanged)(idx);
+      // Only cross to JS when the section changes: a call on every frame
+      // re-rendered the menu mid-scroll and made it judder.
+      if (idx !== activeShared.value) {
+        activeShared.value = idx;
+        runOnJS(setActiveIfChanged)(idx);
+      }
     },
     onMomentumEnd: () => {
       jumping.value = false;
@@ -183,6 +189,7 @@ export function ShopScreen({ navigation, route }: RootScreen<"Shop">) {
     const y = sectionYs.current[i];
     if (y == null) return;
     setActive(i);
+    activeShared.value = i;
     jumping.value = true;
     scrollRef.current?.scrollTo({ y: Math.max(0, y - headerH - TABS_HEIGHT + 1), animated: true });
     setTimeout(() => {
