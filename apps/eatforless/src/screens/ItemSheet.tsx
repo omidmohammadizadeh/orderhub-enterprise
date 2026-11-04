@@ -11,7 +11,6 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Easing,
   FadeIn,
-  LinearTransition,
   runOnJS,
   useAnimatedStyle,
   useDerivedValue,
@@ -85,7 +84,7 @@ function GroupHeader({ title, sub, required, satisfied, shake }: { title: string
         <T v="sub">{sub}</T>
       </View>
       {badge ? (
-        <Animated.View layout={LinearTransition.springify().damping(16)} style={[styles.reqBadge, { backgroundColor: badge.bg }]}>
+        <Animated.View style={[styles.reqBadge, { backgroundColor: badge.bg }]}>
           <T style={{ fontFamily: F.bold, fontSize: 12, color: badge.ink }}>{badge.text}</T>
         </Animated.View>
       ) : null}
@@ -124,7 +123,6 @@ function Groups({
           <Animated.View
             key={node.key}
             entering={nested ? FadeIn.duration(260) : undefined}
-            layout={LinearTransition.springify().damping(18)}
             style={nested ? styles.nested : undefined}
             ref={(v: any) => registerRef(node.key, v)}
           >
@@ -149,7 +147,8 @@ function Groups({
                   <View key={entry.option.id}>
                     <PressScale
                       onPress={() => onToggle(node, entry.option.id)}
-                      scaleTo={0.98}
+                      scaleTo={1}
+                      unstable_pressDelay={90}
                       accessibilityRole={variant ? "radio" : "checkbox"}
                       accessibilityState={{ checked: entry.selected }}
                       style={styles.optRow}
@@ -159,7 +158,7 @@ function Groups({
                         {entry.price > 0 ? <T v="sub">+{money(entry.price)}</T> : null}
                       </View>
                       {dup && entry.quantity > 0 ? (
-                        <Stepper compact min={0} value={entry.quantity} onChange={(n) => onStep(node, entry.option.id, n - entry.quantity)} />
+                        <Stepper compact min={0} value={entry.quantity} onChange={(_n, delta) => onStep(node, entry.option.id, delta)} />
                       ) : variant ? (
                         <Radio on={entry.selected} />
                       ) : (
@@ -246,7 +245,6 @@ export function ItemSheet({ navigation, route }: RootScreen<"Item">) {
     });
   };
 
-  // One gesture object per detector (handle, photo) — RNGH won't share one.
   const makeDrag = () => Gesture.Pan()
     .activeOffsetY(8)
     .onUpdate((e) => {
@@ -260,8 +258,9 @@ export function ItemSheet({ navigation, route }: RootScreen<"Item">) {
         scrim.value = withTiming(1);
       }
     });
+  // Only the handle drags the sheet: a drag on the photo, inside the scroll,
+  // moved the sheet and the list at once and made the options shake.
   const dragHandle = useMemo(makeDrag, []);
-  const dragPhoto = useMemo(makeDrag, []);
 
   const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }] }));
   const scrimStyle = useAnimatedStyle(() => ({ opacity: scrim.value }));
@@ -359,7 +358,6 @@ export function ItemSheet({ navigation, route }: RootScreen<"Item">) {
               }}
             >
               <View ref={contentRef} collapsable={false}>
-              <GestureDetector gesture={dragPhoto}>
                 <View style={styles.photoBox}>
                   <Animated.View style={[StyleSheet.absoluteFill, foodStyle]}>
                     <Photo uri={item.imageUrl} kind={foodKind(item.name)} style={StyleSheet.absoluteFillObject} />
@@ -368,7 +366,6 @@ export function ItemSheet({ navigation, route }: RootScreen<"Item">) {
                     <Icon name="close" size={18} />
                   </PressScale>
                 </View>
-              </GestureDetector>
 
               <View style={styles.intro}>
                 <T v="hero" style={{ fontSize: 26 }}>{item.name}</T>
@@ -392,7 +389,8 @@ export function ItemSheet({ navigation, route }: RootScreen<"Item">) {
                       {skus.map((s) => (
                         <PressScale
                           key={s.plu}
-                          scaleTo={0.98}
+                          scaleTo={1}
+                          unstable_pressDelay={90}
                           accessibilityRole="radio"
                           accessibilityState={{ checked: sku?.plu === s.plu }}
                           onPress={() => {

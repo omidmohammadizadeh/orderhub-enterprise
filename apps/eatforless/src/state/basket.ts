@@ -6,6 +6,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { SelectedModifier } from "@shared/menu-pricing";
+import { abandonOrder } from "@/api/efl";
+import { queryClient } from "@/api/queryClient";
 import { round2 } from "@/lib/money";
 
 const MAX_AGE_MS = 12 * 60 * 60 * 1000;
@@ -25,15 +27,25 @@ export type BasketLine = {
 
 export type BasketShop = { id: string; name: string; area: string | null };
 
+/** An order made for this basket whose payment the customer backed out of.
+ *  `sig` is the checkout it was made for, so the same checkout re-uses it. */
+export type PendingOrder = { orderId: string; key: string; sig: string };
+
 type BasketState = {
   shop: BasketShop | null;
   lines: BasketLine[];
   updatedAt: number;
+  pending: PendingOrder | null;
   /** false = the basket holds another shop's food; the caller asks first. */
   add: (shop: BasketShop, line: Omit<BasketLine, "key">) => boolean;
   replaceWith: (shop: BasketShop, line: Omit<BasketLine, "key">) => void;
   setQuantity: (key: string, quantity: number) => void;
   clear: () => void;
+  /** Remember (or forget, once paid) the unpaid order for this basket. */
+  setPending: (pending: PendingOrder | null) => void;
+  /** The basket changed, so its unpaid order is dropped on the server too:
+   *  otherwise it sits on the Orders tab as "Waiting for payment" for good. */
+  dropPending: () => void;
 };
 
 /** Two picks are one line when everything the customer chose matches. */
@@ -48,10 +60,12 @@ export const useBasket = create<BasketState>()(
       shop: null,
       lines: [],
       updatedAt: 0,
+      pending: null,
 
       add: (shop, line) => {
         const { shop: current, lines } = get();
         if (current && current.id !== shop.id && lines.length > 0) return false;
+        get().dropPending();
         const key = lineKey(line);
         const existing = current?.id === shop.id ? lines.find((l) => l.key === key) : undefined;
         const next = existing
@@ -61,21 +75,40 @@ export const useBasket = create<BasketState>()(
         return true;
       },
 
-      replaceWith: (shop, line) => set({ shop, lines: [{ ...line, key: lineKey(line) }], updatedAt: Date.now() }),
+      replaceWith: (shop, line) => {
+        get().dropPending();
+        set({ shop, lines: [{ ...line, key: lineKey(line) }], updatedAt: Date.now() });
+      },
 
       setQuantity: (key, quantity) => {
+        get().dropPending();
         const lines = get()
           .lines.map((l) => (l.key === key ? { ...l, quantity } : l))
           .filter((l) => l.quantity > 0);
         set({ lines, shop: lines.length ? get().shop : null, updatedAt: Date.now() });
       },
 
-      clear: () => set({ shop: null, lines: [], updatedAt: Date.now() }),
+      clear: () => {
+        get().dropPending();
+        set({ shop: null, lines: [], updatedAt: Date.now() });
+      },
+
+      setPending: (pending) => set({ pending }),
+
+      dropPending: () => {
+        const { pending } = get();
+        if (!pending) return;
+        set({ pending: null });
+        // Best effort: the server keeps it if the payment did go through.
+        void abandonOrder(pending.orderId)
+          .then(() => queryClient.invalidateQueries({ queryKey: ["orders"] }))
+          .catch(() => undefined);
+      },
     }),
     {
       name: "efl.basket",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: ({ shop, lines, updatedAt }) => ({ shop, lines, updatedAt }),
+      partialize: ({ shop, lines, updatedAt, pending }) => ({ shop, lines, updatedAt, pending }),
       merge: (persisted, current) => {
         const p = persisted as Partial<BasketState> | undefined;
         if (!p || Date.now() - (p.updatedAt ?? 0) > MAX_AGE_MS) return current;

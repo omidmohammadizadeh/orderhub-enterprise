@@ -4,7 +4,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import * as Crypto from "expo-crypto";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
@@ -108,7 +108,7 @@ const hhmm = (d: Date) => d.toLocaleTimeString("en-GB", { hour: "2-digit", minut
 export function CheckoutScreen({ navigation }: RootScreen<"Checkout">) {
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
-  const { shop: basketShop, lines, setQuantity, clear } = useBasket();
+  const { shop: basketShop, lines, setQuantity, clear, pending, setPending, dropPending } = useBasket();
   const session = useSession();
   const address = useSelectedAddress();
   const shopsQ = useShops(searchPoint(address));
@@ -121,7 +121,6 @@ export function CheckoutScreen({ navigation }: RootScreen<"Checkout">) {
   const [when, setWhen] = useState<"now" | Date>("now");
   const [tip, setTip] = useState(1);
   const [placing, setPlacing] = useState(false);
-  const idempotency = useRef<{ key: string; sig: string } | null>(null);
 
   const delivery = mode === "DELIVERY";
   const subtotal = basketSubtotal(lines);
@@ -211,20 +210,25 @@ export function CheckoutScreen({ navigation }: RootScreen<"Checkout">) {
       total,
       ...(when !== "now" ? { scheduledFor: when.toISOString() } : {}),
     };
-    // Same basket, same key: tapping again after a cancelled payment re-uses
-    // the order instead of opening a second one.
+    // Same checkout, same key: paying again after backing out re-uses the
+    // order instead of opening a second one. A different checkout (tip,
+    // address, time) drops the old unpaid order first.
     const sig = JSON.stringify({ ...body, idempotencyKey: "" });
-    if (!idempotency.current || idempotency.current.sig !== sig) idempotency.current = { key: `efl-${Crypto.randomUUID()}`, sig };
-    body.idempotencyKey = idempotency.current.key;
+    if (pending && pending.sig !== sig) dropPending();
+    const key = pending?.sig === sig ? pending.key : `efl-${Crypto.randomUUID()}`;
+    body.idempotencyKey = key;
 
     setPlacing(true);
     try {
       const result = await checkout(basketShop.id, body);
       const c = session.customer;
       const outcome = await payForOrder(result, { name: c ? `${c.firstName} ${c.lastName}`.trim() : "", email: c?.email });
-      if (outcome === "cancelled") return;
+      if (outcome === "cancelled") {
+        setPending({ orderId: result.orderId, key, sig });
+        return;
+      }
+      setPending(null); // paid, or paying in the browser: never drop this one
       clear();
-      idempotency.current = null;
       void qc.invalidateQueries({ queryKey: ["orders"] });
       navigation.reset({ index: 1, routes: [{ name: "Tabs" }, { name: "Tracking", params: { orderId: result.orderId } }] });
     } catch (err) {

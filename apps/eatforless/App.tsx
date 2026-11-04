@@ -8,7 +8,7 @@ import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, In
 import { InterTight_700Bold, InterTight_800ExtraBold } from "@expo-google-fonts/inter-tight";
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { StripeProvider } from "@stripe/stripe-react-native";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -22,14 +22,12 @@ import { listenForOrderTaps } from "@/lib/push";
 import { navigationRef } from "@/navigation/ref";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { SplashOverlay } from "@/screens/SplashOverlay";
+import { queryClient } from "@/api/queryClient";
 import { startAccountSync } from "@/state/accountSync";
 import { C } from "@/theme";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
-const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
-});
 
 const navTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: C.white, primary: C.ink } };
 

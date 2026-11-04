@@ -15,6 +15,7 @@ import Animated, {
   useSharedValue,
   withRepeat,
   withSpring,
+  withSequence,
   withTiming,
   Easing,
   scrollTo,
@@ -28,6 +29,7 @@ import { CategoryTabs, TABS_HEIGHT } from "@/components/CategoryTabs";
 import { FoodArt } from "@/components/FoodArt";
 import { Icon } from "@/components/Icon";
 import { Photo } from "@/components/Photo";
+import { ShopLogo } from "@/components/ShopLogo";
 import { PressScale } from "@/components/PressScale";
 import { etaText, feeText, kindOf } from "@/components/ShopCards";
 import { T } from "@/components/T";
@@ -94,13 +96,10 @@ function ItemRow({
 }) {
   const orderable = isOrderable(item);
   const bump = useSharedValue(1);
-  useEffect(() => {
-    if (qty > 0) bump.value = withSpring(1, { ...MOTION.bouncy, velocity: 8 });
-  }, [qty, bump]);
   const btnStyle = useAnimatedStyle(() => ({ transform: [{ scale: bump.value }] }));
   return (
     <Animated.View entering={fadeUp(stagger(index, 70, 80), 14, 600)}>
-      <PressScale onPress={onOpen} disabled={!orderable} scaleTo={0.98} style={[styles.row, !orderable && { opacity: 0.45 }]} accessibilityLabel={`${item.name}, ${priceLabel(item)}`}>
+      <PressScale onPress={onOpen} disabled={!orderable} scaleTo={1} unstable_pressDelay={90} style={[styles.row, !orderable && { opacity: 0.45 }]} accessibilityLabel={`${item.name}, ${priceLabel(item)}`}>
         <View style={{ flex: 1, gap: 5, minWidth: 0 }}>
           <T v="item">{item.name}</T>
           {item.description ? <T v="sub" numberOfLines={2}>{item.description.replace(/\s*\n\s*/g, " · ")}</T> : null}
@@ -112,9 +111,13 @@ function ItemRow({
             <Animated.View style={[styles.plusWrap, btnStyle]}>
               <PressScale
                 onPress={() => {
-                  bump.value = 0.85;
+                  // Always springs back: it used to wait for the basket count
+                  // to change, so an item with options (which opens its sheet
+                  // instead) left the button stuck small.
+                  bump.value = withSequence(withTiming(0.85, { duration: 70 }), withSpring(1, MOTION.bouncy));
                   onAdd();
                 }}
+                hitSlop={10}
                 accessibilityLabel={`Add ${item.name}`}
                 scaleTo={0.85}
                 style={[styles.plus, qty > 0 && styles.plusOn, shadow.soft]}
@@ -259,13 +262,16 @@ export function ShopScreen({ navigation, route }: RootScreen<"Shop">) {
         contentContainerStyle={{ paddingTop: HERO_H - 24, paddingBottom: 140 }}
       >
         <Animated.View entering={fadeUp(120, 40, 700)} style={styles.sheet}>
-          <View style={{ gap: 6 }}>
+          <View style={styles.titleRow}>
+          <ShopLogo uri={menuQ.data?.listing.logoUrl ?? shop.logoUrl} size={60} />
+          <View style={{ gap: 6, flex: 1 }}>
             <T v="hero">{shop.name}</T>
             <T v="sub" style={{ fontSize: 14 }}>
               {[shop.area, ...shop.cuisines.slice(0, 2)].filter(Boolean).join(" · ")}
               {shop.rating ? <T style={{ fontFamily: F.semibold, color: C.ink, fontSize: 14 }}>{` · ★ ${shop.rating.value.toFixed(1)}`}</T> : null}
               {shop.rating ? ` (${shop.rating.count})` : ""}
             </T>
+          </View>
           </View>
           <Animated.ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {pills.map((p) => (
@@ -397,6 +403,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 14,
   },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   infoPill: { backgroundColor: C.grey100, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 9 },
   infoText: { fontFamily: F.semibold, fontSize: 13, color: C.ink },
   eflBanner: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.ink, borderRadius: 16, padding: 14 },

@@ -19,6 +19,7 @@ import { C, F } from "@/theme";
 import { DealBadge } from "./Bits";
 import { Icon } from "./Icon";
 import { Photo } from "./Photo";
+import { ShopLogo } from "./ShopLogo";
 import { PressScale } from "./PressScale";
 import { T } from "./T";
 
@@ -92,6 +93,7 @@ export const FeaturedCard = memo(function FeaturedCard({ shop, onPress }: CardPr
     <PressScale onPress={() => openShop(shop, onPress)} accessibilityLabel={shopA11yLabel(shop)} style={styles.featured}>
       <View>
         <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} style={{ height: 112 }} />
+        <ShopLogo uri={shop.logoUrl} size={36} style={styles.logoAt} />
         {deal ? <DealBadge text={deal} style={styles.badgeAt} /> : null}
         {!shop.isOpen ? <ClosedVeil /> : null}
       </View>
@@ -110,7 +112,10 @@ export const FeaturedCard = memo(function FeaturedCard({ shop, onPress }: CardPr
 export const AgainCard = memo(function AgainCard({ shop, onPress }: CardProps) {
   return (
     <PressScale onPress={() => onPress(shop)} accessibilityLabel={`Order again from ${shop.name}`} style={styles.again}>
-      <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} style={{ height: 108 }} />
+      <View>
+        <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} style={{ height: 108 }} />
+        <ShopLogo uri={shop.logoUrl} size={36} style={styles.logoAt} />
+      </View>
       <View style={styles.featuredBody}>
         <T v="item" style={{ fontSize: 15 }} numberOfLines={1}>{shop.name}</T>
         <T v="small" style={styles.meta}>{joinDot(feeText(shop), etaText(shop))}</T>
@@ -125,6 +130,7 @@ export const DealCard = memo(function DealCard({ shop, onPress }: CardProps) {
     <PressScale onPress={() => openShop(shop, onPress)} accessibilityLabel={shopA11yLabel(shop)} style={{ width: 270, gap: 8 }}>
       <View>
         <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} radius={16} style={{ height: 150 }} />
+        <ShopLogo uri={shop.logoUrl} size={40} style={styles.logoAt} />
         {deal ? <DealBadge text={deal} style={[styles.badgeAt, { top: 10, left: 10 }]} /> : null}
       </View>
       <View style={{ gap: 2 }}>
@@ -144,6 +150,7 @@ export const ListCard = memo(function ListCard({ shop, onPress }: CardProps) {
     <PressScale onPress={() => openShop(shop, onPress)} accessibilityLabel={shopA11yLabel(shop)} style={{ gap: 10 }} scaleTo={0.98}>
       <View>
         <Photo uri={shop.heroImageUrl} kind={kindOf(shop)} radius={18} style={{ height: 176 }} />
+        <ShopLogo uri={shop.logoUrl} size={48} style={[styles.logoAt, { left: 12, bottom: 12 }]} />
         {deal ? <DealBadge text={deal} style={[styles.badgeAt, { top: 12, left: 12 }]} /> : null}
         {!shop.isOpen ? <ClosedVeil radius={18} /> : null}
       </View>
@@ -181,6 +188,7 @@ function ClosedVeil({ radius = 0 }: { radius?: number }) {
 }
 
 const styles = StyleSheet.create({
+  logoAt: { position: "absolute", left: 10, bottom: 10 },
   featured: { width: 196, borderWidth: 1, borderColor: C.border, borderRadius: 16, overflow: "hidden", backgroundColor: C.white },
   featuredBody: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 12, gap: 3 },
   again: { width: 220, borderWidth: 1, borderColor: C.border, borderRadius: 16, overflow: "hidden", backgroundColor: C.white },

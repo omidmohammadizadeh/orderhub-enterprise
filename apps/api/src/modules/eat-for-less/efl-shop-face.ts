@@ -36,3 +36,63 @@ export function shopFace(listing: FaceListing, pinned: Map<string, BrandRow>): S
     logoUrl: listing.logoUrl ?? brand?.logoUrl ?? null,
   };
 }
+
+type BannerListing = {
+  id: string;
+  brandId?: string | null;
+  locationId: string;
+  heroImageUrl?: string | null;
+  location?: { brandId?: string | null } | null;
+};
+type BannerPrisma = {
+  directOrderingConfig: { findMany: (args: any) => Promise<Array<{ brandId: string | null; locationId: string | null; heroImageUrl: string | null }>> };
+  menuItem: { findMany: (args: any) => Promise<Array<{ brandId: string; imageUrl: string | null }>> };
+};
+
+/**
+ * The picture across the top of each listing's card, by listing id.
+ *
+ * Few shops upload a banner for Eat For Less, and a card that falls back to
+ * a drawing reads as "not a real shop". So: the listing's own banner, else
+ * the banner on the shop's own ordering site, else a photo from its menu.
+ * Null only when the shop has no photo anywhere.
+ */
+export async function shopBanners(prisma: BannerPrisma, listings: BannerListing[]): Promise<Map<string, string | null>> {
+  const brandOf = (l: BannerListing) => l.brandId ?? l.location?.brandId ?? null;
+  const out = new Map<string, string | null>();
+  const missing = listings.filter((l) => {
+    out.set(l.id, l.heroImageUrl ?? null);
+    return !l.heroImageUrl;
+  });
+  if (!missing.length) return out;
+
+  const brandIds = [...new Set(missing.map(brandOf).filter((id): id is string => !!id))];
+  const locationIds = [...new Set(missing.map((l) => l.locationId))];
+  const configs = await prisma.directOrderingConfig.findMany({
+    where: { heroImageUrl: { not: null }, OR: [{ brandId: { in: brandIds } }, { locationId: { in: locationIds } }] },
+    select: { brandId: true, locationId: true, heroImageUrl: true },
+  });
+  const site = (l: BannerListing) => {
+    const brand = brandOf(l);
+    return (
+      configs.find((c) => brand && c.brandId === brand)?.heroImageUrl ??
+      configs.find((c) => c.locationId === l.locationId)?.heroImageUrl ??
+      null
+    );
+  };
+
+  const needPhoto = [...new Set(missing.filter((l) => !site(l)).map(brandOf).filter((id): id is string => !!id))];
+  const photos = needPhoto.length
+    ? await prisma.menuItem.findMany({
+        where: { brandId: { in: needPhoto }, isAvailable: true, imageUrl: { not: null } },
+        orderBy: { sortOrder: "asc" },
+        distinct: ["brandId"],
+        select: { brandId: true, imageUrl: true },
+      })
+    : [];
+  for (const l of missing) {
+    const brand = brandOf(l);
+    out.set(l.id, site(l) ?? photos.find((p) => p.brandId === brand)?.imageUrl ?? null);
+  }
+  return out;
+}

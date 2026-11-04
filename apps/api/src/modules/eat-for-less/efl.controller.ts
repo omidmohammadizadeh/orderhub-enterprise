@@ -374,6 +374,14 @@ export class EflAppController {
 
   @Public()
   @UseGuards(CustomerJwtGuard)
+  @Post("me/orders/:orderId/abandon")
+  @ApiOperation({ summary: "Drop an unpaid order the customer replaced by changing their basket" })
+  abandonMyOrder(@CurrentCustomer() customer: { id: string }, @Param("orderId") orderId: string) {
+    return this.efl.abandonMyOrder(customer, orderId);
+  }
+
+  @Public()
+  @UseGuards(CustomerJwtGuard)
   @Get("me/orders/:orderId/messages")
   @ApiOperation({ summary: "Messages with the driver on this order (marks them read)" })
   myOrderMessages(@CurrentCustomer() customer: { id: string }, @Param("orderId") orderId: string) {

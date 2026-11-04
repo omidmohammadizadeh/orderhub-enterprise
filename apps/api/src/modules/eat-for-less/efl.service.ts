@@ -44,7 +44,7 @@ import {
   toRulesConfig,
   type EflRulesConfig,
 } from "./efl-rules";
-import { pinnedBrands, shopFace } from "./efl-shop-face";
+import { pinnedBrands, shopBanners, shopFace } from "./efl-shop-face";
 
 /** What a shop can change about its own listing. Commission and approval
  *  are ours and live on the admin path. */
@@ -100,6 +100,11 @@ const LISTING_LOCATION_SELECT = {
   brandId: true,
   brand: { select: { id: true, name: true, logoUrl: true, tenantId: true } },
 } as const;
+
+/** Why an unpaid order was dropped when the customer changed their basket. */
+export const ABANDONED_REASON = "Customer changed their basket before paying";
+/** How long an unpaid order stays on the customer's list as "Waiting for payment". */
+const UNPAID_SHOWN_MS = 30 * 60 * 1000;
 
 @Injectable()
 export class EflService {
@@ -160,7 +165,7 @@ export class EflService {
     });
     const prep = await this.prepMinutesFor(listings.map((l) => ({ locationId: l.locationId, brandId: l.brandId ?? l.location?.brandId ?? null })));
     const ratings = await this.ratingsFor(listings.map((l) => l.locationId));
-    const brands = await pinnedBrands(this.prisma, listings);
+    const [brands, banners] = await Promise.all([pinnedBrands(this.prisma, listings), shopBanners(this.prisma, listings)]);
 
     const results = await Promise.all(
       listings.map(async (listing) => {
@@ -199,7 +204,7 @@ export class EflService {
           name: face.name,
           area: loc.city ?? null,
           logoUrl: face.logoUrl,
-          heroImageUrl: listing.heroImageUrl,
+          heroImageUrl: banners.get(listing.id) ?? null,
           description: listing.description,
           cuisines: listing.cuisines,
           distanceMiles: Math.round(distanceMiles * 10) / 10,
@@ -249,16 +254,17 @@ export class EflService {
    *  prices, plus the listing's own presentation. */
   async menu(listingId: string) {
     const { listing, slug, brandId } = await this.liveListing(listingId);
-    const [store, brands] = await Promise.all([
+    const [store, brands, banners] = await Promise.all([
       this.ordering.getStorefrontBySlug(slug, brandId, "ONLINE", "EAT_FOR_LESS"),
       pinnedBrands(this.prisma, [listing]),
+      shopBanners(this.prisma, [listing]),
     ]);
     const face = shopFace(listing, brands);
     return {
       listing: {
         id: listing.id,
         name: face.name,
-        heroImageUrl: listing.heroImageUrl,
+        heroImageUrl: banners.get(listing.id) ?? null,
         logoUrl: face.logoUrl,
         description: listing.description,
         cuisines: listing.cuisines,
@@ -481,7 +487,17 @@ export class EflService {
 
   async myOrders(customer: { id: string }) {
     return this.prisma.order.findMany({
-      where: { customerAccountId: customer.id, orderSource: "EAT_FOR_LESS" },
+      where: {
+        customerAccountId: customer.id,
+        orderSource: "EAT_FOR_LESS",
+        // Not orders the customer walked away from before paying: one they
+        // replaced by changing the basket, or one left unpaid for so long it
+        // can't be paid any more. Either would sit on the list as "Waiting
+        // for payment" for food nobody is buying.
+        // (cancelReason is nullable, and NOT on it would drop the nulls too.)
+        OR: [{ cancelReason: null }, { cancelReason: { not: ABANDONED_REASON } }],
+        NOT: { status: "PENDING", paymentStatus: "PENDING", createdAt: { lt: new Date(Date.now() - UNPAID_SHOWN_MS) } },
+      },
       orderBy: { createdAt: "desc" },
       take: 50,
       select: {
@@ -495,6 +511,35 @@ export class EflService {
         brand: { select: { name: true } },
       },
     });
+  }
+
+  /**
+   * The customer opened payment, backed out, and changed the basket: the
+   * order made for the old basket will never be paid, so it goes. Only while
+   * it's genuinely unpaid — the provider is asked first, and a card hold that
+   * can't be released (the payment went through) leaves the order alone.
+   */
+  async abandonMyOrder(customer: { id: string }, orderId: string): Promise<{ abandoned: boolean }> {
+    const unpaid = () =>
+      this.prisma.order.findFirst({
+        where: { id: orderId, customerAccountId: customer.id, orderSource: "EAT_FOR_LESS", status: "PENDING", paymentStatus: "PENDING" },
+        select: { id: true },
+      });
+    if (!(await unpaid())) return { abandoned: false };
+    // Reads the payment back from Stripe / Mollie / Tap, in case it landed.
+    await this.ordering.getOrderStatus(orderId).catch(() => null);
+    if (!(await unpaid())) return { abandoned: false };
+    try {
+      await this.payments?.cancelAuthForOrder(orderId, ABANDONED_REASON);
+    } catch (err) {
+      this.logger.warn(`Order ${orderId} kept: its payment couldn't be released (${(err as Error).message})`);
+      return { abandoned: false };
+    }
+    const { count } = await this.prisma.order.updateMany({
+      where: { id: orderId, status: "PENDING", paymentStatus: "PENDING" },
+      data: { status: "CANCELLED", cancelledAt: new Date(), cancelReason: ABANDONED_REASON },
+    });
+    return { abandoned: count > 0 };
   }
 
   // ── The app: proving a phone number ───────────────────────────────────

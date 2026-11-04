@@ -55,6 +55,12 @@ export function checkout(listingId: string, body: CheckoutBody): Promise<Checkou
   return request("POST", `/v1/efl/shops/${encodeURIComponent(listingId)}/checkout`, body, { timeoutMs: 60_000 });
 }
 
+/** Drop an unpaid order the customer replaced by changing their basket. */
+export function abandonOrder(orderId: string): Promise<{ abandoned: boolean }> {
+  if (MOCK) return Promise.resolve({ abandoned: true });
+  return request("POST", `/v1/efl/me/orders/${encodeURIComponent(orderId)}/abandon`, {});
+}
+
 export function getMyOrders(): Promise<OrderSummary[]> {
   if (MOCK) return mock.getMyOrders();
   return request("GET", "/v1/efl/me/orders");
