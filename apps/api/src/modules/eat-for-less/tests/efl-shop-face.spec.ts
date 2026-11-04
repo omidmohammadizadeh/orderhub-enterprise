@@ -1,6 +1,6 @@
 import { EflService } from "../efl.service";
 import { EflPresenceService } from "../efl-presence.service";
-import { pinnedBrands, shopBanners, shopFace } from "../efl-shop-face";
+import { pinnedBrands, servedMenuBanner, shopBanners, shopFace } from "../efl-shop-face";
 
 // Pizza Uno listed from the "Order Hub" location: the listing's brandId wins.
 const orderHubLocation = {
@@ -143,33 +143,32 @@ describe("EflPresenceService texts the listed brand's name", () => {
   });
 });
 
-describe("shopBanners — a card shows a real picture of the shop", () => {
+describe("card banners — a real picture of the shop", () => {
   const listing = (over: any = {}) => ({ id: "l1", brandId: "b_uno", locationId: "loc_oh", heroImageUrl: null, location: { brandId: "b_oh" }, ...over });
-  const prismaWith = (configs: any[], photos: any[]) => ({
-    directOrderingConfig: { findMany: jest.fn(async () => configs) },
-    menuItem: { findMany: jest.fn(async () => photos) },
-  });
+  const prismaWith = (configs: any[]) => ({ directOrderingConfig: { findMany: jest.fn(async () => configs) } });
 
   it("keeps the listing's own banner and asks for nothing else", async () => {
-    const prisma = prismaWith([], []);
+    const prisma = prismaWith([]);
     const map = await shopBanners(prisma as any, [listing({ heroImageUrl: "https://cdn/own.jpg" })]);
     expect(map.get("l1")).toBe("https://cdn/own.jpg");
     expect(prisma.directOrderingConfig.findMany).not.toHaveBeenCalled();
   });
 
   it("uses the banner from the shop's own ordering site next", async () => {
-    const prisma = prismaWith([{ brandId: "b_uno", locationId: null, heroImageUrl: "https://cdn/site.jpg" }], []);
+    const prisma = prismaWith([{ brandId: "b_uno", locationId: null, heroImageUrl: "https://cdn/site.jpg" }]);
     expect((await shopBanners(prisma as any, [listing()])).get("l1")).toBe("https://cdn/site.jpg");
-    expect(prisma.menuItem.findMany).not.toHaveBeenCalled();
   });
 
-  it("falls back to a photo from the listed brand's menu", async () => {
-    const prisma = prismaWith([], [{ brandId: "b_uno", imageUrl: "https://cdn/burger.jpg" }]);
-    expect((await shopBanners(prisma as any, [listing()])).get("l1")).toBe("https://cdn/burger.jpg");
-    expect(prisma.menuItem.findMany.mock.calls[0][0].where.brandId).toEqual({ in: ["b_uno"] });
+  it("leaves the rest to the served menu", async () => {
+    expect((await shopBanners(prismaWith([]) as any, [listing()])).get("l1")).toBeNull();
   });
 
-  it("is null only when the shop has no photo anywhere", async () => {
-    expect((await shopBanners(prismaWith([], []) as any, [listing()])).get("l1")).toBeNull();
+  it("takes the served menu's banner, else its first photo", () => {
+    expect(servedMenuBanner({ menu: { bannerImage: "https://cdn/menu-banner.jpg", categories: [] } })).toBe("https://cdn/menu-banner.jpg");
+    expect(
+      servedMenuBanner({ menu: { categories: [{ items: [{ item: { imageUrl: null } }, { item: { imageUrl: "https://cdn/burger.jpg" } }] }] } }),
+    ).toBe("https://cdn/burger.jpg");
+    expect(servedMenuBanner({ menu: { categories: [] } })).toBeNull();
+    expect(servedMenuBanner(null)).toBeNull();
   });
 });

@@ -44,7 +44,7 @@ import {
   toRulesConfig,
   type EflRulesConfig,
 } from "./efl-rules";
-import { pinnedBrands, shopBanners, shopFace } from "./efl-shop-face";
+import { pinnedBrands, servedMenuBanner, shopBanners, shopFace } from "./efl-shop-face";
 
 /** What a shop can change about its own listing. Commission and approval
  *  are ours and live on the admin path. */
@@ -103,12 +103,18 @@ const LISTING_LOCATION_SELECT = {
 
 /** Why an unpaid order was dropped when the customer changed their basket. */
 export const ABANDONED_REASON = "Customer changed their basket before paying";
+/** How long a photo taken from a shop's served menu is reused on its card. */
+const MENU_BANNER_TTL_MS = 30 * 60 * 1000;
+/** The longest a shop search waits to fetch a missing card photo. */
+const MENU_BANNER_WAIT_MS = 1500;
 /** How long an unpaid order stays on the customer's list as "Waiting for payment". */
 const UNPAID_SHOWN_MS = 30 * 60 * 1000;
 
 @Injectable()
 export class EflService {
   private readonly logger = new Logger(EflService.name);
+  /** Card photos taken from each listing's served menu, by listing id. */
+  private readonly menuBanners = new Map<string, { url: string | null; at: number }>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -166,6 +172,7 @@ export class EflService {
     const prep = await this.prepMinutesFor(listings.map((l) => ({ locationId: l.locationId, brandId: l.brandId ?? l.location?.brandId ?? null })));
     const ratings = await this.ratingsFor(listings.map((l) => l.locationId));
     const [brands, banners] = await Promise.all([pinnedBrands(this.prisma, listings), shopBanners(this.prisma, listings)]);
+    await this.fillMenuBanners(listings.filter((l) => !banners.get(l.id)).map((l) => l.id));
 
     const results = await Promise.all(
       listings.map(async (listing) => {
@@ -204,7 +211,7 @@ export class EflService {
           name: face.name,
           area: loc.city ?? null,
           logoUrl: face.logoUrl,
-          heroImageUrl: banners.get(listing.id) ?? null,
+          heroImageUrl: banners.get(listing.id) ?? this.menuBanners.get(listing.id)?.url ?? null,
           description: listing.description,
           cuisines: listing.cuisines,
           distanceMiles: Math.round(distanceMiles * 10) / 10,
@@ -250,6 +257,34 @@ export class EflService {
     ];
   }
 
+  private rememberMenuBanner(listingId: string, store: unknown): string | null {
+    const url = servedMenuBanner(store as any);
+    this.menuBanners.set(listingId, { url, at: Date.now() });
+    return url;
+  }
+
+  /** Fetches the served-menu photo for listings with no banner of their own,
+   *  waiting only briefly: a slow one shows on the next search instead. */
+  private async fillMenuBanners(listingIds: string[]) {
+    const stale = listingIds.filter((id) => {
+      const hit = this.menuBanners.get(id);
+      return !hit || Date.now() - hit.at > MENU_BANNER_TTL_MS;
+    });
+    if (!stale.length) return;
+    const fill = Promise.all(
+      stale.map(async (id) => {
+        try {
+          const { slug, brandId } = await this.liveListing(id);
+          const store = await this.ordering.getStorefrontBySlug(slug, brandId, "ONLINE", "EAT_FOR_LESS");
+          this.rememberMenuBanner(id, store);
+        } catch {
+          this.menuBanners.set(id, { url: null, at: Date.now() });
+        }
+      }),
+    );
+    await Promise.race([fill, new Promise((r) => setTimeout(r, MENU_BANNER_WAIT_MS))]);
+  }
+
   /** A shop's menu as the app shows it: the storefront menu at Eat For Less
    *  prices, plus the listing's own presentation. */
   async menu(listingId: string) {
@@ -264,7 +299,7 @@ export class EflService {
       listing: {
         id: listing.id,
         name: face.name,
-        heroImageUrl: banners.get(listing.id) ?? null,
+        heroImageUrl: banners.get(listing.id) ?? this.rememberMenuBanner(listing.id, store),
         logoUrl: face.logoUrl,
         description: listing.description,
         cuisines: listing.cuisines,

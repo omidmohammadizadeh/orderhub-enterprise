@@ -46,16 +46,12 @@ type BannerListing = {
 };
 type BannerPrisma = {
   directOrderingConfig: { findMany: (args: any) => Promise<Array<{ brandId: string | null; locationId: string | null; heroImageUrl: string | null }>> };
-  menuItem: { findMany: (args: any) => Promise<Array<{ brandId: string; imageUrl: string | null }>> };
 };
 
 /**
- * The picture across the top of each listing's card, by listing id.
- *
- * Few shops upload a banner for Eat For Less, and a card that falls back to
- * a drawing reads as "not a real shop". So: the listing's own banner, else
- * the banner on the shop's own ordering site, else a photo from its menu.
- * Null only when the shop has no photo anywhere.
+ * The banner a listing has set up somewhere, by listing id: its own Eat For
+ * Less banner, else the one on the shop's own ordering site. Null when
+ * neither is set — the caller then takes a photo from the served menu.
  */
 export async function shopBanners(prisma: BannerPrisma, listings: BannerListing[]): Promise<Map<string, string | null>> {
   const brandOf = (l: BannerListing) => l.brandId ?? l.location?.brandId ?? null;
@@ -72,27 +68,38 @@ export async function shopBanners(prisma: BannerPrisma, listings: BannerListing[
     where: { heroImageUrl: { not: null }, OR: [{ brandId: { in: brandIds } }, { locationId: { in: locationIds } }] },
     select: { brandId: true, locationId: true, heroImageUrl: true },
   });
-  const site = (l: BannerListing) => {
-    const brand = brandOf(l);
-    return (
-      configs.find((c) => brand && c.brandId === brand)?.heroImageUrl ??
-      configs.find((c) => c.locationId === l.locationId)?.heroImageUrl ??
-      null
-    );
-  };
-
-  const needPhoto = [...new Set(missing.filter((l) => !site(l)).map(brandOf).filter((id): id is string => !!id))];
-  const photos = needPhoto.length
-    ? await prisma.menuItem.findMany({
-        where: { brandId: { in: needPhoto }, isAvailable: true, imageUrl: { not: null } },
-        orderBy: { sortOrder: "asc" },
-        distinct: ["brandId"],
-        select: { brandId: true, imageUrl: true },
-      })
-    : [];
   for (const l of missing) {
     const brand = brandOf(l);
-    out.set(l.id, site(l) ?? photos.find((p) => p.brandId === brand)?.imageUrl ?? null);
+    out.set(
+      l.id,
+      configs.find((c) => brand && c.brandId === brand)?.heroImageUrl ??
+        configs.find((c) => c.locationId === l.locationId)?.heroImageUrl ??
+        null,
+    );
   }
   return out;
+}
+
+type ServedMenu = {
+  menu?: {
+    bannerImage?: string | null;
+    heroImage?: string | null;
+    categories?: Array<{ imageUrl?: string | null; items?: Array<{ item?: { imageUrl?: string | null } | null }> }>;
+  } | null;
+} | null;
+
+/**
+ * A picture from the menu the shop actually serves: the menu's banner, else
+ * its first category or dish photo. Read from the served menu, never by
+ * brand — most shops' dishes sit under one shared parent brand, so a lookup
+ * by brand would show another shop's food.
+ */
+export function servedMenuBanner(store: ServedMenu): string | null {
+  const menu = store?.menu;
+  if (!menu) return null;
+  if (menu.bannerImage) return menu.bannerImage;
+  if (menu.heroImage) return menu.heroImage;
+  for (const c of menu.categories ?? []) if (c.imageUrl) return c.imageUrl;
+  for (const c of menu.categories ?? []) for (const i of c.items ?? []) if (i.item?.imageUrl) return i.item.imageUrl;
+  return null;
 }
