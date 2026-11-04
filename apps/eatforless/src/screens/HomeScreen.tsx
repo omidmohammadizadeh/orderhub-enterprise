@@ -17,6 +17,7 @@ import { CuisineMarquee } from "@/components/CuisineMarquee";
 import { Icon } from "@/components/Icon";
 import { PressScale } from "@/components/PressScale";
 import { AgainCard, DealCard, FeaturedCard, ListCard, etaMin } from "@/components/ShopCards";
+import { ShopLogo } from "@/components/ShopLogo";
 import { T } from "@/components/T";
 import { MOCK } from "@/config";
 import { fadeUp } from "@/lib/motion";
@@ -200,6 +201,8 @@ export function HomeScreen() {
                   <PressScale key={b.id} onPress={() => open(b)} accessibilityLabel={b.name} style={styles.brand} scaleTo={0.92}>
                     <View style={[styles.brandCircle, { backgroundColor: BRAND_BG[i % BRAND_BG.length]![0] }]}>
                       <T style={[styles.brandMark, { color: BRAND_BG[i % BRAND_BG.length]![1] }]}>{initials(b.name)}</T>
+                      {/* The shop's logo over its initials, which stay as the fallback. */}
+                      <ShopLogo uri={b.logoUrl} size={68} style={StyleSheet.absoluteFillObject} />
                     </View>
                     <T style={styles.brandName} numberOfLines={2}>{b.name}</T>
                     {etaMin(b) != null ? <T style={styles.brandTime}>{etaMin(b)} min</T> : null}
