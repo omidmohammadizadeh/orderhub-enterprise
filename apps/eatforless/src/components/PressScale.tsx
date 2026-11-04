@@ -9,6 +9,14 @@ import { MOTION } from "@/theme";
 
 const APressable = Animated.createAnimatedComponent(Pressable);
 
+// Pressable cancels a press once the finger "leaves" the button, judged from
+// a position measured without the parent list's scroll offset (new arch,
+// Android). In any list scrolled away from the top, the first pixel of
+// finger movement in an ordinary press read as leaving, so only an instant
+// tap ever landed: bins and +s "didn't work". A real scroll still cancels
+// the press — the list takes the touch over natively.
+const KEEP_PRESS = { top: 10000, bottom: 10000, left: 10000, right: 10000 };
+
 type Props = Omit<PressableProps, "style" | "children"> & {
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
@@ -23,6 +31,7 @@ export function PressScale({ style, children, scaleTo = MOTION.pressScale, hapti
     <APressable
       accessibilityRole="button"
       hitSlop={6}
+      pressRetentionOffset={KEEP_PRESS}
       {...rest}
       onPressIn={(e) => {
         scale.value = withSpring(scaleTo, MOTION.press);
