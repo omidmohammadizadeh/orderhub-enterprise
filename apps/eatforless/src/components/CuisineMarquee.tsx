@@ -6,6 +6,7 @@
 import { memo, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useFrameCallback,
@@ -22,15 +23,19 @@ import { PressScale } from "./PressScale";
 const ITEM_W = 84;
 const SPEED = (CUISINES.length * ITEM_W) / 30; // px per second: one lap in 30s, as designed
 
-const Bobbing = memo(function Bobbing({ kind, index }: { kind: CuisineKind; index: number }) {
+const Bobbing = memo(function Bobbing({ kind, index, active }: { kind: CuisineKind; index: number; active: boolean }) {
   const t = useSharedValue(0);
   useEffect(() => {
+    if (!active) {
+      cancelAnimation(t);
+      return;
+    }
     const half = kind === "deal" ? 1200 : 1500;
     t.value = withDelay(
       (index % CUISINES.length) * 270,
       withRepeat(withSequence(withTiming(1, { duration: half, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: half, easing: Easing.inOut(Easing.sin) })), -1),
     );
-  }, [t, kind, index]);
+  }, [t, kind, index, active]);
   const style = useAnimatedStyle(() =>
     kind === "deal"
       ? { transform: [{ rotate: `${-8 + t.value * 16}deg` }, { scale: 1 + t.value * 0.08 }] }
@@ -43,16 +48,32 @@ const Bobbing = memo(function Bobbing({ kind, index }: { kind: CuisineKind; inde
   );
 });
 
-export function CuisineMarquee({ selected, onPick }: { selected: CuisineKind | null; onPick: (kind: CuisineKind) => void }) {
+/**
+ * `active` = the Home screen is on show. The row and its 24 bobbing icons
+ * animate every frame, and Home stays mounted under the shop and item
+ * screens — so left running, they stole frames from every scroll there.
+ */
+export function CuisineMarquee({
+  selected,
+  onPick,
+  active = true,
+}: {
+  selected: CuisineKind | null;
+  onPick: (kind: CuisineKind) => void;
+  active?: boolean;
+}) {
   const x = useSharedValue(0);
   const paused = useSharedValue(false);
   const lap = CUISINES.length * ITEM_W;
 
-  useFrameCallback((frame) => {
+  const drift = useFrameCallback((frame) => {
     if (paused.value) return;
     const dt = (frame.timeSincePreviousFrame ?? 16) / 1000;
     x.value = (x.value - SPEED * dt) % lap;
-  });
+  }, false);
+  useEffect(() => {
+    drift.setActive(active);
+  }, [drift, active]);
 
   const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
   const items = [...CUISINES, ...CUISINES];
@@ -80,7 +101,7 @@ export function CuisineMarquee({ selected, onPick }: { selected: CuisineKind | n
             style={styles.item}
             scaleTo={0.9}
           >
-            <Bobbing kind={c.kind} index={i} />
+            <Bobbing kind={c.kind} index={i} active={active} />
             <Animated.Text style={[styles.label, selected === c.kind && styles.labelOn]} numberOfLines={1}>
               {c.label}
             </Animated.Text>

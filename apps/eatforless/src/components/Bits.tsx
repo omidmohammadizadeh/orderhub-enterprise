@@ -100,12 +100,15 @@ export function Stepper({
   onChange,
   min = 1,
   compact,
+  canAdd = true,
 }: {
   value: number;
   /** `delta` is what this tap changed, for callers that store a difference. */
   onChange: (next: number, delta: number) => void;
   min?: number;
   compact?: boolean;
+  /** false greys the + (the tap still reaches onChange, so the caller can say why). */
+  canAdd?: boolean;
 }) {
   // Taps faster than a re-render would otherwise each read the same stale
   // `value`, so the second tap of a quick double-tap was lost.
@@ -153,7 +156,7 @@ export function Stepper({
         scaleTo={0.88}
         haptic
       >
-        <Icon name="plus" size={compact ? 16 : 18} />
+        <Icon name="plus" size={compact ? 16 : 18} color={canAdd ? undefined : C.grey400} />
       </PressScale>
     </View>
   );

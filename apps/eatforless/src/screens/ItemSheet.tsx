@@ -119,6 +119,9 @@ function Groups({
         const min = node.group.minSelections ?? 0;
         const picked = node.options.reduce((n, o) => n + o.quantity, 0);
         const nested = node.depth > 0;
+        const max = node.group.maxSelections;
+        const full = !variant && max != null && max > 1 && picked >= max;
+        const rule = full ? `${picked} of ${max} picked · remove one to swap` : ruleText(min, max, variant);
         return (
           <Animated.View
             key={node.key}
@@ -129,12 +132,12 @@ function Groups({
             {nested ? (
               <View style={styles.nestedHead}>
                 <T style={{ fontFamily: F.heavy, fontSize: 15 }}>{node.group.name}</T>
-                <T v="sub">{ruleText(min, node.group.maxSelections, variant)}{min > 0 ? (picked >= min ? " · done" : " · required") : ""}</T>
+                <T v="sub">{rule}{!full && min > 0 ? (picked >= min ? " · done" : " · required") : ""}</T>
               </View>
             ) : (
               <GroupHeader
                 title={node.group.name}
-                sub={ruleText(min, node.group.maxSelections, variant)}
+                sub={rule}
                 required={min > 0}
                 satisfied={picked >= min}
                 shake={shakeKey[node.key] ?? 0}
@@ -160,17 +163,22 @@ function Groups({
                         <T v="bodyStrong">{entry.option.name}</T>
                         {entry.price > 0 ? <T v="sub">+{money(entry.price)}</T> : null}
                       </View>
-                      {dup && entry.quantity > 0 ? (
-                        // Swallows taps anywhere on the pill, so a near miss
-                        // lands on the stepper and not the row behind it.
-                        <View onStartShouldSetResponder={() => true}>
-                          <Stepper compact min={0} value={entry.quantity} onChange={(_n, delta) => onStep(node, entry.option.id, delta)} />
-                        </View>
-                      ) : variant ? (
-                        <Radio on={entry.selected} />
-                      ) : (
-                        <Check on={entry.selected} />
-                      )}
+                      {/* A repeatable group reserves the stepper's width on every
+                          row, so adding one doesn't rewrap its name and push
+                          the whole list down. */}
+                      <View style={dup ? styles.stepSlot : undefined}>
+                        {dup && entry.quantity > 0 ? (
+                          // Swallows taps anywhere on the pill, so a near miss
+                          // lands on the stepper and not the row behind it.
+                          <View onStartShouldSetResponder={() => true}>
+                            <Stepper compact min={0} value={entry.quantity} canAdd={!full} onChange={(_n, delta) => onStep(node, entry.option.id, delta)} />
+                          </View>
+                        ) : variant ? (
+                          <Radio on={entry.selected} />
+                        ) : (
+                          <Check on={entry.selected} />
+                        )}
+                      </View>
                     </PressScale>
                     {entry.selected && entry.children.length > 0 ? (
                       <Groups nodes={entry.children} onToggle={onToggle} onStep={onStep} shakeKey={shakeKey} registerRef={registerRef} />
@@ -276,7 +284,19 @@ export function ItemSheet({ navigation, route }: RootScreen<"Item">) {
     transform: [{ scale: 0.6 + food.value * 0.4 }, { rotate: `${-40 * (1 - food.value)}deg` }],
   }));
 
+  // A full group used to swallow the tap without a word, which read as
+  // "it won't let me add it". Now it buzzes, shakes its heading and says so.
+  const isFull = (node: ModifierTreeNode) =>
+    node.group.maxSelections != null && node.options.reduce((n, o) => n + o.quantity, 0) >= node.group.maxSelections;
+  const refuseFull = (node: ModifierTreeNode) => {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    setShake((s) => ({ ...s, [node.key]: (s[node.key] ?? 0) + 1 }));
+  };
+
   const onToggle = (node: ModifierTreeNode, optionId: string) => {
+    const variant = (node.group.selectionType ?? "VARIANT") === "VARIANT";
+    const picked = node.options.find((o) => o.option.id === optionId)?.selected;
+    if (!variant && !picked && isFull(node)) return refuseFull(node);
     void Haptics.selectionAsync();
     setSelections((prev) =>
       toggleModifierSelection(prev, {
@@ -289,8 +309,10 @@ export function ItemSheet({ navigation, route }: RootScreen<"Item">) {
       }),
     );
   };
-  const onStep = (node: ModifierTreeNode, optionId: string, delta: number) =>
+  const onStep = (node: ModifierTreeNode, optionId: string, delta: number) => {
+    if (delta > 0 && isFull(node)) return refuseFull(node);
     setSelections((prev) => adjustModifierQuantity(prev, { key: node.key, optionId, delta, maxSelections: node.group.maxSelections }));
+  };
 
   const submit = () => {
     if (!item) return;
@@ -359,6 +381,9 @@ export function ItemSheet({ navigation, route }: RootScreen<"Item">) {
               ref={scrollRef}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
+              // Android 12+ stretches the list past its ends; on the sheet
+              // that read as the options wobbling.
+              overScrollMode="never"
               contentContainerStyle={{ paddingBottom: 20 }}
               onScrollEndDrag={(e) => {
                 if (e.nativeEvent.contentOffset.y < -90) close();
@@ -489,6 +514,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   reqBadge: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 },
+  stepSlot: { width: 116, alignItems: "flex-end" },
   optRow: { flexDirection: "row", alignItems: "center", paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.line, gap: 12 },
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: C.ink },

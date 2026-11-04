@@ -3,10 +3,10 @@
 // explore and All shops. Paid placements arrive marked (shop.sponsored, first
 // in the list); the cards label them and report taps — see ShopCards.
 
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { useCallback, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
+import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, Easing } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useEffect } from "react";
 import { useMyOrders, useShops } from "@/api/hooks";
@@ -46,14 +46,18 @@ function applyFilters(shops: Shop[], top: (typeof TOPS)[number], cuisine: Cuisin
   });
 }
 
-function Wobble() {
+function Wobble({ active }: { active: boolean }) {
   const t = useSharedValue(0);
   useEffect(() => {
+    if (!active) {
+      cancelAnimation(t);
+      return;
+    }
     t.value = withRepeat(
       withSequence(withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.sin) }), withTiming(0, { duration: 1200, easing: Easing.inOut(Easing.sin) })),
       -1,
     );
-  }, [t]);
+  }, [t, active]);
   const style = useAnimatedStyle(() => ({ transform: [{ rotate: `${-8 + 16 * t.value}deg` }, { scale: 1 + 0.08 * t.value }] }));
   return (
     <Animated.View style={style}>
@@ -63,6 +67,9 @@ function Wobble() {
 }
 
 export function HomeScreen() {
+  // Home stays mounted under every screen opened from it: its endless
+  // animations stop while it isn't on show.
+  const focused = useIsFocused();
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
   const address = useSelectedAddress();
@@ -137,7 +144,7 @@ export function HomeScreen() {
         </Animated.View>
 
         <Animated.View entering={enter()}>
-          <CuisineMarquee selected={cuisine} onPick={(k) => setCuisine((c) => (c === k ? null : k))} />
+          <CuisineMarquee active={focused} selected={cuisine} onPick={(k) => setCuisine((c) => (c === k ? null : k))} />
         </Animated.View>
 
         <Animated.View entering={enter()}>
@@ -228,7 +235,7 @@ export function HomeScreen() {
                   <T style={styles.bannerBtnText}>See offers</T>
                 </PressScale>
               </View>
-              <Wobble />
+              <Wobble active={focused} />
             </Animated.View>
 
             <Animated.View entering={enter()} style={{ paddingTop: 28 }}>
