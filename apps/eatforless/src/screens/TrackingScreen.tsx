@@ -41,6 +41,29 @@ const SHEET_H = 384;
 // key, so without one the screen keeps the drawn map. iOS uses Apple Maps.
 const NATIVE_MAP = Platform.OS === "ios" || !!Constants.expoConfig?.android?.config?.googleMaps?.apiKey;
 
+// Google's map, quietened the way delivery apps do it: no shops, bus stops or
+// labels competing with the route, soft greys, white roads.
+const QUIET_MAP = [
+  { elementType: "geometry", stylers: [{ color: "#F1F2EE" }] },
+  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#8A8F94" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#F7F7F5" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ visibility: "on" }, { color: "#DCEBD5" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#FFFFFF" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#E6E7E3" }] },
+  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9AA0A6" }] },
+  { featureType: "administrative", elementType: "geometry", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#C9DCEC" }] },
+];
+
+/** 1609 m → "1.0 mi"; under a tenth of a mile reads better as "nearly there". */
+function milesText(meters: number): string {
+  const mi = meters / 1609.34;
+  return mi < 0.1 ? "nearly there" : `${mi.toFixed(1)} mi`;
+}
+
 // ── Status wording ─────────────────────────────────────────────────────────
 
 type Step = { label: string; done: boolean; live: boolean };
@@ -75,11 +98,13 @@ function headline(o: OrderDetail): { title: string; sub: string } {
       return { title: eta ? `${o.fulfillmentType === "DELIVERY" ? "Arriving" : "Ready"} ${eta}` : "Preparing", sub: `${shop} is preparing your food` };
     case "READY":
       return { title: "Ready to collect", sub: `Head to ${shop}` };
-    case "OUT_FOR_DELIVERY":
+    case "OUT_FOR_DELIVERY": {
+      const miles = o.metersLeft != null ? ` · ${milesText(o.metersLeft)}` : "";
       return {
         title: o.driverEtaMinutes != null ? `${o.driverEtaMinutes} min away` : eta ? `Arriving ${eta}` : "On the way",
-        sub: o.driverEtaMinutes != null ? `${driver} is on the way · about ${clock(new Date(Date.now() + o.driverEtaMinutes * 60_000).toISOString())}` : `${driver} is on the way`,
+        sub: o.driverEtaMinutes != null ? `${driver} is on the way${miles} · about ${clock(new Date(Date.now() + o.driverEtaMinutes * 60_000).toISOString())}` : `${driver} is on the way`,
       };
+    }
     case "RIDER_ARRIVED":
       return { title: "Your driver is here", sub: `${driver} is at your door` };
     case "DELIVERED":
@@ -171,12 +196,29 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
 
   // The route in map coordinates: the sample streets in mock mode, otherwise
   // shop → (driver) → door as straight legs until the API sends a real route.
+  // Keyed on the road itself, not the order: every 4s poll returns a new
+  // object, and re-fitting the map on each would make it jump.
+  const road = order?.route?.points && order.route.points.length >= 2 ? order.route.points : null;
+  const roadKey = road ? `${road.length}:${road[0]!.lat},${road[0]!.lng}` : "";
+  const shopKey = order?.shop ? `${order.shop.lat},${order.shop.lng}` : "";
+  const doorKey = order?.destination ? `${order.destination.lat},${order.destination.lng}` : "";
   const geoRoute: LatLng[] | null = useMemo(() => {
     if (!NATIVE_MAP || !order || order.fulfillmentType !== "DELIVERY") return null;
     if (MOCK) return MOCK_ROUTE;
+    if (road) return road;
     if (order.shop && order.destination) return [order.shop, order.destination];
     return null;
-  }, [order]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [!!order, order?.fulfillmentType, roadKey, shopKey, doorKey]);
+
+  // A new road (the driver took another way): fit the map to it again.
+  useEffect(() => {
+    if (!geoRoute || !map.current) return;
+    fit();
+    const t = setTimeout(project, 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geoRoute]);
   const mapH = height - SHEET_H + 40;
 
   useEffect(() => {
@@ -259,6 +301,7 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
             ref={map}
             style={StyleSheet.absoluteFill}
             mapType="mutedStandard"
+            customMapStyle={QUIET_MAP}
             scrollEnabled={false}
             zoomEnabled={false}
             rotateEnabled={false}

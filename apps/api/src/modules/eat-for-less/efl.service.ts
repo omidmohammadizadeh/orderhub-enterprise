@@ -45,6 +45,7 @@ import {
   type EflRulesConfig,
 } from "./efl-rules";
 import { pinnedBrands, servedMenuBanner, shopBanners, shopFace } from "./efl-shop-face";
+import { RoadRoutes, roadLeft } from "./efl-road-route";
 
 /** What a shop can change about its own listing. Commission and approval
  *  are ours and live on the admin path. */
@@ -115,6 +116,8 @@ export class EflService {
   private readonly logger = new Logger(EflService.name);
   /** Card photos taken from each listing's served menu, by listing id. */
   private readonly menuBanners = new Map<string, { url: string | null; at: number }>();
+  /** The streets each live delivery takes, for the app's map. */
+  private readonly roads = new RoadRoutes();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -476,12 +479,26 @@ export class EflService {
     });
     if (!order) throw new NotFoundException("Order not found");
     const status: any = await this.ordering.getOrderStatus(order.id);
+    const onRoad = ["OUT_FOR_DELIVERY", "RIDER_ARRIVED"].includes(order.status);
+    const driverAt =
+      onRoad && status.driver?.lat != null && status.driver?.lng != null
+        ? { lat: Number(status.driver.lat), lng: Number(status.driver.lng) }
+        : null;
+    const road =
+      status.fulfillmentType === "DELIVERY" && status.shop && status.destination && !isFinishedStatus(order.status)
+        ? await this.roads.forOrder(order.id, status.shop, status.destination, driverAt)
+        : null;
+    const left = road && driverAt ? roadLeft(road, driverAt) : null;
     return {
       ...status,
       // Never the driver's own number: the customer calls through the
       // private line, and the driver never sees theirs either.
       driver: status.driver ? withoutPhone(status.driver) : null,
-      driverEtaMinutes: driverEta(status.driver, status.destination),
+      // Google's time along the streets once there's a road; a straight-line
+      // guess until then.
+      driverEtaMinutes: left ? Math.max(1, Math.ceil(left.secondsLeft / 60)) : driverEta(status.driver, status.destination),
+      route: road,
+      metersLeft: left?.metersLeft ?? null,
       deliveryPin: order.deliveryPinVerifiedAt ? null : order.deliveryPin,
       handedOver: !!order.deliveryPinVerifiedAt,
       // Our number and the customer's code, while the line is open. Null
@@ -930,6 +947,11 @@ export class EflService {
       statementEmail: listing?.statementEmail ?? null,
     };
   }
+}
+
+/** Nothing left to drive: no road to draw. */
+function isFinishedStatus(status: string): boolean {
+  return ["DELIVERED", "COMPLETED", "COLLECTED", "CANCELLED", "REJECTED", "FAILED"].includes(status);
 }
 
 function withoutPhone<T extends Record<string, unknown>>(driver: T) {

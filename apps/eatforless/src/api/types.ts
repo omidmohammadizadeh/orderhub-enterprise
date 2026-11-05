@@ -229,6 +229,11 @@ export type OrderDetail = {
   driver: { name?: string | null; lat?: number | null; lng?: number | null; lastPingAt?: string | null } | null;
   /** Driving minutes from the driver's last position to the door. */
   driverEtaMinutes: number | null;
+  /** The streets from the shop (or the driver, after a detour) to the door.
+   *  Null until Google's Routes key is set on the API. */
+  route?: { points: LatLng[]; distanceMeters: number; durationSeconds: number } | null;
+  /** Metres still to drive along that road, once the driver is on it. */
+  metersLeft?: number | null;
   deliveryPin: string | null;
   handedOver: boolean;
   /** Our private-line number and this customer's code, while the line is
