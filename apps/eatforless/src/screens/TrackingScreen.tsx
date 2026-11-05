@@ -300,7 +300,9 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
           <MapView
             ref={map}
             style={StyleSheet.absoluteFill}
-            mapType="mutedStandard"
+            // "mutedStandard" is Apple Maps only: Google's map view throws on
+            // it, so Android gets the standard map quietened by QUIET_MAP.
+            mapType={Platform.OS === "ios" ? "mutedStandard" : "standard"}
             customMapStyle={QUIET_MAP}
             scrollEnabled={false}
             zoomEnabled={false}
