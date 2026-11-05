@@ -83,7 +83,7 @@ function stepsFor(o: OrderDetail): Step[] {
 const clock = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true }).replace(" ", " ") : null;
 
-function headline(o: OrderDetail): { title: string; sub: string } {
+function headline(o: OrderDetail, now: number): { title: string; sub: string } {
   const shop = o.location?.name ?? "The shop";
   const eta = clock(o.estimatedReadyAt);
   const driver = o.driver?.name ?? "Your driver";
@@ -105,7 +105,7 @@ function headline(o: OrderDetail): { title: string; sub: string } {
       const miles = o.metersLeft != null ? ` · ${milesText(o.metersLeft)}` : "";
       return {
         title: o.driverEtaMinutes != null ? `${o.driverEtaMinutes} min away` : eta ? `Arriving ${eta}` : "On the way",
-        sub: o.driverEtaMinutes != null ? `${driver} is on the way${miles} · about ${clock(new Date(Date.now() + o.driverEtaMinutes * 60_000).toISOString())}` : `${driver} is on the way`,
+        sub: o.driverEtaMinutes != null ? `${driver} is on the way${miles} · about ${clock(new Date(now + o.driverEtaMinutes * 60_000).toISOString())}` : `${driver} is on the way`,
       };
     }
     case "RIDER_ARRIVED":
@@ -292,7 +292,14 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
 
   const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: sheetY.value }], opacity: 1 - sheetY.value / 120 }));
 
-  const head = order ? headline(order) : { title: "Loading your order…", sub: "" };
+  // An unchanged poll doesn't re-render (React Query keeps the same object),
+  // so "about 9:24pm" would freeze while the clock moves on: tick it.
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+  const head = order ? headline(order, now) : { title: "Loading your order…", sub: "" };
   const steps = order ? stepsFor(order) : [];
   const driverName = order?.driver?.name ?? null;
 
