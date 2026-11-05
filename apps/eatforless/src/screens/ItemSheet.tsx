@@ -515,7 +515,10 @@ const styles = StyleSheet.create({
   },
   reqBadge: { borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5 },
   stepSlot: { width: 116, alignItems: "flex-end" },
-  optRow: { flexDirection: "row", alignItems: "center", paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.line, gap: 12 },
+  // The tick box / stepper sits clear of the right edge: with gesture
+  // navigation, a press there that drifts left starts Android's back swipe,
+  // which takes the touch from the app — the tick "didn't work".
+  optRow: { flexDirection: "row", alignItems: "center", paddingVertical: 16, paddingRight: 14, borderBottomWidth: 1, borderBottomColor: C.line, gap: 12 },
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: C.ink },
   check: { width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: C.ink, alignItems: "center", justifyContent: "center" },
