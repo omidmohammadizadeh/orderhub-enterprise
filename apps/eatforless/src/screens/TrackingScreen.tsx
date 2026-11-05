@@ -97,7 +97,10 @@ function headline(o: OrderDetail): { title: string; sub: string } {
     case "PREPARING":
       return { title: eta ? `${o.fulfillmentType === "DELIVERY" ? "Arriving" : "Ready"} ${eta}` : "Preparing", sub: `${shop} is preparing your food` };
     case "READY":
-      return { title: "Ready to collect", sub: `Head to ${shop}` };
+      // A delivery that's ready is waiting for its driver, not for the customer.
+      return o.fulfillmentType === "DELIVERY"
+        ? { title: "Packed and ready", sub: `Waiting for a driver at ${shop}` }
+        : { title: "Ready to collect", sub: `Head to ${shop}` };
     case "OUT_FOR_DELIVERY": {
       const miles = o.metersLeft != null ? ` · ${milesText(o.metersLeft)}` : "";
       return {
