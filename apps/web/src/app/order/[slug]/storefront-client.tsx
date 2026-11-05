@@ -70,7 +70,6 @@ import { PoweredByOrderHub } from "@/components/storefront/powered-by";
 import { ReferralClaim } from "@/components/storefront/referral-claim";
 import { ReferAFriend } from "@/components/storefront/refer-a-friend";
 import { PlacingOrderSheet } from "@/components/storefront/placing-order-sheet";
-import { TipStep } from "@/components/storefront/tip-step";
 import { ShopProductTile } from "@/components/storefront/shop-product-tile";
 import { WeightSheet } from "@/components/storefront/weight-sheet";
 import {
@@ -103,6 +102,12 @@ import {
   Bike,
   Menu as MenuIcon,
   ChevronRight,
+  ChevronLeft,
+  LocateFixed,
+  Home as HomeIcon,
+  Check as CheckIcon,
+  CreditCard,
+  Banknote,
   Info,
   Receipt,
   Hourglass,
@@ -111,7 +116,7 @@ import {
 } from "lucide-react";
 import { GroupBasketPanel } from "@/components/storefront/group-basket-panel";
 import { StartGroupOrderModal } from "@/components/storefront/start-group-order-modal";
-import { AddressSearchField } from "@/components/storefront/address-search-field";
+import { AddressSearchField, type PickedAddress } from "@/components/storefront/address-search-field";
 import {
   resolveZone,
   zoneMode,
@@ -653,7 +658,6 @@ function OrderPage() {
   const [holding, setHolding] = useState(false);
   // Tip step sits between the basket and the hold. Amount in pounds; goes
   // to the restaurant, so it shows on collection orders too.
-  const [tipOpen, setTipOpen] = useState(false);
   const [tipAmount, setTipAmount] = useState(0);
 
   // Cart panel form state
@@ -1717,15 +1721,15 @@ function OrderPage() {
       if (authCustomer.addressArea) setAddrArea(authCustomer.addressArea);
     }
     // Signed in from the checkout's own "Place order" (email + password,
-    // same page): carry on to the tip step exactly as if they had been
+    // same page): carry on to the undo hold exactly as if they had been
     // signed in all along. This used to call checkout.mutate() directly,
-    // which skipped the tip and the undo hold and placed the order the
-    // instant the modal closed.
+    // which skipped the hold and placed the order the instant the modal
+    // closed. The tip is chosen in the checkout itself.
     if (pendingPlaceOrder) {
       setPendingPlaceOrder(false);
       forgetCheckout();
       setCartOpen(true);
-      setTipOpen(true);
+      setHolding(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authCustomer]);
@@ -1781,9 +1785,9 @@ function OrderPage() {
           : {}),
       }).catch(() => undefined);
     }
-    // Ask about a tip, then hold. The order is deliberately NOT created
-    // until the hold expires — see PlacingOrderSheet.
-    setTipOpen(true);
+    // Hold. The order is deliberately NOT created until the hold expires —
+    // see PlacingOrderSheet. The tip was chosen in the checkout.
+    setHolding(true);
   };
 
   // ── Promo + postcode helpers (Phase AP fix #1 + #2) ─────────────────────
@@ -2910,7 +2914,31 @@ function OrderPage() {
           noZoneMatched={noZoneMatched}
           highestZoneFee={highestZoneFee}
           scheduledFor={scheduledFor}
-          onOpenSchedule={() => setScheduleOpen(true)}
+          setScheduledFor={setScheduledFor}
+          schedule={{
+            maxDaysAhead: cfg?.scheduleMaxDaysAhead ?? 7,
+            slotMinutes: cfg?.scheduleSlotMinutes ?? 15,
+            openingHours: storefront.location.openingHours,
+          }}
+          symbol={symbol}
+          brandName={headerTitle}
+          shopAddress={headerAddress || null}
+          deliveryMinutes={cfg?.deliveryPrepMinutes ?? 45}
+          collectionMinutes={cfg?.collectionPrepMinutes ?? 20}
+          tipAmount={tipAmount}
+          setTipAmount={setTipAmount}
+          savedAddress={
+            authCustomer?.addressLine1 ? { line1: authCustomer.addressLine1 } : null
+          }
+          onUseSavedAddress={() => {
+            if (!authCustomer?.addressLine1) return;
+            setAddrLine1(authCustomer.addressLine1);
+            setAddrFlat(authCustomer.addressLine2 ?? "");
+            setAddrCity(authCustomer.addressCity ?? "");
+            setAddrPostcode(authCustomer.addressPostcode ?? "");
+            setAddrArea(authCustomer.addressArea ?? "");
+            setAddrPoint(null);
+          }}
           onPlace={handlePlaceOrder}
           isPlacing={checkout.isPending}
           placeError={
@@ -3035,27 +3063,11 @@ function OrderPage() {
         />
       )}
 
-      {tipOpen && (
-        <TipStep
-          money={money}
-          symbol={symbol}
-          tipBase={subtotal}
-          brandName={storefront.brand?.name ?? storefront.location.name}
-          isShop={isShop}
-          onBack={() => setTipOpen(false)}
-          onContinue={(tip) => {
-            setTipAmount(tip);
-            setTipOpen(false);
-            setHolding(true);
-          }}
-        />
-      )}
-
       {holding && (
         <PlacingOrderSheet
           money={money}
           summary={{
-            brandName: storefront.brand?.name ?? storefront.location.name,
+            brandName: headerTitle,
             fulfilment:
               fulfillmentType === "DELIVERY" ? "Delivery" : "Collection",
             addressLine:
@@ -3425,7 +3437,21 @@ interface CartPanelProps {
   noZoneMatched: boolean;
   highestZoneFee: number;
   scheduledFor: string | null;
-  onOpenSchedule: () => void;
+  setScheduledFor: (iso: string | null) => void;
+  /** The shop's scheduling rules, for the inline When picker. */
+  schedule: { maxDaysAhead: number; slotMinutes: number; openingHours: any };
+  /** Currency symbol for the custom-tip box. */
+  symbol: string;
+  brandName: string;
+  /** Where collection orders are picked up. */
+  shopAddress: string | null;
+  deliveryMinutes: number;
+  collectionMinutes: number;
+  tipAmount: number;
+  setTipAmount: (v: number) => void;
+  /** The signed-in account's saved address, offered as a one-tap fill. */
+  savedAddress: { line1: string } | null;
+  onUseSavedAddress: () => void;
   onPlace: () => void;
   isPlacing: boolean;
   placeError: string | null;
@@ -3477,6 +3503,7 @@ interface CartPanelProps {
 function CartPanel(props: CartPanelProps) {
   const {
     money,
+    symbol,
     onClose,
     cart,
     isShop,
@@ -3554,7 +3581,16 @@ function CartPanel(props: CartPanelProps) {
     noZoneMatched,
     highestZoneFee,
     scheduledFor,
-    onOpenSchedule,
+    setScheduledFor,
+    schedule,
+    brandName,
+    shopAddress,
+    deliveryMinutes,
+    collectionMinutes,
+    tipAmount,
+    setTipAmount,
+    savedAddress,
+    onUseSavedAddress,
     onPlace,
     isPlacing,
     placeError,
@@ -3592,12 +3628,61 @@ function CartPanel(props: CartPanelProps) {
   // Any string used to place an order, so a shop could be left unable to
   // ring the customer. Shape only: it can't prove the number is theirs.
   const phoneValid = isPlausibleCustomerPhone(customerPhone, shopCountry);
+  const delivery = fulfillmentType === "DELIVERY";
+  const grandTotal = round2(total + tipAmount);
   // A dialog closes on Escape.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // "Use my current location": the phone's position → the address at it.
+  // The API does the lookup (Google where it has a key, postcodes.io
+  // otherwise); a partial answer only fills what it knows.
+  const [locating, setLocating] = useState(false);
+  const [locateNote, setLocateNote] = useState<string | null>(null);
+  const useMyLocation = () => {
+    if (locating) return;
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      setLocateNote("This browser can't share your location. Type your address instead.");
+      return;
+    }
+    setLocating(true);
+    setLocateNote(null);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await axios.get<{ address: PickedAddress | null }>(
+            `${API_BASE}/v1/address-lookup/reverse`,
+            { params: { lat: pos.coords.latitude, lng: pos.coords.longitude } },
+          );
+          const a = res.data?.address;
+          if (!a) {
+            setLocateNote("We couldn't find an address where you are. Type it instead.");
+            return;
+          }
+          // A new street means the old house number is someone else's door.
+          if (a.line1) setAddrFlat("");
+          onPickAddress(a);
+          setLocateNote(a.line1 ? "Check your house number, then you're done." : "Add your house number and street.");
+        } catch {
+          setLocateNote("We couldn't look up your location. Type your address instead.");
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        setLocating(false);
+        setLocateNote(
+          err.code === err.PERMISSION_DENIED
+            ? "Location is off for this site. Allow it in your browser settings, or type your address."
+            : "We couldn't find you just now. Type your address instead.",
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
+    );
+  };
 
   const canPlace =
     !belowShopMinimum &&
@@ -3606,6 +3691,23 @@ function CartPanel(props: CartPanelProps) {
     phoneValid &&
     (fulfillmentType === "PICKUP" || addressComplete) &&
     (!cartMinAge || ageConfirmed);
+  // Why the button is greyed out, said once, above it — a dead button with
+  // no reason is the worst thing a checkout can do.
+  const blocker = canPlace
+    ? null
+    : cart.length === 0 && !freeItemApplied
+      ? null
+      : belowShopMinimum
+        ? `Delivery minimum is ${money(minOrderForDelivery!)} — add ${money(minOrderForDelivery! - subtotal)} more, or choose collection.`
+        : delivery && !addressComplete
+          ? "Add your delivery address."
+          : !customerName.trim() || !phoneValid
+            ? "Add your name and phone number."
+            : cartMinAge && !ageConfirmed
+              ? `Confirm you're ${cartMinAge} or over.`
+              : null;
+
+  const empty = cart.length === 0 && !freeItemApplied;
 
   return (
     <div className="sf-backdrop-enter fixed inset-0 z-50 flex justify-end bg-black/40" onClick={onClose}>
@@ -3616,692 +3718,725 @@ function CartPanel(props: CartPanelProps) {
         onClick={(e) => e.stopPropagation()}
         className="flex h-full w-full max-w-md animate-slide-in-right flex-col overflow-hidden bg-white text-zinc-900 shadow-2xl [color-scheme:light] motion-reduce:animate-none"
       >
-        <header className="flex items-center justify-between border-b border-zinc-200 py-1 pl-4 pr-1">
-          <h2 id="cart-panel-title" className="text-base font-semibold text-zinc-900">
-            Your order
-          </h2>
+        <header className="flex items-center gap-2 border-b border-zinc-100 px-3 py-2">
           <button
             onClick={onClose}
-            aria-label="Close basket"
-            className="grid h-11 w-11 place-items-center rounded-full text-zinc-500 hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
+            aria-label="Back to the menu"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-zinc-100 text-zinc-900 hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
           >
-            <X className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
+          <div className="min-w-0">
+            <h2 id="cart-panel-title" className="text-lg font-extrabold leading-tight tracking-[-0.01em]">
+              Checkout
+            </h2>
+            <p className="truncate text-[13px] text-zinc-500">{brandName}</p>
+          </div>
         </header>
 
         {/* overflow-x-hidden, and min-w-0 so a long item name or a row that
             refuses to wrap cannot widen the panel. On a phone the cart is the
             whole screen, and a sideways drag to reach the payment buttons is
             the last thing anyone wants at the paying step. */}
-        <div className="min-w-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-3">
-          {freeItemPicker && freeItemPicker.options.length > 0 && (
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-              <p className="font-semibold">
-                ✨ Free item with purchase
-              </p>
-              <p className="mt-0.5 text-[11px] text-amber-800">
-                {!freeItemPicker.eligible
-                  ? `Add ${money(freeItemPicker.remaining)} more (eligible items only) to unlock.`
-                  : freeItemPicker.options.length === 1
-                    ? `🎉 Unlocked! Free ${freeItemPicker.options[0]?.name ?? "item"} added to your cart.`
-                    : freeItemPicker.chosenId
-                      ? "Gift added to your cart — tap another to swap."
-                      : "🎉 Unlocked! Pick which one you want:"}
-              </p>
-              {freeItemPicker.eligible &&
-                freeItemPicker.options.length > 1 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {freeItemPicker.options.map((o) => {
-                      const on = freeItemPicker.chosenId === o.id;
-                      return (
-                        <button
-                          key={o.id}
-                          type="button"
-                          onClick={() => freeItemPicker.onChoose(o.id)}
-                          className={`rounded-full border px-3 py-1 text-[11px] font-medium ${
-                            on
-                              ? "border-amber-600 bg-amber-600 text-white"
-                              : "border-amber-300 bg-white text-amber-900 hover:border-amber-500"
-                          }`}
-                        >
-                          {o.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-            </div>
-          )}
-          {/* The reward as a line, priced at nothing.
-              DISPLAY ONLY — it is not in `cart` and is never sent as an item.
-              The server adds the real line from the reward itself, because a
-              basket that says "this is free" is a basket anyone can write. */}
-          {freeItemApplied && (
-            <div className="mb-2 flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2">
-              <span className="mt-0.5 text-amber-500">★</span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-zinc-900">
-                  {loyaltyReward!.label}
-                </p>
-                <p className="mt-0.5 text-[11px] text-amber-800">
-                  Your reward — free
-                </p>
-              </div>
-              <span className="text-sm font-semibold text-zinc-900">
-                {money(0)}
-              </span>
-            </div>
-          )}
-          {cart.length === 0 && !freeItemApplied ? (
-            <p className="py-10 text-center text-sm text-zinc-400">
-              Cart is empty
-            </p>
-          ) : cart.length === 0 ? null : (
-            <ul className="space-y-2">
-              {cart.map((l) => (
-                <li
-                  key={l.id}
-                  className="flex items-start gap-3 rounded-md border border-zinc-100 px-3 py-2"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-zinc-900 [overflow-wrap:anywhere]">
-                      {l.displayName}
-                    </p>
-                    {l.modifiers.length > 0 && (
-                      <p className="mt-0.5 text-[11px] text-zinc-500">
-                        {l.modifiers.map((m) => m.name).join(", ")}
-                      </p>
-                    )}
-                    <p className="mt-1 text-xs text-zinc-500">
-                      {money(l.unitPrice * l.quantity)}
-                    </p>
-                    {isShop && l.weightGrams ? (
-                      // Weighed lines are re-weighed, never swapped.
-                      <p className="mt-1 text-[11px] text-zinc-500">Weighed when picked — lighter is refunded</p>
-                    ) : isShop && !l.bogoOf && !l.freeItemOf && (
-                      <label className="mt-1 flex items-center gap-1.5 text-[11px] text-zinc-600">
-                        <input
-                          type="checkbox"
-                          checked={l.substitution !== "NONE"}
-                          onChange={(e) =>
-                            dispatch({
-                              type: "SET_SUBSTITUTION",
-                              id: l.id,
-                              value: e.target.checked ? "BEST_MATCH" : "NONE",
-                            })
-                          }
-                        />
-                        Swap for similar if out of stock
-                      </label>
-                    )}
-                  </div>
-                  <div className="-my-1.5 -mr-2 flex items-center">
-                    <button
-                      onClick={() => dispatch({ type: "DECREMENT", id: l.id })}
-                      aria-label={`Remove one ${l.displayName}`}
-                      className="group/step grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none"
-                    >
-                      <span className="grid h-8 w-8 place-items-center rounded-full border border-zinc-200 text-zinc-700 group-hover/step:bg-zinc-50 group-focus-visible/step:ring-2 group-focus-visible/step:ring-zinc-400">
-                        <Minus className="h-3.5 w-3.5" />
-                      </span>
-                    </button>
-                    <span className="w-5 text-center text-sm font-semibold tabular-nums">
-                      {l.quantity}
-                    </span>
-                    <button
-                      onClick={() => dispatch({ type: "INCREMENT", id: l.id })}
-                      aria-label={`Add another ${l.displayName}`}
-                      className="group/step grid h-11 w-11 place-items-center rounded-full focus-visible:outline-none"
-                    >
-                      <span className="grid h-8 w-8 place-items-center rounded-full border border-zinc-200 text-zinc-700 group-hover/step:bg-zinc-50 group-focus-visible/step:ring-2 group-focus-visible/step:ring-zinc-400">
-                        <Plus className="h-3.5 w-3.5" />
-                      </span>
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {/* Customer */}
-          <Section title="Your details">
-            {/* Stacked on a phone. Side by side gives each field about 160px,
-                which is not enough for a full name and a phone number, and the
-                text scrolls inside the box while they type. */}
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              <TextField
-                value={customerName}
-                onChange={setCustomerName}
-                placeholder="Full name"
-              />
-              <TextField
-                value={customerPhone}
-                onChange={setCustomerPhone}
-                placeholder="Phone"
-                type="tel"
-              />
-            </div>
-            {customerPhone.trim().length > 0 && !phoneValid && (
-              <p className="text-[11px] text-red-600">
-                Enter a phone number the restaurant can call you on.
-              </p>
-            )}
-            <TextField
-              value={customerEmail}
-              onChange={setCustomerEmail}
-              placeholder="Email (optional)"
-            />
-            <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-zinc-500">
-              <input
-                type="checkbox"
-                checked={smsMarketingConsent}
-                onChange={(e) => setSmsMarketingConsent(e.target.checked)}
-                className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
-              />
-              <span>Keep me updated with offers &amp; news by SMS</span>
-            </label>
-            {accountEmail && (
-              <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-zinc-500">
-                <input
-                  type="checkbox"
-                  checked={emailMarketingConsent}
-                  onChange={(e) => setEmailMarketingConsent(e.target.checked)}
-                  className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
-                />
-                <span>
-                  Keep me updated with offers &amp; news by email ({accountEmail}). Unsubscribe any time.
-                </span>
-              </label>
-            )}
-            {/* Signed in: offer to remember the phone + delivery address on
-                their account, so the next order anywhere starts filled in. */}
-            {accountEmail && (
-              <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-zinc-500">
-                <input
-                  type="checkbox"
-                  checked={saveDetails}
-                  onChange={(e) => setSaveDetails(e.target.checked)}
-                  className="mt-0.5 h-3.5 w-3.5 rounded border-zinc-300"
-                />
-                <span>
-                  Save my phone number{fulfillmentType === "DELIVERY" ? " and address" : ""} for
-                  next time. Change it any time in My account.
-                </span>
-              </label>
-            )}
-          </Section>
-
-          {cartMinAge && (
-            <Section title={`Age check — ${cartMinAge}+`}>
-              <div className="rounded-md border border-amber-300 bg-amber-50 p-2.5">
-                <label className="flex cursor-pointer items-start gap-2 text-xs text-amber-950">
-                  <input
-                    type="checkbox"
-                    checked={ageConfirmed}
-                    onChange={(e) => setAgeConfirmed(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-amber-400"
-                  />
-                  <span>
-                    <span className="font-semibold">I&apos;m {cartMinAge} or over.</span> Your basket has
-                    age-restricted items. We&apos;ll ask for photo ID when you{" "}
-                    {fulfillmentType === "DELIVERY" ? "receive your order" : "collect"}, and won&apos;t hand it
-                    over without it.
-                  </span>
-                </label>
-              </div>
-            </Section>
-          )}
-
-          {/* The loyalty reward, offered rather than applied.
-              Opt IN, not out: someone may be saving it for a bigger order,
-              and spending it for them is spending something they earned. */}
-          {loyaltyReward && (
-            <Section title="Your reward">
+        <div className="min-w-0 flex-1 space-y-3.5 overflow-y-auto overflow-x-hidden px-4 py-4">
+          {empty ? (
+            <div className="flex flex-col items-center gap-3 py-16 text-center">
+              <ShoppingBag className="h-12 w-12 text-zinc-300" aria-hidden />
+              <p className="text-xl font-extrabold">Your basket is empty</p>
+              <p className="text-[15px] text-zinc-500">Add something tasty from the menu.</p>
               <button
                 type="button"
-                onClick={() => setUseLoyaltyReward(!useLoyaltyReward)}
-                className={`flex w-full items-center gap-3 rounded-xl border-2 p-3 text-left transition ${
-                  useLoyaltyReward
-                    ? "border-amber-400 bg-amber-50"
-                    : "border-dashed border-zinc-300 bg-white"
-                }`}
+                onClick={onClose}
+                className="mt-1 min-h-[48px] rounded-full bg-zinc-900 px-6 text-[15px] font-bold text-white"
               >
-                <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg ${
-                    useLoyaltyReward ? "bg-amber-400" : "bg-zinc-100"
-                  }`}
-                >
-                  ★
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold text-zinc-900">
-                    {loyaltyReward.label}
-                  </span>
-                  <span className="block text-xs text-zinc-500">
-                    {!rewardIsItem && useLoyaltyReward && loyaltyMoney.short > 0
-                      ? `Add ${money(loyaltyMoney.short)} more to use it — or save it for next time`
-                      : !rewardIsItem && useLoyaltyReward
-                        ? `${money(loyaltyMoney.amount)} off this order`
-                        : useLoyaltyReward
-                          ? "Added to this order — free"
-                          : "Your card is full. Tap to use it."}
-                  </span>
-                </span>
-                <span
-                  className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold ${
-                    useLoyaltyReward
-                      ? "bg-amber-400 text-amber-950"
-                      : "bg-zinc-900 text-white"
-                  }`}
-                >
-                  {useLoyaltyReward ? "Added" : "Use it"}
-                </span>
+                Back to the menu
               </button>
-            </Section>
-          )}
-
-          {/* Fulfillment */}
-          <Section title="Order type">
-            <div className="flex flex-wrap gap-2 [&>*]:min-w-0 [&>*]:flex-1">
-              {acceptCollection && (
-                <Toggle
-                  active={fulfillmentType === "PICKUP"}
-                  onClick={() => setFulfillmentType("PICKUP")}
-                >
-                  Collection
-                </Toggle>
-              )}
-              {acceptDelivery && (
-                <Toggle
-                  active={fulfillmentType === "DELIVERY"}
-                  onClick={() => setFulfillmentType("DELIVERY")}
-                >
-                  Delivery
-                </Toggle>
-              )}
             </div>
-          </Section>
-
-          {/* Address (delivery only) */}
-          {fulfillmentType === "DELIVERY" && (
-            <Section title="Delivery address">
-              {/* Search first, type second. Most customers finish here and
-                  never touch the fields below — but the fields stay, because
-                  new-builds and flats above shops are exactly the addresses
-                  Google is worst at. */}
-              <AddressSearchField
-                country={shopCountry.toLowerCase()}
-                placeholder={
-                  needsPostcode
-                    ? "Search your address"
-                    : "Search building, street or community"
-                }
-                onPick={onPickAddress}
-              />
-              {/* Phase AP fix #3 — house/flat number gets its own row */}
-              <TextField
-                value={addrFlat}
-                onChange={setAddrFlat}
-                placeholder={needsPostcode ? "House number or name (required)" : "House / flat number"}
-              />
-              <TextField
-                value={addrLine1}
-                onChange={setAddrLine1}
-                placeholder="Street name"
-              />
-              {houseNumberMissing && (
-                <p className="text-[11px] text-red-600">
-                  Add your house number or name so the driver can find you.
-                </p>
-              )}
-              {/* City + postcode + Find in one row. Inputs get min-w-0 so they
-                  shrink on narrow phones instead of pushing the Find button
-                  past the viewport edge (it was invisible on mobile). */}
-              {/* City, and — where the country actually has them — postcode
-                  plus Find. Inputs get min-w-0 so they shrink on narrow phones
-                  instead of pushing the Find button past the viewport edge (it
-                  was invisible on mobile). */}
-              <div
-                className={
-                  needsPostcode
-                    ? "grid grid-cols-[1fr,1fr,auto] gap-1.5"
-                    : "grid grid-cols-1 gap-1.5"
-                }
-              >
-                <input
-                  value={addrCity}
-                  onChange={(e) => setAddrCity(e.target.value)}
-                  placeholder={needsPostcode ? "City" : "City / emirate"}
-                  className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-                />
-                {needsPostcode && (
-                  <>
-                    <input
-                      value={addrPostcode}
-                      onChange={(e) => setAddrPostcode(e.target.value.toUpperCase())}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          onPostcodeLookup();
-                        }
-                      }}
-                      placeholder="Postcode"
-                      className="min-w-0 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={onPostcodeLookup}
-                      disabled={postcodeLookupLoading || addrPostcode.trim().length < 5}
-                      className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-zinc-300 bg-white px-2.5 text-[11px] font-medium hover:bg-zinc-50 disabled:opacity-50"
-                    >
-                      {postcodeLookupLoading ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Search className="h-3 w-3" />
-                      )}
-                      Find
-                    </button>
-                  </>
-                )}
-              </div>
-
-              {/* The delivery area. Only where the shop prices by area — the
-                  options are the operator's own zones, so anything not on this
-                  list is somewhere they've said they don't go. That's why
-                  there's no free-text fallback: a typed area we can't price is
-                  a promise we can't keep. */}
-              {mode === "AREA" && (
-                <div className="space-y-1">
-                  <select
-                    value={addrArea}
-                    onChange={(e) => setAddrArea(e.target.value)}
-                    className="w-full rounded-md border border-zinc-200 bg-white px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-                  >
-                    <option value="">Choose your area…</option>
-                    {deliveryAreas.map((a) => (
-                      <option key={a} value={a}>
-                        {a}
-                      </option>
-                    ))}
-                  </select>
-                  {!addrArea && (
-                    <p className="text-[11px] text-zinc-500">
-                      Delivery is priced by area — pick yours to see the fee.
-                    </p>
-                  )}
+          ) : (
+            <>
+              {(acceptDelivery || acceptCollection) && (
+                <div role="group" aria-label="Delivery or collection" className="flex rounded-full bg-zinc-100 p-1">
+                  {(["DELIVERY", "PICKUP"] as const).map((m) => {
+                    const enabled = m === "DELIVERY" ? acceptDelivery : acceptCollection;
+                    const on = fulfillmentType === m;
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        disabled={!enabled}
+                        aria-pressed={on}
+                        onClick={() => setFulfillmentType(m)}
+                        className={cn(
+                          "flex min-h-[52px] flex-1 flex-col items-center justify-center rounded-full transition-[background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 disabled:text-zinc-400",
+                          on && "bg-white shadow-sm",
+                        )}
+                      >
+                        <span className="text-[15px] font-extrabold">{m === "DELIVERY" ? "Delivery" : "Collection"}</span>
+                        <span className="text-xs text-zinc-500">
+                          {enabled
+                            ? `about ${m === "DELIVERY" ? deliveryMinutes : collectionMinutes} min`
+                            : "Not offered"}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
-              {/* Phase AP fix #2 — picker for the lookup results */}
-              {needsPostcode && postcodeLookupNote && (
-                <p className="text-[11px] text-zinc-500">{postcodeLookupNote}</p>
-              )}
-              {postcodeSuggestions.length > 0 && (
-                <ul className="max-h-40 overflow-y-auto rounded-md border border-zinc-200 bg-white">
-                  {postcodeSuggestions.map((s) => (
-                    <li key={s.id}>
+              {delivery ? (
+                <Section title="Delivery address">
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={useMyLocation}
+                      disabled={locating}
+                      className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-[1.5px] border-zinc-900 bg-white px-4 text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 disabled:opacity-70"
+                    >
+                      {locating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      ) : (
+                        <LocateFixed className="h-4 w-4" aria-hidden />
+                      )}
+                      {locating ? "Finding you…" : "Use my current location"}
+                    </button>
+                    {savedAddress && (
                       <button
                         type="button"
-                        onClick={() => onPickPostcodeSuggestion(s)}
-                        className="w-full px-2 py-1.5 text-left text-[11px] leading-snug hover:bg-zinc-50"
+                        onClick={() => {
+                          setLocateNote(null);
+                          onUseSavedAddress();
+                        }}
+                        className="inline-flex min-h-[44px] max-w-full items-center gap-2 rounded-full bg-zinc-100 px-4 text-sm font-bold hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
                       >
-                        {s.label}
+                        <HomeIcon className="h-4 w-4 shrink-0" aria-hidden />
+                        <span className="truncate">{savedAddress.line1}</span>
                       </button>
+                    )}
+                  </div>
+                  {locateNote && (
+                    <p aria-live="polite" className="text-[13px] text-zinc-600">
+                      {locateNote}
+                    </p>
+                  )}
+                  {/* Search first, type second. Most customers finish here and
+                      never touch the fields below — but the fields stay, because
+                      new-builds and flats above shops are exactly the addresses
+                      Google is worst at. */}
+                  <AddressSearchField
+                    large
+                    country={shopCountry.toLowerCase()}
+                    placeholder={needsPostcode ? "Or search your address" : "Or search building, street or community"}
+                    onPick={onPickAddress}
+                  />
+                  {/* Phase AP fix #3 — house/flat number gets its own row */}
+                  <TextField
+                    label={needsPostcode ? "House number or name" : "House / flat number"}
+                    value={addrFlat}
+                    onChange={setAddrFlat}
+                    autoComplete="address-line2"
+                  />
+                  <TextField label="Street" value={addrLine1} onChange={setAddrLine1} autoComplete="address-line1" />
+                  {houseNumberMissing && (
+                    <p className="text-[13px] text-red-600">
+                      Add your house number or name so the driver can find you.
+                    </p>
+                  )}
+                  {/* City, and — where the country actually has them — postcode
+                      plus Find. min-w-0 so the inputs shrink on narrow phones
+                      instead of pushing Find past the viewport edge. */}
+                  <div className={needsPostcode ? "grid grid-cols-2 gap-2.5" : "grid grid-cols-1"}>
+                    <TextField
+                      label={needsPostcode ? "Town or city" : "City / emirate"}
+                      value={addrCity}
+                      onChange={setAddrCity}
+                      autoComplete="address-level2"
+                    />
+                    {needsPostcode && (
+                      <label className="flex min-w-0 flex-col gap-1.5 text-[13px] font-bold">
+                        Postcode
+                        <span className="flex min-w-0 gap-1.5">
+                          <input
+                            value={addrPostcode}
+                            onChange={(e) => setAddrPostcode(e.target.value.toUpperCase())}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                onPostcodeLookup();
+                              }
+                            }}
+                            autoComplete="postal-code"
+                            className={cn(INPUT, "uppercase")}
+                          />
+                          <button
+                            type="button"
+                            onClick={onPostcodeLookup}
+                            disabled={postcodeLookupLoading || addrPostcode.trim().length < 5}
+                            aria-label="Find addresses at this postcode"
+                            className="grid min-h-[48px] w-12 shrink-0 place-items-center rounded-xl bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50"
+                          >
+                            {postcodeLookupLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Search className="h-4 w-4" />
+                            )}
+                          </button>
+                        </span>
+                      </label>
+                    )}
+                  </div>
+
+                  {/* The delivery area. Only where the shop prices by area — the
+                      options are the operator's own zones, so anything not on this
+                      list is somewhere they've said they don't go. That's why
+                      there's no free-text fallback: a typed area we can't price is
+                      a promise we can't keep. */}
+                  {mode === "AREA" && (
+                    <label className="flex flex-col gap-1.5 text-[13px] font-bold">
+                      Delivery area
+                      <select value={addrArea} onChange={(e) => setAddrArea(e.target.value)} className={cn(INPUT, "bg-white")}>
+                        <option value="">Choose your area…</option>
+                        {deliveryAreas.map((a) => (
+                          <option key={a} value={a}>
+                            {a}
+                          </option>
+                        ))}
+                      </select>
+                      {!addrArea && (
+                        <span className="text-[13px] font-normal text-zinc-500">
+                          Delivery is priced by area — pick yours to see the fee.
+                        </span>
+                      )}
+                    </label>
+                  )}
+
+                  {/* Phase AP fix #2 — picker for the lookup results */}
+                  {needsPostcode && postcodeLookupNote && (
+                    <p className="text-[13px] text-zinc-500">{postcodeLookupNote}</p>
+                  )}
+                  {postcodeSuggestions.length > 0 && (
+                    <ul className="max-h-48 overflow-y-auto rounded-xl border border-zinc-200 bg-white">
+                      {postcodeSuggestions.map((s) => (
+                        <li key={s.id}>
+                          <button
+                            type="button"
+                            onClick={() => onPickPostcodeSuggestion(s)}
+                            className="min-h-[44px] w-full px-3 py-2 text-left text-sm leading-snug hover:bg-zinc-50"
+                          >
+                            {s.label}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {matchedZone && mode !== "RADIUS" && (
+                    <p className="flex items-center gap-1.5 text-[13px] font-semibold text-emerald-700">
+                      <CheckIcon className="h-4 w-4 shrink-0" aria-hidden />
+                      <span>
+                        {mode === "AREA" ? "Delivering to" : "We deliver to"} {matchedZone.prefix} ·{" "}
+                        {money(matchedZone.fee)} delivery
+                        {matchedZone.minOrder ? ` · min ${money(matchedZone.minOrder)}` : ""}
+                      </span>
+                    </p>
+                  )}
+                  {/* Distance bands can't be resolved in the browser — measuring
+                      needs a geocoder. The cart therefore shows the FURTHEST
+                      band, which is the most it can cost, and the server prices
+                      the real one at checkout. Quoting high and charging less is
+                      the only direction that can't surprise anyone. */}
+                  {mode === "RADIUS" && matchedZone && (
+                    <p className="text-[13px] text-zinc-600">
+                      {quotedFee != null ? (
+                        <>
+                          Delivery <strong>{money(quotedFee)}</strong> for this address.
+                        </>
+                      ) : (
+                        <>
+                          Delivery up to <strong>{money(matchedZone.fee)}</strong> — the exact fee is worked
+                          out from your address.
+                        </>
+                      )}
+                    </p>
+                  )}
+                  {areaUnserviceable && (
+                    <p className="text-[13px] text-red-600">
+                      Sorry, we don&apos;t deliver to <strong>{addrArea}</strong>. Pick another area, or switch to
+                      collection.
+                    </p>
+                  )}
+                  {noZoneMatched && (
+                    <p className="text-[13px] text-amber-700">
+                      No matching delivery zone for this postcode — charging the standard{" "}
+                      {money(highestZoneFee)} delivery fee.
+                    </p>
+                  )}
+                  {mode !== "AREA" && !matchedZone && !noZoneMatched && addrPostcode.length >= 3 && (
+                    <p className="text-[13px] text-amber-700">
+                      No matching delivery zone — the restaurant may not deliver here.
+                    </p>
+                  )}
+                </Section>
+              ) : (
+                <section className="flex items-start gap-3 rounded-2xl border border-zinc-200 p-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-zinc-100">
+                    <MapPin className="h-5 w-5" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="text-[17px] font-extrabold">Collect from {brandName}</h3>
+                    {shopAddress && <p className="mt-0.5 text-sm text-zinc-500">{shopAddress}</p>}
+                    <p className="mt-1 text-sm font-bold">Ready in about {collectionMinutes} min</p>
+                    {shopAddress && (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shopAddress)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 inline-block text-sm font-bold underline underline-offset-4"
+                      >
+                        Get directions
+                      </a>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              <Section title="When">
+                <WhenPicker
+                  scheduledFor={scheduledFor}
+                  onChange={setScheduledFor}
+                  asapLabel={`about ${delivery ? deliveryMinutes : collectionMinutes} min`}
+                  maxDaysAhead={schedule.maxDaysAhead}
+                  slotMinutes={schedule.slotMinutes}
+                  prepMinutes={delivery ? deliveryMinutes : collectionMinutes}
+                  openingHours={schedule.openingHours}
+                />
+              </Section>
+
+              <Section
+                title="Your order"
+                action={
+                  <button type="button" onClick={onClose} className="text-sm font-bold underline underline-offset-4">
+                    Add more
+                  </button>
+                }
+              >
+                {freeItemPicker && freeItemPicker.options.length > 0 && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
+                    <p className="font-bold">Free item with purchase</p>
+                    <p className="mt-0.5 text-[13px] text-amber-800">
+                      {!freeItemPicker.eligible
+                        ? `Add ${money(freeItemPicker.remaining)} more (eligible items only) to unlock.`
+                        : freeItemPicker.options.length === 1
+                          ? `Unlocked! Free ${freeItemPicker.options[0]?.name ?? "item"} added to your order.`
+                          : freeItemPicker.chosenId
+                            ? "Gift added to your order — tap another to swap."
+                            : "Unlocked! Pick which one you want:"}
+                    </p>
+                    {freeItemPicker.eligible && freeItemPicker.options.length > 1 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {freeItemPicker.options.map((o) => {
+                          const on = freeItemPicker.chosenId === o.id;
+                          return (
+                            <button
+                              key={o.id}
+                              type="button"
+                              aria-pressed={on}
+                              onClick={() => freeItemPicker.onChoose(o.id)}
+                              className={`min-h-[36px] rounded-full border px-3 text-[13px] font-semibold ${
+                                on
+                                  ? "border-amber-600 bg-amber-600 text-white"
+                                  : "border-amber-300 bg-white text-amber-900 hover:border-amber-500"
+                              }`}
+                            >
+                              {o.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* The reward as a line, priced at nothing.
+                    DISPLAY ONLY — it is not in `cart` and is never sent as an item.
+                    The server adds the real line from the reward itself, because a
+                    basket that says "this is free" is a basket anyone can write. */}
+                {freeItemApplied && (
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[15px] font-bold">{loyaltyReward!.label}</p>
+                      <p className="text-[13px] text-amber-700">Your reward — free</p>
+                    </div>
+                    <span className="text-sm font-semibold tabular-nums">{money(0)}</span>
+                  </div>
+                )}
+                <ul className="divide-y divide-zinc-100">
+                  {cart.map((l) => (
+                    <li key={l.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[15px] font-bold [overflow-wrap:anywhere]">{l.displayName}</p>
+                        {l.modifiers.length > 0 && (
+                          <p className="text-[13px] leading-snug text-zinc-500">
+                            {l.modifiers.map((m) => m.name).join(", ")}
+                          </p>
+                        )}
+                        <p className="text-sm font-semibold tabular-nums">{money(l.unitPrice * l.quantity)}</p>
+                        {isShop && l.weightGrams ? (
+                          // Weighed lines are re-weighed, never swapped.
+                          <p className="mt-1 text-[13px] text-zinc-500">Weighed when picked — lighter is refunded</p>
+                        ) : (
+                          isShop &&
+                          !l.bogoOf &&
+                          !l.freeItemOf && (
+                            <label className="mt-1 flex items-center gap-2 text-[13px] text-zinc-600">
+                              <input
+                                type="checkbox"
+                                checked={l.substitution !== "NONE"}
+                                onChange={(e) =>
+                                  dispatch({
+                                    type: "SET_SUBSTITUTION",
+                                    id: l.id,
+                                    value: e.target.checked ? "BEST_MATCH" : "NONE",
+                                  })
+                                }
+                                className="h-4 w-4"
+                              />
+                              Swap for similar if out of stock
+                            </label>
+                          )
+                        )}
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1 rounded-full bg-zinc-100 p-0.5">
+                        <button
+                          onClick={() => dispatch({ type: "DECREMENT", id: l.id })}
+                          aria-label={`Remove one ${l.displayName}`}
+                          className="grid h-10 w-10 place-items-center rounded-full bg-white text-zinc-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="min-w-[22px] text-center text-[15px] font-extrabold tabular-nums">
+                          {l.quantity}
+                        </span>
+                        <button
+                          onClick={() => dispatch({ type: "INCREMENT", id: l.id })}
+                          aria-label={`Add another ${l.displayName}`}
+                          className="grid h-10 w-10 place-items-center rounded-full bg-white text-zinc-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
+              </Section>
+
+              {/* The loyalty reward, offered rather than applied.
+                  Opt IN, not out: someone may be saving it for a bigger order,
+                  and spending it for them is spending something they earned. */}
+              {loyaltyReward && (
+                <button
+                  type="button"
+                  aria-pressed={useLoyaltyReward}
+                  onClick={() => setUseLoyaltyReward(!useLoyaltyReward)}
+                  className={`flex w-full items-center gap-3 rounded-2xl border-2 p-4 text-left transition-colors ${
+                    useLoyaltyReward ? "border-amber-400 bg-amber-50" : "border-dashed border-zinc-300 bg-white"
+                  }`}
+                >
+                  <span
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-lg ${
+                      useLoyaltyReward ? "bg-amber-400" : "bg-zinc-100"
+                    }`}
+                    aria-hidden
+                  >
+                    ★
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[15px] font-bold">{loyaltyReward.label}</span>
+                    <span className="block text-[13px] text-zinc-500">
+                      {!rewardIsItem && useLoyaltyReward && loyaltyMoney.short > 0
+                        ? `Add ${money(loyaltyMoney.short)} more to use it — or save it for next time`
+                        : !rewardIsItem && useLoyaltyReward
+                          ? `${money(loyaltyMoney.amount)} off this order`
+                          : useLoyaltyReward
+                            ? "Added to this order — free"
+                            : "Your card is full. Tap to use it."}
+                    </span>
+                  </span>
+                  <span
+                    className={`shrink-0 rounded-full px-3.5 py-2 text-[13px] font-bold ${
+                      useLoyaltyReward ? "bg-amber-400 text-amber-950" : "bg-zinc-900 text-white"
+                    }`}
+                  >
+                    {useLoyaltyReward ? "Added" : "Use it"}
+                  </span>
+                </button>
               )}
 
-              {matchedZone && mode !== "RADIUS" && (
-                <p className="text-[11px] text-emerald-700">
-                  {mode === "AREA" ? "Delivering to" : "Matched zone"}{" "}
-                  <strong>{matchedZone.prefix}</strong> · {money(matchedZone.fee)}{" "}
-                  delivery
-                  {matchedZone.minOrder ? ` · min ${money(matchedZone.minOrder)}` : ""}
-                </p>
-              )}
-              {/* Distance bands can't be resolved in the browser — measuring
-                  needs a geocoder. The cart therefore shows the FURTHEST
-                  band, which is the most it can cost, and the server prices
-                  the real one at checkout. Quoting high and charging less is
-                  the only direction that can't surprise anyone. */}
-              {mode === "RADIUS" && matchedZone && (
-                <p className="text-[11px] text-zinc-600">
-                  {quotedFee != null ? (
-                    <>
-                      Delivery <strong>{money(quotedFee)}</strong> for this
-                      address.
-                    </>
-                  ) : (
-                    <>
-                      Delivery up to <strong>{money(matchedZone.fee)}</strong> —
-                      the exact fee is worked out from your address.
-                    </>
-                  )}
-                </p>
-              )}
-              {areaUnserviceable && (
-                <p className="text-[11px] text-red-600">
-                  Sorry, we don&apos;t deliver to <strong>{addrArea}</strong>.
-                  Pick another area, or switch to collection.
-                </p>
-              )}
-              {noZoneMatched && (
-                <p className="text-[11px] text-amber-600">
-                  No matching delivery zone for this postcode — charging the
-                  standard {money(highestZoneFee)} delivery fee.
-                </p>
-              )}
-              {mode !== "AREA" &&
-                !matchedZone &&
-                !noZoneMatched &&
-                addrPostcode.length >= 3 && (
-                  <p className="text-[11px] text-amber-600">
-                    No matching delivery zone — restaurant may not deliver here.
-                  </p>
+              <Section title="Your details">
+                {/* Stacked on a phone. Side by side gives each field about 160px,
+                    which is not enough for a full name and a phone number. */}
+                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  <TextField label="Full name" value={customerName} onChange={setCustomerName} autoComplete="name" />
+                  <TextField label="Phone" value={customerPhone} onChange={setCustomerPhone} type="tel" />
+                </div>
+                {customerPhone.trim().length > 0 && !phoneValid && (
+                  <p className="text-[13px] text-red-600">Enter a phone number the restaurant can call you on.</p>
                 )}
-            </Section>
-          )}
-
-          {/* Schedule */}
-          <Section title="When">
-            <button
-              type="button"
-              onClick={onOpenSchedule}
-              className="flex w-full items-center justify-between rounded-md border border-zinc-200 px-3 py-2 text-xs hover:bg-zinc-50"
-            >
-              <span className="text-zinc-700">
-                {scheduledFor ? `Scheduled ${formatScheduledFor(scheduledFor)}` : "ASAP"}
-              </span>
-              <ChevronRight className="h-3.5 w-3.5 text-zinc-400" />
-            </button>
-          </Section>
-
-          {/* Phase AP fix #1 — Promo code redemption */}
-          <Section title="Promo code">
-            {promoApplied ? (
-              <div className="flex items-center justify-between rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                <span>
-                  <strong>{promoApplied.code}</strong>{" "}
-                  {promoApplied.freeDelivery
-                    ? "— Free delivery"
-                    : `— ${money(promoDiscount)} off`}
-                </span>
-                <button
-                  type="button"
-                  onClick={onClearPromo}
-                  className="ml-2 rounded p-1 hover:bg-emerald-100"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex gap-2">
-                <input
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                  placeholder="Enter code"
-                  className="flex-1 rounded-md border border-zinc-200 px-2 py-1.5 text-xs uppercase focus:border-zinc-900 focus:outline-none"
+                <TextField
+                  label="Email (optional)"
+                  value={customerEmail}
+                  onChange={setCustomerEmail}
+                  type="email"
                 />
-                <button
-                  type="button"
-                  onClick={onApplyPromo}
-                  disabled={!promoCode.trim()}
-                  className="rounded-md bg-zinc-900 px-3 text-xs font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
-                >
-                  Apply
-                </button>
-              </div>
-            )}
-            {promoError && (
-              <p className="text-[11px] text-red-600">{promoError}</p>
-            )}
-          </Section>
+                <Check2 checked={smsMarketingConsent} onChange={setSmsMarketingConsent}>
+                  Keep me updated with offers &amp; news by SMS
+                </Check2>
+                {accountEmail && (
+                  <Check2 checked={emailMarketingConsent} onChange={setEmailMarketingConsent}>
+                    Keep me updated with offers &amp; news by email ({accountEmail}). Unsubscribe any time.
+                  </Check2>
+                )}
+                {/* Signed in: offer to remember the phone + delivery address on
+                    their account, so the next order anywhere starts filled in. */}
+                {accountEmail && (
+                  <Check2 checked={saveDetails} onChange={setSaveDetails}>
+                    Save my phone number{delivery ? " and address" : ""} for next time. Change it any time in
+                    My account.
+                  </Check2>
+                )}
+              </Section>
 
-          {/* Payment */}
-          <Section title="Payment">
-            <div className="flex flex-wrap gap-2 [&>*]:min-w-0 [&>*]:flex-1">
-              {acceptsCash && (
-                <Toggle
-                  active={paymentMethod === "CASH"}
-                  onClick={() => setPaymentMethod("CASH")}
-                >
-                  Cash
-                </Toggle>
+              {cartMinAge && (
+                <section className="rounded-2xl border border-amber-300 bg-amber-50 p-4">
+                  <label className="flex cursor-pointer items-start gap-3 text-sm text-amber-950">
+                    <input
+                      type="checkbox"
+                      checked={ageConfirmed}
+                      onChange={(e) => setAgeConfirmed(e.target.checked)}
+                      className="mt-0.5 h-5 w-5 shrink-0 rounded border-amber-400"
+                    />
+                    <span>
+                      <span className="font-bold">I&apos;m {cartMinAge} or over.</span> Your basket has
+                      age-restricted items. We&apos;ll ask for photo ID when you{" "}
+                      {delivery ? "receive your order" : "collect"}, and won&apos;t hand it over without it.
+                    </span>
+                  </label>
+                </section>
               )}
-              {acceptsCard && (
-                <Toggle
-                  active={paymentMethod === "CARD"}
-                  onClick={() => setPaymentMethod("CARD")}
-                >
-                  Card
-                </Toggle>
-              )}
-            </div>
-            {paymentMethod === "CARD" && (
-              <p className="text-[11px] text-zinc-500">
-                Pay with Apple Pay, Google Pay or card on the next step. You&apos;ll
-                be charged when you pay, and refunded in full if the restaurant
-                can&apos;t take your order.
-              </p>
-            )}
-          </Section>
 
-          {/* Notes */}
-          <Section title="Order notes (optional)">
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Allergies, doorbell instructions, etc."
-              rows={2}
-              className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-            />
-          </Section>
+              <Section title={`Add a tip for ${brandName}`}>
+                <TipPicker money={money} symbol={symbol} tipBase={subtotal} value={tipAmount} onChange={setTipAmount} />
+                <p className="text-[13px] text-zinc-500">
+                  Optional. 100% of it goes to the {isShop ? "team" : "kitchen"}.
+                </p>
+              </Section>
+
+              <Section title="Payment">
+                {(acceptsCash || acceptsCard) && (
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {acceptsCard && (
+                      <Choice active={paymentMethod === "CARD"} onClick={() => setPaymentMethod("CARD")}>
+                        <CreditCard className="h-5 w-5" aria-hidden />
+                        Card
+                      </Choice>
+                    )}
+                    {acceptsCash && (
+                      <Choice active={paymentMethod === "CASH"} onClick={() => setPaymentMethod("CASH")}>
+                        <Banknote className="h-5 w-5" aria-hidden />
+                        Cash
+                      </Choice>
+                    )}
+                  </div>
+                )}
+                <p className="text-[13px] text-zinc-500">
+                  {paymentMethod === "CARD"
+                    ? "Apple Pay, Google Pay or card on the next step. You're only charged when you pay, and refunded in full if the restaurant can't take your order."
+                    : delivery
+                      ? "Pay the driver when your food arrives."
+                      : "Pay when you collect."}
+                </p>
+
+                {/* Phase AP fix #1 — Promo code redemption */}
+                {promoApplied ? (
+                  <div className="flex min-h-[48px] items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 text-sm text-emerald-800">
+                    <span>
+                      <strong>{promoApplied.code}</strong>{" "}
+                      {promoApplied.freeDelivery ? "— Free delivery" : `— ${money(promoDiscount)} off`}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={onClearPromo}
+                      aria-label="Remove promo code"
+                      className="grid h-10 w-10 place-items-center rounded-full hover:bg-emerald-100"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                      placeholder="Promo code"
+                      aria-label="Promo code"
+                      className={cn(INPUT, "uppercase")}
+                    />
+                    <button
+                      type="button"
+                      onClick={onApplyPromo}
+                      disabled={!promoCode.trim()}
+                      className="min-h-[48px] shrink-0 rounded-xl bg-zinc-100 px-5 text-[15px] font-extrabold hover:bg-zinc-200 disabled:opacity-50"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+                {promoError && <p className="text-[13px] text-red-600">{promoError}</p>}
+
+                <label className="flex flex-col gap-1.5 text-[13px] font-bold">
+                  Note for the {isShop ? "shop" : "kitchen"} (optional)
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Allergies, doorbell instructions, etc."
+                    rows={2}
+                    className="w-full resize-none rounded-xl border border-zinc-300 px-3.5 py-3 text-base font-normal focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                  />
+                </label>
+              </Section>
+
+              <dl className="space-y-2 px-1 pt-1">
+                <Row label="Subtotal" value={money(subtotal)} />
+                {multiBuyApplied.map((a) => (
+                  <Row
+                    key={a.dealId}
+                    label={`${a.name}${a.times > 1 ? ` ×${a.times}` : ""}`}
+                    value={`-${money(a.saving)}`}
+                  />
+                ))}
+                {campaignDiscount >= promoDiscount && campaignDiscount > 0 && (
+                  <Row label={`Discount (${campaignName ?? "Promo"})`} value={`-${money(campaignDiscount)}`} />
+                )}
+                {loyaltyMoney.amount > 0 && (
+                  <Row
+                    label={`Reward (${loyaltyReward?.label ?? "loyalty"})`}
+                    value={`-${money(loyaltyMoney.amount)}`}
+                  />
+                )}
+                {promoDiscount > campaignDiscount && promoDiscount > 0 && (
+                  <Row label={`Discount (${promoApplied?.code ?? ""})`} value={`-${money(promoDiscount)}`} />
+                )}
+                {delivery && (
+                  <Row
+                    label="Delivery"
+                    value={freeDelivery ? "Free" : deliveryFee > 0 ? money(deliveryFee) : "—"}
+                  />
+                )}
+                {serviceCharge > 0 && <Row label="Service charge" value={money(serviceCharge)} />}
+                {tipAmount > 0 && <Row label="Tip" value={money(tipAmount)} />}
+                <Row label="Total" value={money(grandTotal)} bold />
+              </dl>
+            </>
+          )}
         </div>
 
-        {/* Totals + place */}
-        <footer className="border-t border-zinc-200 px-4 py-3 space-y-2">
-          <Row label="Subtotal" value={`${money(subtotal)}`} />
-          {multiBuyApplied.map((a) => (
-            <Row
-              key={a.dealId}
-              label={`${a.name}${a.times > 1 ? ` ×${a.times}` : ""}`}
-              value={`-${money(a.saving)}`}
-            />
-          ))}
-          {campaignDiscount >= promoDiscount && campaignDiscount > 0 && (
-            <Row
-              label={`Discount (${campaignName ?? "Promo"})`}
-              value={`-${money(campaignDiscount)}`}
-            />
-          )}
-          {loyaltyMoney.amount > 0 && (
-            <Row label={`Reward (${loyaltyReward?.label ?? "loyalty"})`} value={`-${money(loyaltyMoney.amount)}`} />
-          )}
-          {promoDiscount > campaignDiscount && promoDiscount > 0 && (
-            <Row
-              label={`Discount (${promoApplied?.code ?? ""})`}
-              value={`-${money(promoDiscount)}`}
-            />
-          )}
-          {fulfillmentType === "DELIVERY" && (
-            <Row
-              label="Delivery"
-              value={
-                freeDelivery
-                  ? "Free"
-                  : deliveryFee > 0
-                    ? `${money(deliveryFee)}`
-                    : "—"
-              }
-            />
-          )}
-          {serviceCharge > 0 && (
-            <Row
-              label="Service charge"
-              value={`${money(serviceCharge)}`}
-            />
-          )}
-          <Row label="Total" value={`${money(total)}`} bold />
-          {belowShopMinimum && (
-            <p className="text-[11px] text-amber-700">
-              Delivery minimum is {money(minOrderForDelivery!)} — add{" "}
-              {money(minOrderForDelivery! - subtotal)} more, or choose collection.
-            </p>
-          )}
-          {placeError && (
-            <p className="text-[11px] text-red-600">{placeError}</p>
-          )}
-          <button
-            onClick={onPlace}
-            disabled={!canPlace || isPlacing}
-            className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-50"
-          >
-            {isPlacing && <Loader2 className="h-4 w-4 animate-spin" />}
-            Place order
-          </button>
-        </footer>
+        {!empty && (
+          <footer className="space-y-2 border-t border-zinc-100 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
+            {(placeError || blocker) && (
+              <p role={placeError ? "alert" : undefined} className={cn("text-[13px]", placeError ? "text-red-600" : "text-zinc-600")}>
+                {placeError ?? blocker}
+              </p>
+            )}
+            <button
+              onClick={onPlace}
+              disabled={!canPlace || isPlacing}
+              className="flex min-h-[56px] w-full items-center justify-between gap-3 rounded-full bg-sf-cta px-6 text-base font-extrabold text-white transition-[opacity,transform] active:scale-[0.98] disabled:opacity-50"
+            >
+              <span className="flex items-center gap-2">
+                {isPlacing && <Loader2 className="h-5 w-5 animate-spin" />}
+                {paymentMethod === "CARD" ? "Continue to payment" : "Place order"}
+              </span>
+              <span className="tabular-nums">{money(grandTotal)}</span>
+            </button>
+          </footer>
+        )}
       </aside>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+const INPUT =
+  "min-h-[48px] w-full min-w-0 rounded-xl border border-zinc-300 px-3.5 text-base font-normal text-zinc-900 focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900";
+
+function Section({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <div>
-      <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
-        {title}
-      </p>
-      <div className="space-y-1.5">{children}</div>
-    </div>
+    <section className="space-y-3 rounded-2xl border border-zinc-200 p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-[17px] font-extrabold tracking-[-0.01em]">{title}</h3>
+        {action}
+      </div>
+      {children}
+    </section>
   );
 }
 
 function TextField({
+  label,
   value,
   onChange,
-  placeholder,
   type,
+  autoComplete,
 }: {
+  label: string;
   value: string;
   onChange: (v: string) => void;
-  placeholder: string;
   type?: string;
+  autoComplete?: string;
 }) {
   return (
-    <input
-      type={type}
-      inputMode={type === "tel" ? "tel" : undefined}
-      autoComplete={type === "tel" ? "tel" : undefined}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="w-full rounded-md border border-zinc-200 px-2 py-1.5 text-xs focus:border-zinc-900 focus:outline-none"
-    />
+    <label className="flex min-w-0 flex-col gap-1.5 text-[13px] font-bold">
+      {label}
+      <input
+        type={type}
+        inputMode={type === "tel" ? "tel" : type === "email" ? "email" : undefined}
+        autoComplete={autoComplete ?? (type === "tel" ? "tel" : type === "email" ? "email" : undefined)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={INPUT}
+      />
+    </label>
   );
 }
 
-function Toggle({
+function Check2({
+  checked,
+  onChange,
+  children,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-2.5 text-[13px] text-zinc-600">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="mt-0.5 h-4 w-4 shrink-0 rounded border-zinc-300"
+      />
+      <span>{children}</span>
+    </label>
+  );
+}
+
+function Choice({
   active,
   onClick,
   children,
@@ -4313,12 +4448,11 @@ function Toggle({
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "flex-1 rounded-md border px-3 py-1.5 text-xs font-medium",
-        active
-          ? "border-zinc-900 bg-zinc-900 text-white"
-          : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50",
+        "flex min-h-[56px] items-center justify-center gap-2 rounded-xl border-2 bg-white text-[15px] font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2",
+        active ? "border-zinc-900" : "border-zinc-200 hover:border-zinc-300",
       )}
     >
       {children}
@@ -4326,25 +4460,258 @@ function Toggle({
   );
 }
 
-function Row({
-  label,
-  value,
-  bold,
-}: {
-  label: string;
-  value: string;
-  bold?: boolean;
-}) {
+function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
     <div
       className={cn(
-        "flex items-center justify-between text-xs",
-        bold ? "text-sm font-bold text-zinc-900" : "text-zinc-600",
+        "flex items-baseline justify-between gap-3",
+        bold ? "border-t border-zinc-200 pt-2.5 text-lg font-extrabold text-zinc-900" : "text-[15px] text-zinc-600",
       )}
     >
-      <span>{label}</span>
-      <span>{value}</span>
+      <dt>{label}</dt>
+      <dd className="tabular-nums">{value}</dd>
     </div>
+  );
+}
+
+// ── Tip, inline in the checkout ─────────────────────────────────────────────
+//
+// The money goes to the RESTAURANT, not a courier — so the copy says the
+// kitchen, and it shows on collection orders too. Percentages are of the
+// food, not the bill: tipping on the delivery fee or on tax is the kind of
+// quiet padding customers notice once and never forgive. Nothing is chosen
+// for them: None is the default.
+
+const TIP_PRESETS = [10, 15, 20] as const;
+
+function TipPicker({
+  money,
+  symbol,
+  tipBase,
+  value,
+  onChange,
+}: {
+  money: (n: number | string | null | undefined) => string;
+  symbol: string;
+  tipBase: number;
+  value: number;
+  onChange: (tip: number) => void;
+}) {
+  const fromPct = (p: number) => round2((tipBase * p) / 100);
+  // Which button is lit. A preset stays lit while the basket changes, and
+  // its amount follows the food it is a percentage of.
+  const [choice, setChoice] = useState<"none" | "other" | (typeof TIP_PRESETS)[number]>(() => {
+    if (!value) return "none";
+    return TIP_PRESETS.find((p) => fromPct(p) === value) ?? "other";
+  });
+  const [custom, setCustom] = useState(() => (value && !TIP_PRESETS.some((p) => fromPct(p) === value) ? String(value) : ""));
+  useEffect(() => {
+    if (typeof choice === "number") {
+      const next = fromPct(choice);
+      if (next !== value) onChange(next);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipBase, choice]);
+
+  const chip = (on: boolean) =>
+    cn(
+      "flex min-h-[52px] flex-col items-center justify-center rounded-xl text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2",
+      on ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-900 hover:bg-zinc-200",
+    );
+
+  return (
+    <>
+      <div role="group" aria-label="Tip" className="grid grid-cols-5 gap-1.5">
+        <button
+          type="button"
+          aria-pressed={choice === "none"}
+          onClick={() => {
+            setChoice("none");
+            onChange(0);
+          }}
+          className={chip(choice === "none")}
+        >
+          <span className="text-sm font-extrabold">None</span>
+        </button>
+        {TIP_PRESETS.map((p) => (
+          <button
+            key={p}
+            type="button"
+            aria-pressed={choice === p}
+            onClick={() => {
+              setChoice(p);
+              onChange(fromPct(p));
+            }}
+            className={chip(choice === p)}
+          >
+            <span className="text-sm font-extrabold">{p}%</span>
+            <span className={cn("text-[11px] font-semibold tabular-nums", choice === p ? "text-white/75" : "text-zinc-500")}>
+              {money(fromPct(p))}
+            </span>
+          </button>
+        ))}
+        <button
+          type="button"
+          aria-pressed={choice === "other"}
+          onClick={() => {
+            setChoice("other");
+            onChange(round2(Math.max(0, Number(custom) || 0)));
+          }}
+          className={chip(choice === "other")}
+        >
+          <span className="text-sm font-extrabold">Other</span>
+        </button>
+      </div>
+      {choice === "other" && (
+        <label className="flex flex-col gap-1.5 text-[13px] font-bold">
+          Tip amount
+          <span className="flex min-h-[48px] items-center gap-2 rounded-xl border border-zinc-300 px-3.5 focus-within:border-zinc-900 focus-within:ring-1 focus-within:ring-zinc-900">
+            <span className="text-base font-normal text-zinc-500">{symbol}</span>
+            <input
+              autoFocus
+              inputMode="decimal"
+              value={custom}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/[^0-9.]/g, "");
+                setCustom(raw);
+                onChange(round2(Math.max(0, Number(raw) || 0)));
+              }}
+              placeholder="0.00"
+              className="w-full bg-transparent text-base font-normal outline-none"
+            />
+          </span>
+        </label>
+      )}
+    </>
+  );
+}
+
+// ── When, inline in the checkout ────────────────────────────────────────────
+//
+// As soon as possible, or a slot from the same opening-hours rules as the
+// header's schedule modal (computeSlots). Choosing Schedule picks the first
+// open slot straight away, so "Schedule" never sits there meaning ASAP.
+
+function WhenPicker({
+  scheduledFor,
+  onChange,
+  asapLabel,
+  maxDaysAhead,
+  slotMinutes,
+  prepMinutes,
+  openingHours,
+}: {
+  scheduledFor: string | null;
+  onChange: (iso: string | null) => void;
+  asapLabel: string;
+  maxDaysAhead: number;
+  slotMinutes: number;
+  prepMinutes: number;
+  openingHours: any;
+}) {
+  const days = useMemo(() => {
+    const today = new Date();
+    return Array.from({ length: Math.max(1, maxDaysAhead) }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      return d;
+    });
+  }, [maxDaysAhead]);
+  const slotsByDay = useMemo(
+    () => days.map((d) => computeSlots(d, slotMinutes, prepMinutes, openingHours)),
+    [days, slotMinutes, prepMinutes, openingHours],
+  );
+  const firstOpenDay = slotsByDay.findIndex((s) => s.length > 0);
+  const canSchedule = firstOpenDay >= 0;
+  const scheduledDay = scheduledFor
+    ? days.findIndex((d) => d.toDateString() === new Date(scheduledFor).toDateString())
+    : -1;
+  const [dayIdx, setDayIdx] = useState(scheduledDay >= 0 ? scheduledDay : Math.max(0, firstOpenDay));
+  const daySlots = slotsByDay[dayIdx] ?? [];
+
+  const box = (on: boolean) =>
+    cn(
+      "flex min-h-[64px] flex-col justify-center gap-0.5 rounded-xl border-2 bg-white px-3.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-2 disabled:opacity-50",
+      on ? "border-zinc-900" : "border-zinc-200 hover:border-zinc-300",
+    );
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2.5">
+        <button type="button" aria-pressed={!scheduledFor} onClick={() => onChange(null)} className={box(!scheduledFor)}>
+          <span className="text-[15px] font-extrabold">As soon as possible</span>
+          <span className="text-[13px] text-zinc-500">{asapLabel}</span>
+        </button>
+        <button
+          type="button"
+          aria-pressed={!!scheduledFor}
+          disabled={!canSchedule}
+          onClick={() => {
+            if (scheduledFor) return;
+            const d = slotsByDay[dayIdx]?.length ? dayIdx : firstOpenDay;
+            setDayIdx(d);
+            onChange(slotsByDay[d]?.[0] ?? null);
+          }}
+          className={box(!!scheduledFor)}
+        >
+          <span className="text-[15px] font-extrabold">Schedule</span>
+          <span className="text-[13px] text-zinc-500">
+            {scheduledFor ? formatScheduledFor(scheduledFor) : canSchedule ? "Pick a time" : "Not available"}
+          </span>
+        </button>
+      </div>
+      {scheduledFor && (
+        <>
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {days.map((d, i) => {
+              const on = dayIdx === i;
+              const closed = slotsByDay[i]!.length === 0;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  aria-pressed={on}
+                  disabled={closed}
+                  onClick={() => {
+                    setDayIdx(i);
+                    onChange(slotsByDay[i]![0] ?? null);
+                  }}
+                  className={cn(
+                    "min-h-[44px] shrink-0 rounded-full px-4 text-sm font-bold transition-colors disabled:opacity-40",
+                    on ? "bg-zinc-900 text-white" : "bg-zinc-100 text-zinc-900 hover:bg-zinc-200",
+                  )}
+                >
+                  {i === 0
+                    ? "Today"
+                    : i === 1
+                      ? "Tomorrow"
+                      : d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}
+                </button>
+              );
+            })}
+          </div>
+          <div className="grid max-h-[176px] grid-cols-4 gap-2 overflow-y-auto">
+            {daySlots.map((iso) => {
+              const on = scheduledFor === iso;
+              return (
+                <button
+                  key={iso}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => onChange(iso)}
+                  className={cn(
+                    "min-h-[44px] rounded-xl border-[1.5px] text-sm font-bold tabular-nums transition-colors",
+                    on ? "border-zinc-900 bg-zinc-900 text-white" : "border-zinc-300 bg-white text-zinc-900 hover:border-zinc-500",
+                  )}
+                >
+                  {formatTime(iso)}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
@@ -4522,8 +4889,14 @@ function computeSlots(
     end.setHours(th, tm, 0, 0);
     // Wrap past midnight not supported here — limit at 23:59.
     if (end <= start) end.setHours(23, 59, 0, 0);
+    // The first slot sits on the window's own grid (15:45, not 15:40).
+    const step = slotMinutes * 60_000;
+    const first =
+      earliest > start
+        ? start.getTime() + Math.ceil((earliest.getTime() - start.getTime()) / step) * step
+        : start.getTime();
     for (
-      let t = new Date(Math.max(start.getTime(), earliest.getTime()));
+      let t = new Date(first);
       t <= end;
       t = new Date(t.getTime() + slotMinutes * 60_000)
     ) {

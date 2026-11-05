@@ -61,6 +61,7 @@ export function AddressSearchField({
   onPick,
   country = "gb",
   placeholder = "Search your address",
+  large = false,
 }: {
   onPick: (address: PickedAddress) => void;
   /** The SHOP's country, so autocomplete looks where the shop actually is.
@@ -69,6 +70,8 @@ export function AddressSearchField({
    *  box returned nothing, for ever. */
   country?: string;
   placeholder?: string;
+  /** The checkout's 48px, 16px-text size; the group basket keeps the small one. */
+  large?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -169,13 +172,24 @@ export function AddressSearchField({
   return (
     <div className="relative">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400" />
+        <Search
+          className={
+            large
+              ? "pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
+              : "pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400"
+          }
+        />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
           autoComplete="off"
-          className="w-full rounded-md border border-zinc-200 py-1.5 pl-7 pr-7 text-xs focus:border-zinc-900 focus:outline-none"
+          aria-label={placeholder}
+          className={
+            large
+              ? "min-h-[48px] w-full rounded-xl border border-zinc-300 pl-10 pr-10 text-base focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+              : "w-full rounded-md border border-zinc-200 py-1.5 pl-7 pr-7 text-xs focus:border-zinc-900 focus:outline-none"
+          }
         />
         {(searching || resolving) && (
           <Loader2 className="absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-zinc-400" />
@@ -195,7 +209,11 @@ export function AddressSearchField({
                   e.preventDefault();
                   void pick(s);
                 }}
-                className="w-full px-2.5 py-2 text-left text-[11px] leading-snug hover:bg-zinc-50"
+                className={
+                  large
+                    ? "min-h-[44px] w-full px-3.5 py-2.5 text-left text-sm leading-snug hover:bg-zinc-50"
+                    : "w-full px-2.5 py-2 text-left text-[11px] leading-snug hover:bg-zinc-50"
+                }
               >
                 {s.label}
               </button>

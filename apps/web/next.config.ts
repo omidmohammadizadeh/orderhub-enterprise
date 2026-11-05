@@ -49,7 +49,7 @@ const nextConfig: NextConfig = {
             // app's own camera permission says (iOS WebKit didn't enforce it,
             // which hid this). `self` still blocks any embedded third-party
             // frame from the camera.
-            value: "camera=(self), microphone=(), geolocation=()",
+            value: "camera=(self), microphone=(), geolocation=(self)",
           },
         ],
       },

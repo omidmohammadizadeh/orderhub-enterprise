@@ -1,4 +1,5 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { BadRequestException, Controller, Get, Query } from "@nestjs/common";
+import { isValidPoint, reverseGeocode } from "./providers/reverse-geocode";
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { AddressLookupService } from "./address-lookup.service";
 import { BillingExempt } from "../../common/guards/billing.guard";
@@ -47,6 +48,18 @@ export class AddressLookupController {
   async details(@Query("id") id: string) {
     const result = await this.service.getPlaceDetails(id);
     return { suggestion: result };
+  }
+
+  @Public()
+  @Get("reverse")
+  @ApiOperation({ summary: "The address at a point (storefront 'Use my current location')" })
+  @ApiQuery({ name: "lat", required: true })
+  @ApiQuery({ name: "lng", required: true })
+  async reverse(@Query("lat") lat: string, @Query("lng") lng: string) {
+    const la = Number(lat);
+    const ln = Number(lng);
+    if (!isValidPoint(la, ln)) throw new BadRequestException("lat and lng must be a point on the map");
+    return { address: await reverseGeocode(la, ln) };
   }
 
   @Public()
