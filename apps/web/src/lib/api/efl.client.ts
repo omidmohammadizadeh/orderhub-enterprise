@@ -294,7 +294,24 @@ export interface EflPayoutSetup {
   due: string[];
 }
 
+/** One Thursday payout: last week's share, less anything taken off. Pence. */
+export interface EflPayout {
+  id: string;
+  weekStart: string;
+  status: "PENDING" | "TRANSFERRED" | "PAID" | "NOTHING_DUE" | "FAILED";
+  cardPence: number;
+  cashCommissionPence: number;
+  refundsPence: number;
+  carriedInPence: number;
+  amountPence: number;
+  carriedOutPence: number;
+  error: string | null;
+  paidAt: string | null;
+}
+
 export const eflClient = {
+  payoutHistory: (locationId: string) =>
+    apiClient.get<EflPayout[]>(`/v1/efl/listing/${locationId}/payouts/history`).then((r) => r.data),
   payouts: (locationId: string) =>
     apiClient.get<EflPayoutSetup>(`/v1/efl/listing/${locationId}/payouts`).then((r) => r.data),
   startPayouts: (locationId: string) =>

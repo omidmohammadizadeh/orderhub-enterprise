@@ -2249,6 +2249,34 @@ exports.Prisma.EflCampaignScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.EflPayoutScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  weekStart: 'weekStart',
+  status: 'status',
+  cardPence: 'cardPence',
+  cashCommissionPence: 'cashCommissionPence',
+  refundsPence: 'refundsPence',
+  carriedInPence: 'carriedInPence',
+  amountPence: 'amountPence',
+  carriedOutPence: 'carriedOutPence',
+  stripeTransferId: 'stripeTransferId',
+  stripePayoutId: 'stripePayoutId',
+  error: 'error',
+  attempts: 'attempts',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.EflPayoutLineScalarFieldEnum = {
+  id: 'id',
+  payoutId: 'payoutId',
+  orderId: 'orderId',
+  toShopPence: 'toShopPence',
+  clawedBackPence: 'clawedBackPence'
+};
+
 exports.Prisma.EflStatementSendScalarFieldEnum = {
   id: 'id',
   listingId: 'listingId',
@@ -4525,6 +4553,20 @@ exports.Prisma.EflCampaignOrderByRelevanceFieldEnum = {
   createdBy: 'createdBy'
 };
 
+exports.Prisma.EflPayoutOrderByRelevanceFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  stripeTransferId: 'stripeTransferId',
+  stripePayoutId: 'stripePayoutId',
+  error: 'error'
+};
+
+exports.Prisma.EflPayoutLineOrderByRelevanceFieldEnum = {
+  id: 'id',
+  payoutId: 'payoutId',
+  orderId: 'orderId'
+};
+
 exports.Prisma.EflStatementSendOrderByRelevanceFieldEnum = {
   id: 'id',
   listingId: 'listingId',
@@ -5636,6 +5678,14 @@ exports.EflDeliveryMode = exports.$Enums.EflDeliveryMode = {
   OWN_THEN_COURIER: 'OWN_THEN_COURIER'
 };
 
+exports.EflPayoutStatus = exports.$Enums.EflPayoutStatus = {
+  PENDING: 'PENDING',
+  TRANSFERRED: 'TRANSFERRED',
+  PAID: 'PAID',
+  NOTHING_DUE: 'NOTHING_DUE',
+  FAILED: 'FAILED'
+};
+
 exports.EflApplicationStatus = exports.$Enums.EflApplicationStatus = {
   NEW: 'NEW',
   WAITING_INFO: 'WAITING_INFO',
@@ -5783,6 +5833,8 @@ exports.Prisma.ModelName = {
   EflAdTap: 'EflAdTap',
   EflAdShow: 'EflAdShow',
   EflCampaign: 'EflCampaign',
+  EflPayout: 'EflPayout',
+  EflPayoutLine: 'EflPayoutLine',
   EflStatementSend: 'EflStatementSend',
   EflApplication: 'EflApplication',
   EflPushDevice: 'EflPushDevice',

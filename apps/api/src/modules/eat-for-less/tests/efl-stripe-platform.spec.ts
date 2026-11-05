@@ -23,7 +23,7 @@ describe("Eat For Less charges on its own Stripe", () => {
     eflAdRecovered: 3,
   };
 
-  it("charges the customer as Eat For Less and transfers the shop's share", async () => {
+  it("charges the customer as Eat For Less and keeps it all for Thursday's payout", async () => {
     const created: any[] = [];
     const prisma: any = {
       order: { findFirst: jest.fn().mockResolvedValue(order) },
@@ -38,11 +38,13 @@ describe("Eat For Less charges on its own Stripe", () => {
     const [params, opts] = stripe.paymentIntents.create.mock.calls[0];
     expect(opts).toBeUndefined(); // the platform itself, not a connected account
     expect(params.amount).toBe(2350);
-    expect(params.application_fee_amount).toBe(160 + 300); // 8% of £20 + £3 ads
-    expect(params.transfer_data).toEqual({ destination: "acct_shop" });
-    expect(params.metadata.platform).toBe("efl");
+    // Nothing goes to the shop at charge time: the week is settled on Thursday.
+    expect(params.transfer_data).toBeUndefined();
+    expect(params.application_fee_amount).toBeUndefined();
+    expect(params.metadata).toMatchObject({ platform: "efl", flow: "settle" });
     expect(out).toEqual({ clientSecret: "pi_1_secret", amountPence: 2350, stripeAccountId: null, publishableKey: "pk_efl" });
-    expect(created[0].metadata).toEqual({ platform: "efl", destination: "acct_shop" });
+    expect(created[0].metadata).toEqual({ platform: "efl", flow: "settle", destination: "acct_shop" });
+    expect(Number(created[0].platformFee)).toBe(4.6); // 8% of £20 + £3 ads, recorded
   });
 
   it("won't take an order for a shop Stripe can't pay", async () => {
@@ -54,7 +56,7 @@ describe("Eat For Less charges on its own Stripe", () => {
     await expect(svc.createStorefrontPaymentIntent({ tenantId: "t1", orderId: "o1" })).rejects.toThrow(/payout setup/);
   });
 
-  it("refunds an Eat For Less charge on Eat For Less, taking back the transfer and our fee", async () => {
+  it("refunds an older destination charge on Eat For Less, taking back the transfer and our fee", async () => {
     const prisma: any = {
       payment: {
         findFirst: jest.fn().mockResolvedValue({
@@ -81,6 +83,35 @@ describe("Eat For Less charges on its own Stripe", () => {
     expect(opts).toBeUndefined();
     expect(params).toMatchObject({ payment_intent: "pi_1", amount: 2350, reverse_transfer: true, refund_application_fee: true });
     expect((svc as any).stripe.refunds.create).not.toHaveBeenCalled();
+  });
+
+  it("refunds a weekly-payout charge with nothing to reverse: the next payout takes it back", async () => {
+    const prisma: any = {
+      payment: {
+        findFirst: jest.fn().mockResolvedValue({
+          id: "p1",
+          tenantId: "t1",
+          orderId: "o1",
+          stripePaymentIntentId: "pi_1",
+          status: "SUCCEEDED",
+          amount: 23.5,
+          tipAmount: 0,
+          metadata: { platform: "efl", flow: "settle" },
+        }),
+        update: jest.fn(),
+      },
+      order: { update: jest.fn() },
+    };
+    const stripe = { refunds: { create: jest.fn().mockResolvedValue({ id: "re_1" }) } };
+    const { svc } = paymentsWith(prisma, stripe);
+    (svc as any).stripe = { refunds: { create: jest.fn() } };
+
+    await svc.refundForOrder("o1", "shop rejected");
+
+    const [params] = stripe.refunds.create.mock.calls[0];
+    expect(params).toMatchObject({ payment_intent: "pi_1", amount: 2350 });
+    expect(params.reverse_transfer).toBeUndefined();
+    expect(params.refund_application_fee).toBeUndefined();
   });
 
   it("only lets payment events through its webhook, and passes account updates on", async () => {
@@ -131,7 +162,7 @@ describe("shop payouts", () => {
     ).toEqual(["external_account"]);
   });
 
-  it("creates one Express account per shop, paid weekly on Mondays", async () => {
+  it("creates one Express account per shop, paid by the Thursday run", async () => {
     const listing = { id: "L1", stripeAccountId: null, stripePayoutsEnabled: false, location: { name: "Shop", brand: { name: "Pizza Pizza" } } };
     const prisma: any = {
       eflListing: {
@@ -148,7 +179,7 @@ describe("shop payouts", () => {
     await expect(svc.start("loc")).resolves.toEqual({ url: "https://connect.stripe.com/x" });
     const params = stripe.accounts.create.mock.calls[0][0];
     expect(params).toMatchObject({ type: "express", country: "GB", capabilities: { transfers: { requested: true } } });
-    expect(params.settings.payouts.schedule).toEqual({ interval: "weekly", weekly_anchor: "monday" });
+    expect(params.settings.payouts.schedule).toEqual({ interval: "manual" });
     expect(prisma.eflListing.updateMany).toHaveBeenCalledWith({
       where: { id: "L1", stripeAccountId: null },
       data: { stripeAccountId: "acct_new" },

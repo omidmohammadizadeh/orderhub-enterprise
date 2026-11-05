@@ -146,6 +146,18 @@ describe("EflStatementsService", () => {
         ]),
         count: jest.fn().mockResolvedValue(1),
       },
+      eflPayout: {
+        findUnique: jest.fn().mockResolvedValue({
+          status: "PAID",
+          cardPence: 2810,
+          cashCommissionPence: 120,
+          refundsPence: 0,
+          carriedInPence: 0,
+          amountPence: 2690,
+          carriedOutPence: 0,
+          paidAt: new Date("2026-11-05T10:00:00Z"),
+        }),
+      },
     };
     const ads: any = {
       weekStats: jest.fn().mockResolvedValue({ shows: 40, taps: 6, spent: 3, orders: 1 }),
@@ -161,6 +173,7 @@ describe("EflStatementsService", () => {
     expect(s.toShop).toBe(28.1);
     expect(s.refundedOrders).toBe(1);
     expect(s.weekLabel).toBe("26 Oct – 1 Nov 2026");
+    expect(s.payout).toMatchObject({ status: "PAID", card: 28.1, cashCommission: 1.2, paid: 26.9 });
 
     const pdf = await svc.pdf(s);
     expect(Buffer.from(pdf).subarray(0, 5).toString()).toBe("%PDF-");

@@ -2,8 +2,9 @@
 
 // Locations → Brands → Eat For Less → Getting paid.
 //
-// Customers pay Eat For Less; the shop's share of each order goes to its own
-// payout account on Eat For Less's Stripe and lands in its bank every Monday.
+// Customers pay Eat For Less; every Thursday the shop's share of last week
+// (Mon–Sun) goes to its own payout account on Eat For Less's Stripe and on
+// to its bank, less commission on cash orders and any refunds.
 // Stripe's own form collects the bank details and ID — this section only
 // opens it and shows where the shop has got to.
 
@@ -11,7 +12,7 @@ import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { eflClient, type EflPayoutSetup } from "@/lib/api/efl.client";
+import { eflClient, type EflPayout, type EflPayoutSetup } from "@/lib/api/efl.client";
 
 const payoutsKey = (locationId: string) => ["efl-payouts", locationId] as const;
 
@@ -26,7 +27,7 @@ const COPY: Record<EflPayoutSetup["status"], { tone: string; text: string }> = {
   },
   READY: {
     tone: "bg-emerald-50 text-emerald-800",
-    text: "Ready. This shop's share of every order is paid into its bank each Monday.",
+    text: "Ready. Every Thursday this shop is paid its share of last week's orders (Monday to Sunday).",
   },
 };
 
@@ -51,6 +52,12 @@ export function EflPayoutsSection({ locationId }: { locationId: string }) {
   });
   const start = useMutation(open(() => eflClient.startPayouts(locationId), "Couldn't open payout setup"));
   const dashboard = useMutation(open(() => eflClient.payoutsDashboard(locationId), "Couldn't open the payouts dashboard"));
+
+  const history = useQuery({
+    queryKey: [...payoutsKey(locationId), "history"],
+    queryFn: () => eflClient.payoutHistory(locationId),
+    enabled: query.data?.status === "READY",
+  });
 
   const setup = query.data;
   // Before Eat For Less's own Stripe is switched on, shops are still paid
@@ -97,6 +104,52 @@ export function EflPayoutsSection({ locationId }: { locationId: string }) {
       <p className="mt-2 text-[11px] text-zinc-500">
         Opens Stripe, which handles the bank details and ID checks. Eat For Less never sees them.
       </p>
+      {!!history.data?.length && <PayoutHistory payouts={history.data} />}
     </section>
+  );
+}
+
+const pounds = (pence: number) => `£${(pence / 100).toFixed(2)}`;
+
+const PAYOUT_STATE: Record<EflPayout["status"], string> = {
+  PAID: "Paid",
+  TRANSFERRED: "On its way",
+  PENDING: "Due Thursday",
+  NOTHING_DUE: "Nothing due",
+  FAILED: "Retrying",
+};
+
+/** The last few Thursdays: what was earned, what came off, what was paid. */
+function PayoutHistory({ payouts }: { payouts: EflPayout[] }) {
+  return (
+    <div className="mt-4">
+      <h4 className="text-xs font-semibold text-zinc-900">Payouts</h4>
+      <ul className="mt-2 divide-y divide-zinc-100 rounded-lg border border-zinc-200">
+        {payouts.map((p) => {
+          const off = p.cashCommissionPence + p.refundsPence + p.carriedInPence;
+          const week = new Date(`${p.weekStart}`).toLocaleDateString("en-GB", {
+            timeZone: "Europe/London",
+            day: "numeric",
+            month: "short",
+          });
+          return (
+            <li key={p.id} className="flex items-start justify-between gap-3 px-3 py-2 text-xs">
+              <div className="min-w-0">
+                <p className="font-medium text-zinc-900">Week of {week}</p>
+                <p className="text-zinc-500">
+                  Card orders {pounds(p.cardPence)}
+                  {off > 0 && <> · taken off {pounds(off)}</>}
+                  {p.carriedOutPence > 0 && <> · {pounds(p.carriedOutPence)} carried to next week</>}
+                </p>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="font-semibold tabular-nums text-zinc-900">{pounds(p.amountPence)}</p>
+                <p className={p.status === "FAILED" ? "text-amber-700" : "text-zinc-500"}>{PAYOUT_STATE[p.status]}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }

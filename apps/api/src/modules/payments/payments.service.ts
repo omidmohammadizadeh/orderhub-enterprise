@@ -153,11 +153,14 @@ const PROCESSING_FEE_RATE = new Decimal("0.014");
 const PROCESSING_FEE_FLAT = new Decimal("0.20");
 
 /**
- * Refunding an Eat For Less platform charge: take the shop's share back from
- * its Express account and hand back our commission, so a refund costs each
- * side what it earned rather than leaving Eat For Less to fund it.
+ * Refunding an Eat For Less destination charge (the older flow, money sent to
+ * the shop as the order was paid): take the shop's share back from its
+ * Express account and hand back our commission. A weekly-payout charge has
+ * no transfer to reverse yet; the shop's share comes off its next payout.
  */
 const EFL_REFUND_REVERSAL = { reverse_transfer: true, refund_application_fee: true };
+const eflRefundExtras = (target: { efl: boolean; settle?: boolean } | null | undefined) =>
+  target?.efl && !target.settle ? EFL_REFUND_REVERSAL : {};
 const EFL_WEBHOOK_EVENTS = new Set([
   "payment_intent.succeeded",
   "payment_intent.payment_failed",
@@ -215,7 +218,9 @@ export class PaymentsService {
    * stripeAccount); everything else is a direct charge on a connected
    * account of the OrderHub platform.
    */
-  private async stripeTarget(payment: any): Promise<{ client: any; opts: any; efl: boolean } | null> {
+  private async stripeTarget(
+    payment: any,
+  ): Promise<{ client: any; opts: any; efl: boolean; settle?: boolean } | null> {
     // Some callers pass a slim payment ({ id, orderId, intent id }). Only
     // worth looking up when an Eat For Less charge could exist at all.
     let metadata = payment?.metadata;
@@ -227,7 +232,8 @@ export class PaymentsService {
       metadata = row?.metadata;
     }
     if ((metadata as any)?.platform === "efl") {
-      return this.eflStripe ? { client: this.eflStripe, opts: undefined, efl: true } : null;
+      const settle = (metadata as any)?.flow === "settle";
+      return this.eflStripe ? { client: this.eflStripe, opts: undefined, efl: true, settle } : null;
     }
     if (!this.stripe) return null;
     const stripeAccount = await this.stripeAccountForPayment(payment);
@@ -815,7 +821,7 @@ export class PaymentsService {
           amount: amountMinor,
           reason: "requested_by_customer",
           metadata: { orderId: payment.orderId, ...metadata },
-          ...(target?.efl ? EFL_REFUND_REVERSAL : {}),
+          ...eflRefundExtras(target),
         },
         target?.opts,
       );
@@ -1587,10 +1593,10 @@ export class PaymentsService {
 
   /**
    * An Eat For Less order, charged the Uber way: on Eat For Less's own Stripe
-   * (the customer's statement reads EAT FOR LESS), with the shop's share
-   * sent to its Express account by transfer_data and our commission plus
-   * any ad spend kept back as the application fee. Payouts to the shop run
-   * weekly from that account.
+   * (the customer's statement reads EAT FOR LESS). The whole amount stays in
+   * Eat For Less's balance; the shop's share, less commission, ad spend,
+   * cash-order commission and refunds, is sent to its Express account each
+   * Thursday by EflSettlementService.
    */
   private async createEflPaymentIntent(params: { tenantId: string; orderId: string }) {
     const order = await this.prisma.order.findFirst({
@@ -1608,8 +1614,7 @@ export class PaymentsService {
 
     const totalGbp = Number(order.total);
     const amountPence = Math.round(totalGbp * 100);
-    // Never more than the charge: a tiny order with a big ad balance owed
-    // must still leave the shop something to transfer.
+    // What we keep, recorded on the payment; never more than the charge.
     const applicationFeePence = Math.min(eflApplicationFeePence(order as any), amountPence);
 
     let intent: any;
@@ -1620,15 +1625,14 @@ export class PaymentsService {
         capture_method: "automatic",
         // Card only, as on the storefront: Apple Pay and Google Pay ride it.
         payment_method_types: ["card"],
-        ...(applicationFeePence > 0 && { application_fee_amount: applicationFeePence }),
-        transfer_data: { destination: listing.stripeAccountId },
-        // Ties the transfer to this charge in the shop's Express dashboard.
+        // The week's transfer to the shop carries the same group.
         transfer_group: `order_${order.id}`,
         metadata: {
           orderId: order.id,
           tenantId: params.tenantId,
           locationId: order.locationId,
           platform: "efl",
+          flow: "settle",
         },
       });
     } catch (err: any) {
@@ -1658,7 +1662,7 @@ export class PaymentsService {
         platformFee: platformFeeDecimal,
         processingFee: processingFeeDecimal,
         netAmount: totalDecimal.sub(platformFeeDecimal).toDecimalPlaces(2),
-        metadata: { platform: "efl", destination: listing.stripeAccountId },
+        metadata: { platform: "efl", flow: "settle", destination: listing.stripeAccountId },
       },
     });
 
@@ -2504,7 +2508,7 @@ export class PaymentsService {
           amount: Math.round(total.toNumber() * 100),
           reason: "requested_by_customer",
           metadata: { orderId, reason: reason ?? "" },
-          ...(target.efl ? EFL_REFUND_REVERSAL : {}),
+          ...eflRefundExtras(target),
         },
         target.opts,
       );
@@ -2865,6 +2869,11 @@ export class PaymentsService {
           status: isFull
             ? PaymentRecordStatus.REFUNDED
             : PaymentRecordStatus.SUCCEEDED,
+          // Stripe's running total; the weekly Eat For Less payout takes the
+          // shop's share of it back.
+          ...((payment.metadata as any)?.platform === "efl" && {
+            metadata: { ...(payment.metadata as any), refundedPence: refundAmountPence },
+          }),
         },
       }),
       this.prisma.order.update({

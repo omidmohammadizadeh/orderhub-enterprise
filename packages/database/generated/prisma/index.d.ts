@@ -650,8 +650,21 @@ export type EflAdShow = $Result.DefaultSelection<Prisma.$EflAdShowPayload>
  */
 export type EflCampaign = $Result.DefaultSelection<Prisma.$EflCampaignPayload>
 /**
+ * Model EflPayout
+ * One shop's money for one week (Mon–Sun, UK time), paid on the Thursday
+ * after. Customers' card payments sit in Eat For Less's balance until then;
+ * this row is what was worked out and what moved.
+ */
+export type EflPayout = $Result.DefaultSelection<Prisma.$EflPayoutPayload>
+/**
+ * Model EflPayoutLine
+ * One card order inside a payout, so a refund that comes later is taken
+ * back once, from the next payout.
+ */
+export type EflPayoutLine = $Result.DefaultSelection<Prisma.$EflPayoutLinePayload>
+/**
  * Model EflStatementSend
- * A weekly statement that has been emailed, so Monday's run sends it once.
+ * 
  */
 export type EflStatementSend = $Result.DefaultSelection<Prisma.$EflStatementSendPayload>
 /**
@@ -1581,6 +1594,17 @@ export const EflDeliveryMode: {
 export type EflDeliveryMode = (typeof EflDeliveryMode)[keyof typeof EflDeliveryMode]
 
 
+export const EflPayoutStatus: {
+  PENDING: 'PENDING',
+  TRANSFERRED: 'TRANSFERRED',
+  PAID: 'PAID',
+  NOTHING_DUE: 'NOTHING_DUE',
+  FAILED: 'FAILED'
+};
+
+export type EflPayoutStatus = (typeof EflPayoutStatus)[keyof typeof EflPayoutStatus]
+
+
 export const EflApplicationStatus: {
   NEW: 'NEW',
   WAITING_INFO: 'WAITING_INFO',
@@ -1820,6 +1844,10 @@ export const EflListingStatus: typeof $Enums.EflListingStatus
 export type EflDeliveryMode = $Enums.EflDeliveryMode
 
 export const EflDeliveryMode: typeof $Enums.EflDeliveryMode
+
+export type EflPayoutStatus = $Enums.EflPayoutStatus
+
+export const EflPayoutStatus: typeof $Enums.EflPayoutStatus
 
 export type EflApplicationStatus = $Enums.EflApplicationStatus
 
@@ -3208,6 +3236,26 @@ export class PrismaClient<
   get eflCampaign(): Prisma.EflCampaignDelegate<ExtArgs>;
 
   /**
+   * `prisma.eflPayout`: Exposes CRUD operations for the **EflPayout** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflPayouts
+    * const eflPayouts = await prisma.eflPayout.findMany()
+    * ```
+    */
+  get eflPayout(): Prisma.EflPayoutDelegate<ExtArgs>;
+
+  /**
+   * `prisma.eflPayoutLine`: Exposes CRUD operations for the **EflPayoutLine** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more EflPayoutLines
+    * const eflPayoutLines = await prisma.eflPayoutLine.findMany()
+    * ```
+    */
+  get eflPayoutLine(): Prisma.EflPayoutLineDelegate<ExtArgs>;
+
+  /**
    * `prisma.eflStatementSend`: Exposes CRUD operations for the **EflStatementSend** model.
     * Example usage:
     * ```ts
@@ -4331,6 +4379,8 @@ export namespace Prisma {
     EflAdTap: 'EflAdTap',
     EflAdShow: 'EflAdShow',
     EflCampaign: 'EflCampaign',
+    EflPayout: 'EflPayout',
+    EflPayoutLine: 'EflPayoutLine',
     EflStatementSend: 'EflStatementSend',
     EflApplication: 'EflApplication',
     EflPushDevice: 'EflPushDevice',
@@ -4402,7 +4452,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderTicketSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflAdCampaign" | "eflAdTap" | "eflAdShow" | "eflCampaign" | "eflStatementSend" | "eflApplication" | "eflPushDevice" | "eflSavedAddress" | "eflCallLine" | "eflFavourite" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun" | "prospect"
+      modelProps: "tenant" | "user" | "userLocation" | "userBrand" | "invitation" | "lead" | "customerAccount" | "passwordResetToken" | "refreshToken" | "oAuthAccount" | "apiKey" | "auditLog" | "brand" | "location" | "brandPlatformConnection" | "integration" | "menu" | "menuChannelAssignment" | "brandChannelSource" | "menuCategory" | "menuItem" | "channelPause" | "menuItemChannelAvailability" | "menuItemOnCategory" | "modifierGroup" | "modifierOption" | "modifierOptionNestedGroup" | "modifierGroupOnItem" | "menuItemVariant" | "mealDeal" | "upsellGroup" | "menuVersion" | "customer" | "directOrderingConfig" | "customerAddress" | "loyaltyAccount" | "promoCode" | "promoCodeRedemption" | "marketingCampaign" | "campaignRedemption" | "deliveryZone" | "locationPaymentConfig" | "order" | "orderNumberSequence" | "orderTicketSequence" | "orderItem" | "orderStatusHistory" | "webhookEvent" | "activityLog" | "kdsScreen" | "signageDisplay" | "table" | "kioskDevice" | "tableReservation" | "salonService" | "salonStaff" | "salonTimeOff" | "salonAppointment" | "salonQueueEntry" | "kdsTicket" | "printer" | "printJob" | "printerStation" | "printAgent" | "alertConfig" | "alertAck" | "agentPairCode" | "menuItemStation" | "modifierGroupStation" | "menuCategoryStation" | "printTemplate" | "driver" | "driverCashUp" | "driverPresence" | "driverAssignment" | "deliveryTracking" | "chatMessage" | "whatsAppConversation" | "stripeConnectAccount" | "mollieConnection" | "payment" | "paymentMethod" | "refund" | "productVariant" | "productStockLevel" | "productStockMovement" | "refundLine" | "ledgerEntry" | "payout" | "supplier" | "ingredient" | "stockLevel" | "recipe" | "recipeIngredient" | "stockMovement" | "purchaseOrder" | "purchaseOrderLine" | "deviceToken" | "notificationLog" | "tenantBranding" | "customDomain" | "subscriptionPlan" | "tenantSubscription" | "merchantSubscription" | "invoice" | "invoiceLineItem" | "usageRecord" | "stripeWebhookEvent" | "mfaConfig" | "ipAllowlist" | "deviceSession" | "dailySalesSnapshot" | "itemPerformanceSnapshot" | "providerDefinition" | "webhookRoute" | "mobileSession" | "webPushSubscription" | "systemSecret" | "outboxEvent" | "eflListing" | "eflAdCampaign" | "eflAdTap" | "eflAdShow" | "eflCampaign" | "eflPayout" | "eflPayoutLine" | "eflStatementSend" | "eflApplication" | "eflPushDevice" | "eflSavedAddress" | "eflCallLine" | "eflFavourite" | "eflConfig" | "eflPhoneVerification" | "videoStudioAccount" | "videoCreditTxn" | "videoGeneration" | "smsMessage" | "marketingContact" | "marketingSmsCampaign" | "marketingSmsRecipient" | "wallet" | "walletTransaction" | "stuartConfig" | "uberDirectConfig" | "jetGoConfig" | "yangoConfig" | "review" | "voiceCall" | "groupOrder" | "groupOrderItem" | "customerPushSubscription" | "customerPushOrder" | "pushAutomation" | "pushLocationReview" | "pushReviewRequest" | "pushCampaign" | "contractTemplate" | "contract" | "contractEvent" | "loyaltyCard" | "loyaltyStamp" | "loyaltyReward" | "loyaltyMember" | "loyaltyPassDevice" | "referralProgram" | "referralCode" | "referral" | "keetaAuthorization" | "emailContact" | "emailCampaign" | "emailAutomation" | "emailBirthdaySend" | "emailCampaignRecipient" | "buildGuide" | "buildStepTemplate" | "buildGuideTraining" | "assemblyChart" | "menuAutoPublish" | "autoDispatchRule" | "autoDispatchRun" | "prospect"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -13086,6 +13136,146 @@ export namespace Prisma {
           }
         }
       }
+      EflPayout: {
+        payload: Prisma.$EflPayoutPayload<ExtArgs>
+        fields: Prisma.EflPayoutFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflPayoutFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflPayoutFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload>
+          }
+          findFirst: {
+            args: Prisma.EflPayoutFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflPayoutFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload>
+          }
+          findMany: {
+            args: Prisma.EflPayoutFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload>[]
+          }
+          create: {
+            args: Prisma.EflPayoutCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload>
+          }
+          createMany: {
+            args: Prisma.EflPayoutCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflPayoutCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload>[]
+          }
+          delete: {
+            args: Prisma.EflPayoutDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload>
+          }
+          update: {
+            args: Prisma.EflPayoutUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload>
+          }
+          deleteMany: {
+            args: Prisma.EflPayoutDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflPayoutUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflPayoutUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutPayload>
+          }
+          aggregate: {
+            args: Prisma.EflPayoutAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflPayout>
+          }
+          groupBy: {
+            args: Prisma.EflPayoutGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflPayoutGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflPayoutCountArgs<ExtArgs>
+            result: $Utils.Optional<EflPayoutCountAggregateOutputType> | number
+          }
+        }
+      }
+      EflPayoutLine: {
+        payload: Prisma.$EflPayoutLinePayload<ExtArgs>
+        fields: Prisma.EflPayoutLineFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.EflPayoutLineFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EflPayoutLineFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload>
+          }
+          findFirst: {
+            args: Prisma.EflPayoutLineFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EflPayoutLineFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload>
+          }
+          findMany: {
+            args: Prisma.EflPayoutLineFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload>[]
+          }
+          create: {
+            args: Prisma.EflPayoutLineCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload>
+          }
+          createMany: {
+            args: Prisma.EflPayoutLineCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.EflPayoutLineCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload>[]
+          }
+          delete: {
+            args: Prisma.EflPayoutLineDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload>
+          }
+          update: {
+            args: Prisma.EflPayoutLineUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload>
+          }
+          deleteMany: {
+            args: Prisma.EflPayoutLineDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EflPayoutLineUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.EflPayoutLineUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$EflPayoutLinePayload>
+          }
+          aggregate: {
+            args: Prisma.EflPayoutLineAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateEflPayoutLine>
+          }
+          groupBy: {
+            args: Prisma.EflPayoutLineGroupByArgs<ExtArgs>
+            result: $Utils.Optional<EflPayoutLineGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.EflPayoutLineCountArgs<ExtArgs>
+            result: $Utils.Optional<EflPayoutLineCountAggregateOutputType> | number
+          }
+        }
+      }
       EflStatementSend: {
         payload: Prisma.$EflStatementSendPayload<ExtArgs>
         fields: Prisma.EflStatementSendFieldRefs
@@ -19216,6 +19406,68 @@ export namespace Prisma {
    */
   export type InvoiceCountOutputTypeCountLineItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: InvoiceLineItemWhereInput
+  }
+
+
+  /**
+   * Count Type EflListingCountOutputType
+   */
+
+  export type EflListingCountOutputType = {
+    payouts: number
+  }
+
+  export type EflListingCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    payouts?: boolean | EflListingCountOutputTypeCountPayoutsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * EflListingCountOutputType without action
+   */
+  export type EflListingCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflListingCountOutputType
+     */
+    select?: EflListingCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * EflListingCountOutputType without action
+   */
+  export type EflListingCountOutputTypeCountPayoutsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflPayoutWhereInput
+  }
+
+
+  /**
+   * Count Type EflPayoutCountOutputType
+   */
+
+  export type EflPayoutCountOutputType = {
+    lines: number
+  }
+
+  export type EflPayoutCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    lines?: boolean | EflPayoutCountOutputTypeCountLinesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * EflPayoutCountOutputType without action
+   */
+  export type EflPayoutCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutCountOutputType
+     */
+    select?: EflPayoutCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * EflPayoutCountOutputType without action
+   */
+  export type EflPayoutCountOutputTypeCountLinesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflPayoutLineWhereInput
   }
 
 
@@ -150162,6 +150414,8 @@ export namespace Prisma {
     updatedAt?: boolean
     location?: boolean | LocationDefaultArgs<ExtArgs>
     adCampaign?: boolean | EflListing$adCampaignArgs<ExtArgs>
+    payouts?: boolean | EflListing$payoutsArgs<ExtArgs>
+    _count?: boolean | EflListingCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["eflListing"]>
 
   export type EflListingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -150224,6 +150478,8 @@ export namespace Prisma {
   export type EflListingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     location?: boolean | LocationDefaultArgs<ExtArgs>
     adCampaign?: boolean | EflListing$adCampaignArgs<ExtArgs>
+    payouts?: boolean | EflListing$payoutsArgs<ExtArgs>
+    _count?: boolean | EflListingCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type EflListingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     location?: boolean | LocationDefaultArgs<ExtArgs>
@@ -150234,6 +150490,7 @@ export namespace Prisma {
     objects: {
       location: Prisma.$LocationPayload<ExtArgs>
       adCampaign: Prisma.$EflAdCampaignPayload<ExtArgs> | null
+      payouts: Prisma.$EflPayoutPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -150671,6 +150928,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     location<T extends LocationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, LocationDefaultArgs<ExtArgs>>): Prisma__LocationClient<$Result.GetResult<Prisma.$LocationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     adCampaign<T extends EflListing$adCampaignArgs<ExtArgs> = {}>(args?: Subset<T, EflListing$adCampaignArgs<ExtArgs>>): Prisma__EflAdCampaignClient<$Result.GetResult<Prisma.$EflAdCampaignPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    payouts<T extends EflListing$payoutsArgs<ExtArgs> = {}>(args?: Subset<T, EflListing$payoutsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -151055,6 +151313,26 @@ export namespace Prisma {
      */
     include?: EflAdCampaignInclude<ExtArgs> | null
     where?: EflAdCampaignWhereInput
+  }
+
+  /**
+   * EflListing.payouts
+   */
+  export type EflListing$payoutsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    where?: EflPayoutWhereInput
+    orderBy?: EflPayoutOrderByWithRelationInput | EflPayoutOrderByWithRelationInput[]
+    cursor?: EflPayoutWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EflPayoutScalarFieldEnum | EflPayoutScalarFieldEnum[]
   }
 
   /**
@@ -154957,6 +155235,2166 @@ export namespace Prisma {
      * Select specific fields to fetch from the EflCampaign
      */
     select?: EflCampaignSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflPayout
+   */
+
+  export type AggregateEflPayout = {
+    _count: EflPayoutCountAggregateOutputType | null
+    _avg: EflPayoutAvgAggregateOutputType | null
+    _sum: EflPayoutSumAggregateOutputType | null
+    _min: EflPayoutMinAggregateOutputType | null
+    _max: EflPayoutMaxAggregateOutputType | null
+  }
+
+  export type EflPayoutAvgAggregateOutputType = {
+    cardPence: number | null
+    cashCommissionPence: number | null
+    refundsPence: number | null
+    carriedInPence: number | null
+    amountPence: number | null
+    carriedOutPence: number | null
+    attempts: number | null
+  }
+
+  export type EflPayoutSumAggregateOutputType = {
+    cardPence: number | null
+    cashCommissionPence: number | null
+    refundsPence: number | null
+    carriedInPence: number | null
+    amountPence: number | null
+    carriedOutPence: number | null
+    attempts: number | null
+  }
+
+  export type EflPayoutMinAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    weekStart: Date | null
+    status: $Enums.EflPayoutStatus | null
+    cardPence: number | null
+    cashCommissionPence: number | null
+    refundsPence: number | null
+    carriedInPence: number | null
+    amountPence: number | null
+    carriedOutPence: number | null
+    stripeTransferId: string | null
+    stripePayoutId: string | null
+    error: string | null
+    attempts: number | null
+    paidAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflPayoutMaxAggregateOutputType = {
+    id: string | null
+    listingId: string | null
+    weekStart: Date | null
+    status: $Enums.EflPayoutStatus | null
+    cardPence: number | null
+    cashCommissionPence: number | null
+    refundsPence: number | null
+    carriedInPence: number | null
+    amountPence: number | null
+    carriedOutPence: number | null
+    stripeTransferId: string | null
+    stripePayoutId: string | null
+    error: string | null
+    attempts: number | null
+    paidAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type EflPayoutCountAggregateOutputType = {
+    id: number
+    listingId: number
+    weekStart: number
+    status: number
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId: number
+    stripePayoutId: number
+    error: number
+    attempts: number
+    paidAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type EflPayoutAvgAggregateInputType = {
+    cardPence?: true
+    cashCommissionPence?: true
+    refundsPence?: true
+    carriedInPence?: true
+    amountPence?: true
+    carriedOutPence?: true
+    attempts?: true
+  }
+
+  export type EflPayoutSumAggregateInputType = {
+    cardPence?: true
+    cashCommissionPence?: true
+    refundsPence?: true
+    carriedInPence?: true
+    amountPence?: true
+    carriedOutPence?: true
+    attempts?: true
+  }
+
+  export type EflPayoutMinAggregateInputType = {
+    id?: true
+    listingId?: true
+    weekStart?: true
+    status?: true
+    cardPence?: true
+    cashCommissionPence?: true
+    refundsPence?: true
+    carriedInPence?: true
+    amountPence?: true
+    carriedOutPence?: true
+    stripeTransferId?: true
+    stripePayoutId?: true
+    error?: true
+    attempts?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflPayoutMaxAggregateInputType = {
+    id?: true
+    listingId?: true
+    weekStart?: true
+    status?: true
+    cardPence?: true
+    cashCommissionPence?: true
+    refundsPence?: true
+    carriedInPence?: true
+    amountPence?: true
+    carriedOutPence?: true
+    stripeTransferId?: true
+    stripePayoutId?: true
+    error?: true
+    attempts?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type EflPayoutCountAggregateInputType = {
+    id?: true
+    listingId?: true
+    weekStart?: true
+    status?: true
+    cardPence?: true
+    cashCommissionPence?: true
+    refundsPence?: true
+    carriedInPence?: true
+    amountPence?: true
+    carriedOutPence?: true
+    stripeTransferId?: true
+    stripePayoutId?: true
+    error?: true
+    attempts?: true
+    paidAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type EflPayoutAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflPayout to aggregate.
+     */
+    where?: EflPayoutWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPayouts to fetch.
+     */
+    orderBy?: EflPayoutOrderByWithRelationInput | EflPayoutOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflPayoutWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPayouts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPayouts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflPayouts
+    **/
+    _count?: true | EflPayoutCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflPayoutAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflPayoutSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflPayoutMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflPayoutMaxAggregateInputType
+  }
+
+  export type GetEflPayoutAggregateType<T extends EflPayoutAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflPayout]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflPayout[P]>
+      : GetScalarType<T[P], AggregateEflPayout[P]>
+  }
+
+
+
+
+  export type EflPayoutGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflPayoutWhereInput
+    orderBy?: EflPayoutOrderByWithAggregationInput | EflPayoutOrderByWithAggregationInput[]
+    by: EflPayoutScalarFieldEnum[] | EflPayoutScalarFieldEnum
+    having?: EflPayoutScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflPayoutCountAggregateInputType | true
+    _avg?: EflPayoutAvgAggregateInputType
+    _sum?: EflPayoutSumAggregateInputType
+    _min?: EflPayoutMinAggregateInputType
+    _max?: EflPayoutMaxAggregateInputType
+  }
+
+  export type EflPayoutGroupByOutputType = {
+    id: string
+    listingId: string
+    weekStart: Date
+    status: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId: string | null
+    stripePayoutId: string | null
+    error: string | null
+    attempts: number
+    paidAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: EflPayoutCountAggregateOutputType | null
+    _avg: EflPayoutAvgAggregateOutputType | null
+    _sum: EflPayoutSumAggregateOutputType | null
+    _min: EflPayoutMinAggregateOutputType | null
+    _max: EflPayoutMaxAggregateOutputType | null
+  }
+
+  type GetEflPayoutGroupByPayload<T extends EflPayoutGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflPayoutGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflPayoutGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflPayoutGroupByOutputType[P]>
+            : GetScalarType<T[P], EflPayoutGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflPayoutSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    weekStart?: boolean
+    status?: boolean
+    cardPence?: boolean
+    cashCommissionPence?: boolean
+    refundsPence?: boolean
+    carriedInPence?: boolean
+    amountPence?: boolean
+    carriedOutPence?: boolean
+    stripeTransferId?: boolean
+    stripePayoutId?: boolean
+    error?: boolean
+    attempts?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    listing?: boolean | EflListingDefaultArgs<ExtArgs>
+    lines?: boolean | EflPayout$linesArgs<ExtArgs>
+    _count?: boolean | EflPayoutCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eflPayout"]>
+
+  export type EflPayoutSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    weekStart?: boolean
+    status?: boolean
+    cardPence?: boolean
+    cashCommissionPence?: boolean
+    refundsPence?: boolean
+    carriedInPence?: boolean
+    amountPence?: boolean
+    carriedOutPence?: boolean
+    stripeTransferId?: boolean
+    stripePayoutId?: boolean
+    error?: boolean
+    attempts?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    listing?: boolean | EflListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eflPayout"]>
+
+  export type EflPayoutSelectScalar = {
+    id?: boolean
+    listingId?: boolean
+    weekStart?: boolean
+    status?: boolean
+    cardPence?: boolean
+    cashCommissionPence?: boolean
+    refundsPence?: boolean
+    carriedInPence?: boolean
+    amountPence?: boolean
+    carriedOutPence?: boolean
+    stripeTransferId?: boolean
+    stripePayoutId?: boolean
+    error?: boolean
+    attempts?: boolean
+    paidAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type EflPayoutInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | EflListingDefaultArgs<ExtArgs>
+    lines?: boolean | EflPayout$linesArgs<ExtArgs>
+    _count?: boolean | EflPayoutCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type EflPayoutIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | EflListingDefaultArgs<ExtArgs>
+  }
+
+  export type $EflPayoutPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflPayout"
+    objects: {
+      listing: Prisma.$EflListingPayload<ExtArgs>
+      lines: Prisma.$EflPayoutLinePayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      listingId: string
+      /**
+       * Monday 00:00 UK time.
+       */
+      weekStart: Date
+      status: $Enums.EflPayoutStatus
+      /**
+       * The shop's share of the week's card orders: what customers paid less
+       * our commission and ad spend, less anything already refunded.
+       */
+      cardPence: number
+      /**
+       * Our commission on the week's cash orders, which the shop kept.
+       */
+      cashCommissionPence: number
+      /**
+       * The shop's share of orders paid out in earlier weeks and refunded since.
+       */
+      refundsPence: number
+      /**
+       * Owed from last week's payout.
+       */
+      carriedInPence: number
+      /**
+       * What was sent: card − cash commission − refunds − carried in, if positive.
+       */
+      amountPence: number
+      /**
+       * Left owing when that came out negative; next week's carriedInPence.
+       */
+      carriedOutPence: number
+      stripeTransferId: string | null
+      stripePayoutId: string | null
+      error: string | null
+      attempts: number
+      paidAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["eflPayout"]>
+    composites: {}
+  }
+
+  type EflPayoutGetPayload<S extends boolean | null | undefined | EflPayoutDefaultArgs> = $Result.GetResult<Prisma.$EflPayoutPayload, S>
+
+  type EflPayoutCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflPayoutFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflPayoutCountAggregateInputType | true
+    }
+
+  export interface EflPayoutDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflPayout'], meta: { name: 'EflPayout' } }
+    /**
+     * Find zero or one EflPayout that matches the filter.
+     * @param {EflPayoutFindUniqueArgs} args - Arguments to find a EflPayout
+     * @example
+     * // Get one EflPayout
+     * const eflPayout = await prisma.eflPayout.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflPayoutFindUniqueArgs>(args: SelectSubset<T, EflPayoutFindUniqueArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflPayout that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflPayoutFindUniqueOrThrowArgs} args - Arguments to find a EflPayout
+     * @example
+     * // Get one EflPayout
+     * const eflPayout = await prisma.eflPayout.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflPayoutFindUniqueOrThrowArgs>(args: SelectSubset<T, EflPayoutFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflPayout that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutFindFirstArgs} args - Arguments to find a EflPayout
+     * @example
+     * // Get one EflPayout
+     * const eflPayout = await prisma.eflPayout.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflPayoutFindFirstArgs>(args?: SelectSubset<T, EflPayoutFindFirstArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflPayout that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutFindFirstOrThrowArgs} args - Arguments to find a EflPayout
+     * @example
+     * // Get one EflPayout
+     * const eflPayout = await prisma.eflPayout.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflPayoutFindFirstOrThrowArgs>(args?: SelectSubset<T, EflPayoutFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflPayouts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflPayouts
+     * const eflPayouts = await prisma.eflPayout.findMany()
+     * 
+     * // Get first 10 EflPayouts
+     * const eflPayouts = await prisma.eflPayout.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflPayoutWithIdOnly = await prisma.eflPayout.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflPayoutFindManyArgs>(args?: SelectSubset<T, EflPayoutFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflPayout.
+     * @param {EflPayoutCreateArgs} args - Arguments to create a EflPayout.
+     * @example
+     * // Create one EflPayout
+     * const EflPayout = await prisma.eflPayout.create({
+     *   data: {
+     *     // ... data to create a EflPayout
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflPayoutCreateArgs>(args: SelectSubset<T, EflPayoutCreateArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflPayouts.
+     * @param {EflPayoutCreateManyArgs} args - Arguments to create many EflPayouts.
+     * @example
+     * // Create many EflPayouts
+     * const eflPayout = await prisma.eflPayout.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflPayoutCreateManyArgs>(args?: SelectSubset<T, EflPayoutCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflPayouts and returns the data saved in the database.
+     * @param {EflPayoutCreateManyAndReturnArgs} args - Arguments to create many EflPayouts.
+     * @example
+     * // Create many EflPayouts
+     * const eflPayout = await prisma.eflPayout.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflPayouts and only return the `id`
+     * const eflPayoutWithIdOnly = await prisma.eflPayout.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflPayoutCreateManyAndReturnArgs>(args?: SelectSubset<T, EflPayoutCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflPayout.
+     * @param {EflPayoutDeleteArgs} args - Arguments to delete one EflPayout.
+     * @example
+     * // Delete one EflPayout
+     * const EflPayout = await prisma.eflPayout.delete({
+     *   where: {
+     *     // ... filter to delete one EflPayout
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflPayoutDeleteArgs>(args: SelectSubset<T, EflPayoutDeleteArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflPayout.
+     * @param {EflPayoutUpdateArgs} args - Arguments to update one EflPayout.
+     * @example
+     * // Update one EflPayout
+     * const eflPayout = await prisma.eflPayout.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflPayoutUpdateArgs>(args: SelectSubset<T, EflPayoutUpdateArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflPayouts.
+     * @param {EflPayoutDeleteManyArgs} args - Arguments to filter EflPayouts to delete.
+     * @example
+     * // Delete a few EflPayouts
+     * const { count } = await prisma.eflPayout.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflPayoutDeleteManyArgs>(args?: SelectSubset<T, EflPayoutDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflPayouts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflPayouts
+     * const eflPayout = await prisma.eflPayout.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflPayoutUpdateManyArgs>(args: SelectSubset<T, EflPayoutUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflPayout.
+     * @param {EflPayoutUpsertArgs} args - Arguments to update or create a EflPayout.
+     * @example
+     * // Update or create a EflPayout
+     * const eflPayout = await prisma.eflPayout.upsert({
+     *   create: {
+     *     // ... data to create a EflPayout
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflPayout we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflPayoutUpsertArgs>(args: SelectSubset<T, EflPayoutUpsertArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflPayouts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutCountArgs} args - Arguments to filter EflPayouts to count.
+     * @example
+     * // Count the number of EflPayouts
+     * const count = await prisma.eflPayout.count({
+     *   where: {
+     *     // ... the filter for the EflPayouts we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflPayoutCountArgs>(
+      args?: Subset<T, EflPayoutCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflPayoutCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflPayout.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflPayoutAggregateArgs>(args: Subset<T, EflPayoutAggregateArgs>): Prisma.PrismaPromise<GetEflPayoutAggregateType<T>>
+
+    /**
+     * Group by EflPayout.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflPayoutGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflPayoutGroupByArgs['orderBy'] }
+        : { orderBy?: EflPayoutGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflPayoutGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflPayoutGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflPayout model
+   */
+  readonly fields: EflPayoutFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflPayout.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflPayoutClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    listing<T extends EflListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EflListingDefaultArgs<ExtArgs>>): Prisma__EflListingClient<$Result.GetResult<Prisma.$EflListingPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    lines<T extends EflPayout$linesArgs<ExtArgs> = {}>(args?: Subset<T, EflPayout$linesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflPayout model
+   */ 
+  interface EflPayoutFieldRefs {
+    readonly id: FieldRef<"EflPayout", 'String'>
+    readonly listingId: FieldRef<"EflPayout", 'String'>
+    readonly weekStart: FieldRef<"EflPayout", 'DateTime'>
+    readonly status: FieldRef<"EflPayout", 'EflPayoutStatus'>
+    readonly cardPence: FieldRef<"EflPayout", 'Int'>
+    readonly cashCommissionPence: FieldRef<"EflPayout", 'Int'>
+    readonly refundsPence: FieldRef<"EflPayout", 'Int'>
+    readonly carriedInPence: FieldRef<"EflPayout", 'Int'>
+    readonly amountPence: FieldRef<"EflPayout", 'Int'>
+    readonly carriedOutPence: FieldRef<"EflPayout", 'Int'>
+    readonly stripeTransferId: FieldRef<"EflPayout", 'String'>
+    readonly stripePayoutId: FieldRef<"EflPayout", 'String'>
+    readonly error: FieldRef<"EflPayout", 'String'>
+    readonly attempts: FieldRef<"EflPayout", 'Int'>
+    readonly paidAt: FieldRef<"EflPayout", 'DateTime'>
+    readonly createdAt: FieldRef<"EflPayout", 'DateTime'>
+    readonly updatedAt: FieldRef<"EflPayout", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflPayout findUnique
+   */
+  export type EflPayoutFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayout to fetch.
+     */
+    where: EflPayoutWhereUniqueInput
+  }
+
+  /**
+   * EflPayout findUniqueOrThrow
+   */
+  export type EflPayoutFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayout to fetch.
+     */
+    where: EflPayoutWhereUniqueInput
+  }
+
+  /**
+   * EflPayout findFirst
+   */
+  export type EflPayoutFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayout to fetch.
+     */
+    where?: EflPayoutWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPayouts to fetch.
+     */
+    orderBy?: EflPayoutOrderByWithRelationInput | EflPayoutOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflPayouts.
+     */
+    cursor?: EflPayoutWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPayouts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPayouts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflPayouts.
+     */
+    distinct?: EflPayoutScalarFieldEnum | EflPayoutScalarFieldEnum[]
+  }
+
+  /**
+   * EflPayout findFirstOrThrow
+   */
+  export type EflPayoutFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayout to fetch.
+     */
+    where?: EflPayoutWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPayouts to fetch.
+     */
+    orderBy?: EflPayoutOrderByWithRelationInput | EflPayoutOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflPayouts.
+     */
+    cursor?: EflPayoutWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPayouts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPayouts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflPayouts.
+     */
+    distinct?: EflPayoutScalarFieldEnum | EflPayoutScalarFieldEnum[]
+  }
+
+  /**
+   * EflPayout findMany
+   */
+  export type EflPayoutFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayouts to fetch.
+     */
+    where?: EflPayoutWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPayouts to fetch.
+     */
+    orderBy?: EflPayoutOrderByWithRelationInput | EflPayoutOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflPayouts.
+     */
+    cursor?: EflPayoutWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPayouts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPayouts.
+     */
+    skip?: number
+    distinct?: EflPayoutScalarFieldEnum | EflPayoutScalarFieldEnum[]
+  }
+
+  /**
+   * EflPayout create
+   */
+  export type EflPayoutCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EflPayout.
+     */
+    data: XOR<EflPayoutCreateInput, EflPayoutUncheckedCreateInput>
+  }
+
+  /**
+   * EflPayout createMany
+   */
+  export type EflPayoutCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflPayouts.
+     */
+    data: EflPayoutCreateManyInput | EflPayoutCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflPayout createManyAndReturn
+   */
+  export type EflPayoutCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflPayouts.
+     */
+    data: EflPayoutCreateManyInput | EflPayoutCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EflPayout update
+   */
+  export type EflPayoutUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EflPayout.
+     */
+    data: XOR<EflPayoutUpdateInput, EflPayoutUncheckedUpdateInput>
+    /**
+     * Choose, which EflPayout to update.
+     */
+    where: EflPayoutWhereUniqueInput
+  }
+
+  /**
+   * EflPayout updateMany
+   */
+  export type EflPayoutUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflPayouts.
+     */
+    data: XOR<EflPayoutUpdateManyMutationInput, EflPayoutUncheckedUpdateManyInput>
+    /**
+     * Filter which EflPayouts to update
+     */
+    where?: EflPayoutWhereInput
+  }
+
+  /**
+   * EflPayout upsert
+   */
+  export type EflPayoutUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EflPayout to update in case it exists.
+     */
+    where: EflPayoutWhereUniqueInput
+    /**
+     * In case the EflPayout found by the `where` argument doesn't exist, create a new EflPayout with this data.
+     */
+    create: XOR<EflPayoutCreateInput, EflPayoutUncheckedCreateInput>
+    /**
+     * In case the EflPayout was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflPayoutUpdateInput, EflPayoutUncheckedUpdateInput>
+  }
+
+  /**
+   * EflPayout delete
+   */
+  export type EflPayoutDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+    /**
+     * Filter which EflPayout to delete.
+     */
+    where: EflPayoutWhereUniqueInput
+  }
+
+  /**
+   * EflPayout deleteMany
+   */
+  export type EflPayoutDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflPayouts to delete
+     */
+    where?: EflPayoutWhereInput
+  }
+
+  /**
+   * EflPayout.lines
+   */
+  export type EflPayout$linesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    where?: EflPayoutLineWhereInput
+    orderBy?: EflPayoutLineOrderByWithRelationInput | EflPayoutLineOrderByWithRelationInput[]
+    cursor?: EflPayoutLineWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: EflPayoutLineScalarFieldEnum | EflPayoutLineScalarFieldEnum[]
+  }
+
+  /**
+   * EflPayout without action
+   */
+  export type EflPayoutDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayout
+     */
+    select?: EflPayoutSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model EflPayoutLine
+   */
+
+  export type AggregateEflPayoutLine = {
+    _count: EflPayoutLineCountAggregateOutputType | null
+    _avg: EflPayoutLineAvgAggregateOutputType | null
+    _sum: EflPayoutLineSumAggregateOutputType | null
+    _min: EflPayoutLineMinAggregateOutputType | null
+    _max: EflPayoutLineMaxAggregateOutputType | null
+  }
+
+  export type EflPayoutLineAvgAggregateOutputType = {
+    toShopPence: number | null
+    clawedBackPence: number | null
+  }
+
+  export type EflPayoutLineSumAggregateOutputType = {
+    toShopPence: number | null
+    clawedBackPence: number | null
+  }
+
+  export type EflPayoutLineMinAggregateOutputType = {
+    id: string | null
+    payoutId: string | null
+    orderId: string | null
+    toShopPence: number | null
+    clawedBackPence: number | null
+  }
+
+  export type EflPayoutLineMaxAggregateOutputType = {
+    id: string | null
+    payoutId: string | null
+    orderId: string | null
+    toShopPence: number | null
+    clawedBackPence: number | null
+  }
+
+  export type EflPayoutLineCountAggregateOutputType = {
+    id: number
+    payoutId: number
+    orderId: number
+    toShopPence: number
+    clawedBackPence: number
+    _all: number
+  }
+
+
+  export type EflPayoutLineAvgAggregateInputType = {
+    toShopPence?: true
+    clawedBackPence?: true
+  }
+
+  export type EflPayoutLineSumAggregateInputType = {
+    toShopPence?: true
+    clawedBackPence?: true
+  }
+
+  export type EflPayoutLineMinAggregateInputType = {
+    id?: true
+    payoutId?: true
+    orderId?: true
+    toShopPence?: true
+    clawedBackPence?: true
+  }
+
+  export type EflPayoutLineMaxAggregateInputType = {
+    id?: true
+    payoutId?: true
+    orderId?: true
+    toShopPence?: true
+    clawedBackPence?: true
+  }
+
+  export type EflPayoutLineCountAggregateInputType = {
+    id?: true
+    payoutId?: true
+    orderId?: true
+    toShopPence?: true
+    clawedBackPence?: true
+    _all?: true
+  }
+
+  export type EflPayoutLineAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflPayoutLine to aggregate.
+     */
+    where?: EflPayoutLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPayoutLines to fetch.
+     */
+    orderBy?: EflPayoutLineOrderByWithRelationInput | EflPayoutLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: EflPayoutLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPayoutLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPayoutLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EflPayoutLines
+    **/
+    _count?: true | EflPayoutLineCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: EflPayoutLineAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: EflPayoutLineSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EflPayoutLineMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EflPayoutLineMaxAggregateInputType
+  }
+
+  export type GetEflPayoutLineAggregateType<T extends EflPayoutLineAggregateArgs> = {
+        [P in keyof T & keyof AggregateEflPayoutLine]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEflPayoutLine[P]>
+      : GetScalarType<T[P], AggregateEflPayoutLine[P]>
+  }
+
+
+
+
+  export type EflPayoutLineGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: EflPayoutLineWhereInput
+    orderBy?: EflPayoutLineOrderByWithAggregationInput | EflPayoutLineOrderByWithAggregationInput[]
+    by: EflPayoutLineScalarFieldEnum[] | EflPayoutLineScalarFieldEnum
+    having?: EflPayoutLineScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EflPayoutLineCountAggregateInputType | true
+    _avg?: EflPayoutLineAvgAggregateInputType
+    _sum?: EflPayoutLineSumAggregateInputType
+    _min?: EflPayoutLineMinAggregateInputType
+    _max?: EflPayoutLineMaxAggregateInputType
+  }
+
+  export type EflPayoutLineGroupByOutputType = {
+    id: string
+    payoutId: string
+    orderId: string
+    toShopPence: number
+    clawedBackPence: number
+    _count: EflPayoutLineCountAggregateOutputType | null
+    _avg: EflPayoutLineAvgAggregateOutputType | null
+    _sum: EflPayoutLineSumAggregateOutputType | null
+    _min: EflPayoutLineMinAggregateOutputType | null
+    _max: EflPayoutLineMaxAggregateOutputType | null
+  }
+
+  type GetEflPayoutLineGroupByPayload<T extends EflPayoutLineGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<EflPayoutLineGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EflPayoutLineGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EflPayoutLineGroupByOutputType[P]>
+            : GetScalarType<T[P], EflPayoutLineGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EflPayoutLineSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    payoutId?: boolean
+    orderId?: boolean
+    toShopPence?: boolean
+    clawedBackPence?: boolean
+    payout?: boolean | EflPayoutDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eflPayoutLine"]>
+
+  export type EflPayoutLineSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    payoutId?: boolean
+    orderId?: boolean
+    toShopPence?: boolean
+    clawedBackPence?: boolean
+    payout?: boolean | EflPayoutDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["eflPayoutLine"]>
+
+  export type EflPayoutLineSelectScalar = {
+    id?: boolean
+    payoutId?: boolean
+    orderId?: boolean
+    toShopPence?: boolean
+    clawedBackPence?: boolean
+  }
+
+  export type EflPayoutLineInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    payout?: boolean | EflPayoutDefaultArgs<ExtArgs>
+  }
+  export type EflPayoutLineIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    payout?: boolean | EflPayoutDefaultArgs<ExtArgs>
+  }
+
+  export type $EflPayoutLinePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "EflPayoutLine"
+    objects: {
+      payout: Prisma.$EflPayoutPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      payoutId: string
+      orderId: string
+      /**
+       * The shop's share of this order when it was paid out.
+       */
+      toShopPence: number
+      /**
+       * Taken back since, for refunds.
+       */
+      clawedBackPence: number
+    }, ExtArgs["result"]["eflPayoutLine"]>
+    composites: {}
+  }
+
+  type EflPayoutLineGetPayload<S extends boolean | null | undefined | EflPayoutLineDefaultArgs> = $Result.GetResult<Prisma.$EflPayoutLinePayload, S>
+
+  type EflPayoutLineCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<EflPayoutLineFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: EflPayoutLineCountAggregateInputType | true
+    }
+
+  export interface EflPayoutLineDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['EflPayoutLine'], meta: { name: 'EflPayoutLine' } }
+    /**
+     * Find zero or one EflPayoutLine that matches the filter.
+     * @param {EflPayoutLineFindUniqueArgs} args - Arguments to find a EflPayoutLine
+     * @example
+     * // Get one EflPayoutLine
+     * const eflPayoutLine = await prisma.eflPayoutLine.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends EflPayoutLineFindUniqueArgs>(args: SelectSubset<T, EflPayoutLineFindUniqueArgs<ExtArgs>>): Prisma__EflPayoutLineClient<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one EflPayoutLine that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {EflPayoutLineFindUniqueOrThrowArgs} args - Arguments to find a EflPayoutLine
+     * @example
+     * // Get one EflPayoutLine
+     * const eflPayoutLine = await prisma.eflPayoutLine.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends EflPayoutLineFindUniqueOrThrowArgs>(args: SelectSubset<T, EflPayoutLineFindUniqueOrThrowArgs<ExtArgs>>): Prisma__EflPayoutLineClient<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first EflPayoutLine that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutLineFindFirstArgs} args - Arguments to find a EflPayoutLine
+     * @example
+     * // Get one EflPayoutLine
+     * const eflPayoutLine = await prisma.eflPayoutLine.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends EflPayoutLineFindFirstArgs>(args?: SelectSubset<T, EflPayoutLineFindFirstArgs<ExtArgs>>): Prisma__EflPayoutLineClient<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first EflPayoutLine that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutLineFindFirstOrThrowArgs} args - Arguments to find a EflPayoutLine
+     * @example
+     * // Get one EflPayoutLine
+     * const eflPayoutLine = await prisma.eflPayoutLine.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends EflPayoutLineFindFirstOrThrowArgs>(args?: SelectSubset<T, EflPayoutLineFindFirstOrThrowArgs<ExtArgs>>): Prisma__EflPayoutLineClient<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more EflPayoutLines that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutLineFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EflPayoutLines
+     * const eflPayoutLines = await prisma.eflPayoutLine.findMany()
+     * 
+     * // Get first 10 EflPayoutLines
+     * const eflPayoutLines = await prisma.eflPayoutLine.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const eflPayoutLineWithIdOnly = await prisma.eflPayoutLine.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends EflPayoutLineFindManyArgs>(args?: SelectSubset<T, EflPayoutLineFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a EflPayoutLine.
+     * @param {EflPayoutLineCreateArgs} args - Arguments to create a EflPayoutLine.
+     * @example
+     * // Create one EflPayoutLine
+     * const EflPayoutLine = await prisma.eflPayoutLine.create({
+     *   data: {
+     *     // ... data to create a EflPayoutLine
+     *   }
+     * })
+     * 
+     */
+    create<T extends EflPayoutLineCreateArgs>(args: SelectSubset<T, EflPayoutLineCreateArgs<ExtArgs>>): Prisma__EflPayoutLineClient<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many EflPayoutLines.
+     * @param {EflPayoutLineCreateManyArgs} args - Arguments to create many EflPayoutLines.
+     * @example
+     * // Create many EflPayoutLines
+     * const eflPayoutLine = await prisma.eflPayoutLine.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends EflPayoutLineCreateManyArgs>(args?: SelectSubset<T, EflPayoutLineCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many EflPayoutLines and returns the data saved in the database.
+     * @param {EflPayoutLineCreateManyAndReturnArgs} args - Arguments to create many EflPayoutLines.
+     * @example
+     * // Create many EflPayoutLines
+     * const eflPayoutLine = await prisma.eflPayoutLine.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many EflPayoutLines and only return the `id`
+     * const eflPayoutLineWithIdOnly = await prisma.eflPayoutLine.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends EflPayoutLineCreateManyAndReturnArgs>(args?: SelectSubset<T, EflPayoutLineCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a EflPayoutLine.
+     * @param {EflPayoutLineDeleteArgs} args - Arguments to delete one EflPayoutLine.
+     * @example
+     * // Delete one EflPayoutLine
+     * const EflPayoutLine = await prisma.eflPayoutLine.delete({
+     *   where: {
+     *     // ... filter to delete one EflPayoutLine
+     *   }
+     * })
+     * 
+     */
+    delete<T extends EflPayoutLineDeleteArgs>(args: SelectSubset<T, EflPayoutLineDeleteArgs<ExtArgs>>): Prisma__EflPayoutLineClient<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one EflPayoutLine.
+     * @param {EflPayoutLineUpdateArgs} args - Arguments to update one EflPayoutLine.
+     * @example
+     * // Update one EflPayoutLine
+     * const eflPayoutLine = await prisma.eflPayoutLine.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends EflPayoutLineUpdateArgs>(args: SelectSubset<T, EflPayoutLineUpdateArgs<ExtArgs>>): Prisma__EflPayoutLineClient<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more EflPayoutLines.
+     * @param {EflPayoutLineDeleteManyArgs} args - Arguments to filter EflPayoutLines to delete.
+     * @example
+     * // Delete a few EflPayoutLines
+     * const { count } = await prisma.eflPayoutLine.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends EflPayoutLineDeleteManyArgs>(args?: SelectSubset<T, EflPayoutLineDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EflPayoutLines.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutLineUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EflPayoutLines
+     * const eflPayoutLine = await prisma.eflPayoutLine.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends EflPayoutLineUpdateManyArgs>(args: SelectSubset<T, EflPayoutLineUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EflPayoutLine.
+     * @param {EflPayoutLineUpsertArgs} args - Arguments to update or create a EflPayoutLine.
+     * @example
+     * // Update or create a EflPayoutLine
+     * const eflPayoutLine = await prisma.eflPayoutLine.upsert({
+     *   create: {
+     *     // ... data to create a EflPayoutLine
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EflPayoutLine we want to update
+     *   }
+     * })
+     */
+    upsert<T extends EflPayoutLineUpsertArgs>(args: SelectSubset<T, EflPayoutLineUpsertArgs<ExtArgs>>): Prisma__EflPayoutLineClient<$Result.GetResult<Prisma.$EflPayoutLinePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of EflPayoutLines.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutLineCountArgs} args - Arguments to filter EflPayoutLines to count.
+     * @example
+     * // Count the number of EflPayoutLines
+     * const count = await prisma.eflPayoutLine.count({
+     *   where: {
+     *     // ... the filter for the EflPayoutLines we want to count
+     *   }
+     * })
+    **/
+    count<T extends EflPayoutLineCountArgs>(
+      args?: Subset<T, EflPayoutLineCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EflPayoutLineCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EflPayoutLine.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutLineAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EflPayoutLineAggregateArgs>(args: Subset<T, EflPayoutLineAggregateArgs>): Prisma.PrismaPromise<GetEflPayoutLineAggregateType<T>>
+
+    /**
+     * Group by EflPayoutLine.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EflPayoutLineGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EflPayoutLineGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EflPayoutLineGroupByArgs['orderBy'] }
+        : { orderBy?: EflPayoutLineGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EflPayoutLineGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEflPayoutLineGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the EflPayoutLine model
+   */
+  readonly fields: EflPayoutLineFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EflPayoutLine.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__EflPayoutLineClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    payout<T extends EflPayoutDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EflPayoutDefaultArgs<ExtArgs>>): Prisma__EflPayoutClient<$Result.GetResult<Prisma.$EflPayoutPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the EflPayoutLine model
+   */ 
+  interface EflPayoutLineFieldRefs {
+    readonly id: FieldRef<"EflPayoutLine", 'String'>
+    readonly payoutId: FieldRef<"EflPayoutLine", 'String'>
+    readonly orderId: FieldRef<"EflPayoutLine", 'String'>
+    readonly toShopPence: FieldRef<"EflPayoutLine", 'Int'>
+    readonly clawedBackPence: FieldRef<"EflPayoutLine", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * EflPayoutLine findUnique
+   */
+  export type EflPayoutLineFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayoutLine to fetch.
+     */
+    where: EflPayoutLineWhereUniqueInput
+  }
+
+  /**
+   * EflPayoutLine findUniqueOrThrow
+   */
+  export type EflPayoutLineFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayoutLine to fetch.
+     */
+    where: EflPayoutLineWhereUniqueInput
+  }
+
+  /**
+   * EflPayoutLine findFirst
+   */
+  export type EflPayoutLineFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayoutLine to fetch.
+     */
+    where?: EflPayoutLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPayoutLines to fetch.
+     */
+    orderBy?: EflPayoutLineOrderByWithRelationInput | EflPayoutLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflPayoutLines.
+     */
+    cursor?: EflPayoutLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPayoutLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPayoutLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflPayoutLines.
+     */
+    distinct?: EflPayoutLineScalarFieldEnum | EflPayoutLineScalarFieldEnum[]
+  }
+
+  /**
+   * EflPayoutLine findFirstOrThrow
+   */
+  export type EflPayoutLineFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayoutLine to fetch.
+     */
+    where?: EflPayoutLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPayoutLines to fetch.
+     */
+    orderBy?: EflPayoutLineOrderByWithRelationInput | EflPayoutLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EflPayoutLines.
+     */
+    cursor?: EflPayoutLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPayoutLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPayoutLines.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EflPayoutLines.
+     */
+    distinct?: EflPayoutLineScalarFieldEnum | EflPayoutLineScalarFieldEnum[]
+  }
+
+  /**
+   * EflPayoutLine findMany
+   */
+  export type EflPayoutLineFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * Filter, which EflPayoutLines to fetch.
+     */
+    where?: EflPayoutLineWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EflPayoutLines to fetch.
+     */
+    orderBy?: EflPayoutLineOrderByWithRelationInput | EflPayoutLineOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EflPayoutLines.
+     */
+    cursor?: EflPayoutLineWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` EflPayoutLines from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` EflPayoutLines.
+     */
+    skip?: number
+    distinct?: EflPayoutLineScalarFieldEnum | EflPayoutLineScalarFieldEnum[]
+  }
+
+  /**
+   * EflPayoutLine create
+   */
+  export type EflPayoutLineCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * The data needed to create a EflPayoutLine.
+     */
+    data: XOR<EflPayoutLineCreateInput, EflPayoutLineUncheckedCreateInput>
+  }
+
+  /**
+   * EflPayoutLine createMany
+   */
+  export type EflPayoutLineCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many EflPayoutLines.
+     */
+    data: EflPayoutLineCreateManyInput | EflPayoutLineCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * EflPayoutLine createManyAndReturn
+   */
+  export type EflPayoutLineCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many EflPayoutLines.
+     */
+    data: EflPayoutLineCreateManyInput | EflPayoutLineCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * EflPayoutLine update
+   */
+  export type EflPayoutLineUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * The data needed to update a EflPayoutLine.
+     */
+    data: XOR<EflPayoutLineUpdateInput, EflPayoutLineUncheckedUpdateInput>
+    /**
+     * Choose, which EflPayoutLine to update.
+     */
+    where: EflPayoutLineWhereUniqueInput
+  }
+
+  /**
+   * EflPayoutLine updateMany
+   */
+  export type EflPayoutLineUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update EflPayoutLines.
+     */
+    data: XOR<EflPayoutLineUpdateManyMutationInput, EflPayoutLineUncheckedUpdateManyInput>
+    /**
+     * Filter which EflPayoutLines to update
+     */
+    where?: EflPayoutLineWhereInput
+  }
+
+  /**
+   * EflPayoutLine upsert
+   */
+  export type EflPayoutLineUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * The filter to search for the EflPayoutLine to update in case it exists.
+     */
+    where: EflPayoutLineWhereUniqueInput
+    /**
+     * In case the EflPayoutLine found by the `where` argument doesn't exist, create a new EflPayoutLine with this data.
+     */
+    create: XOR<EflPayoutLineCreateInput, EflPayoutLineUncheckedCreateInput>
+    /**
+     * In case the EflPayoutLine was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<EflPayoutLineUpdateInput, EflPayoutLineUncheckedUpdateInput>
+  }
+
+  /**
+   * EflPayoutLine delete
+   */
+  export type EflPayoutLineDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
+    /**
+     * Filter which EflPayoutLine to delete.
+     */
+    where: EflPayoutLineWhereUniqueInput
+  }
+
+  /**
+   * EflPayoutLine deleteMany
+   */
+  export type EflPayoutLineDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which EflPayoutLines to delete
+     */
+    where?: EflPayoutLineWhereInput
+  }
+
+  /**
+   * EflPayoutLine without action
+   */
+  export type EflPayoutLineDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the EflPayoutLine
+     */
+    select?: EflPayoutLineSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: EflPayoutLineInclude<ExtArgs> | null
   }
 
 
@@ -216160,6 +218598,40 @@ export namespace Prisma {
   export type EflCampaignScalarFieldEnum = (typeof EflCampaignScalarFieldEnum)[keyof typeof EflCampaignScalarFieldEnum]
 
 
+  export const EflPayoutScalarFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    weekStart: 'weekStart',
+    status: 'status',
+    cardPence: 'cardPence',
+    cashCommissionPence: 'cashCommissionPence',
+    refundsPence: 'refundsPence',
+    carriedInPence: 'carriedInPence',
+    amountPence: 'amountPence',
+    carriedOutPence: 'carriedOutPence',
+    stripeTransferId: 'stripeTransferId',
+    stripePayoutId: 'stripePayoutId',
+    error: 'error',
+    attempts: 'attempts',
+    paidAt: 'paidAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type EflPayoutScalarFieldEnum = (typeof EflPayoutScalarFieldEnum)[keyof typeof EflPayoutScalarFieldEnum]
+
+
+  export const EflPayoutLineScalarFieldEnum: {
+    id: 'id',
+    payoutId: 'payoutId',
+    orderId: 'orderId',
+    toShopPence: 'toShopPence',
+    clawedBackPence: 'clawedBackPence'
+  };
+
+  export type EflPayoutLineScalarFieldEnum = (typeof EflPayoutLineScalarFieldEnum)[keyof typeof EflPayoutLineScalarFieldEnum]
+
+
   export const EflStatementSendScalarFieldEnum: {
     id: 'id',
     listingId: 'listingId',
@@ -218994,6 +221466,26 @@ export namespace Prisma {
   export type EflCampaignOrderByRelevanceFieldEnum = (typeof EflCampaignOrderByRelevanceFieldEnum)[keyof typeof EflCampaignOrderByRelevanceFieldEnum]
 
 
+  export const EflPayoutOrderByRelevanceFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    stripeTransferId: 'stripeTransferId',
+    stripePayoutId: 'stripePayoutId',
+    error: 'error'
+  };
+
+  export type EflPayoutOrderByRelevanceFieldEnum = (typeof EflPayoutOrderByRelevanceFieldEnum)[keyof typeof EflPayoutOrderByRelevanceFieldEnum]
+
+
+  export const EflPayoutLineOrderByRelevanceFieldEnum: {
+    id: 'id',
+    payoutId: 'payoutId',
+    orderId: 'orderId'
+  };
+
+  export type EflPayoutLineOrderByRelevanceFieldEnum = (typeof EflPayoutLineOrderByRelevanceFieldEnum)[keyof typeof EflPayoutLineOrderByRelevanceFieldEnum]
+
+
   export const EflStatementSendOrderByRelevanceFieldEnum: {
     id: 'id',
     listingId: 'listingId',
@@ -220618,6 +223110,20 @@ export namespace Prisma {
    * Reference to a field of type 'EflDeliveryMode[]'
    */
   export type ListEnumEflDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflDeliveryMode[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'EflPayoutStatus'
+   */
+  export type EnumEflPayoutStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflPayoutStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'EflPayoutStatus[]'
+   */
+  export type ListEnumEflPayoutStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EflPayoutStatus[]'>
     
 
 
@@ -233610,6 +236116,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     adCampaign?: XOR<EflAdCampaignNullableRelationFilter, EflAdCampaignWhereInput> | null
+    payouts?: EflPayoutListRelationFilter
   }
 
   export type EflListingOrderByWithRelationInput = {
@@ -233640,6 +236147,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     location?: LocationOrderByWithRelationInput
     adCampaign?: EflAdCampaignOrderByWithRelationInput
+    payouts?: EflPayoutOrderByRelationAggregateInput
     _relevance?: EflListingOrderByRelevanceInput
   }
 
@@ -233674,6 +236182,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"EflListing"> | Date | string
     location?: XOR<LocationRelationFilter, LocationWhereInput>
     adCampaign?: XOR<EflAdCampaignNullableRelationFilter, EflAdCampaignWhereInput> | null
+    payouts?: EflPayoutListRelationFilter
   }, "id" | "locationId" | "stripeAccountId">
 
   export type EflListingOrderByWithAggregationInput = {
@@ -234022,6 +236531,186 @@ export namespace Prisma {
     sentAt?: DateTimeNullableWithAggregatesFilter<"EflCampaign"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EflCampaign"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EflCampaign"> | Date | string
+  }
+
+  export type EflPayoutWhereInput = {
+    AND?: EflPayoutWhereInput | EflPayoutWhereInput[]
+    OR?: EflPayoutWhereInput[]
+    NOT?: EflPayoutWhereInput | EflPayoutWhereInput[]
+    id?: StringFilter<"EflPayout"> | string
+    listingId?: StringFilter<"EflPayout"> | string
+    weekStart?: DateTimeFilter<"EflPayout"> | Date | string
+    status?: EnumEflPayoutStatusFilter<"EflPayout"> | $Enums.EflPayoutStatus
+    cardPence?: IntFilter<"EflPayout"> | number
+    cashCommissionPence?: IntFilter<"EflPayout"> | number
+    refundsPence?: IntFilter<"EflPayout"> | number
+    carriedInPence?: IntFilter<"EflPayout"> | number
+    amountPence?: IntFilter<"EflPayout"> | number
+    carriedOutPence?: IntFilter<"EflPayout"> | number
+    stripeTransferId?: StringNullableFilter<"EflPayout"> | string | null
+    stripePayoutId?: StringNullableFilter<"EflPayout"> | string | null
+    error?: StringNullableFilter<"EflPayout"> | string | null
+    attempts?: IntFilter<"EflPayout"> | number
+    paidAt?: DateTimeNullableFilter<"EflPayout"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflPayout"> | Date | string
+    updatedAt?: DateTimeFilter<"EflPayout"> | Date | string
+    listing?: XOR<EflListingRelationFilter, EflListingWhereInput>
+    lines?: EflPayoutLineListRelationFilter
+  }
+
+  export type EflPayoutOrderByWithRelationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    status?: SortOrder
+    cardPence?: SortOrder
+    cashCommissionPence?: SortOrder
+    refundsPence?: SortOrder
+    carriedInPence?: SortOrder
+    amountPence?: SortOrder
+    carriedOutPence?: SortOrder
+    stripeTransferId?: SortOrderInput | SortOrder
+    stripePayoutId?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    attempts?: SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    listing?: EflListingOrderByWithRelationInput
+    lines?: EflPayoutLineOrderByRelationAggregateInput
+    _relevance?: EflPayoutOrderByRelevanceInput
+  }
+
+  export type EflPayoutWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    listingId_weekStart?: EflPayoutListingIdWeekStartCompoundUniqueInput
+    AND?: EflPayoutWhereInput | EflPayoutWhereInput[]
+    OR?: EflPayoutWhereInput[]
+    NOT?: EflPayoutWhereInput | EflPayoutWhereInput[]
+    listingId?: StringFilter<"EflPayout"> | string
+    weekStart?: DateTimeFilter<"EflPayout"> | Date | string
+    status?: EnumEflPayoutStatusFilter<"EflPayout"> | $Enums.EflPayoutStatus
+    cardPence?: IntFilter<"EflPayout"> | number
+    cashCommissionPence?: IntFilter<"EflPayout"> | number
+    refundsPence?: IntFilter<"EflPayout"> | number
+    carriedInPence?: IntFilter<"EflPayout"> | number
+    amountPence?: IntFilter<"EflPayout"> | number
+    carriedOutPence?: IntFilter<"EflPayout"> | number
+    stripeTransferId?: StringNullableFilter<"EflPayout"> | string | null
+    stripePayoutId?: StringNullableFilter<"EflPayout"> | string | null
+    error?: StringNullableFilter<"EflPayout"> | string | null
+    attempts?: IntFilter<"EflPayout"> | number
+    paidAt?: DateTimeNullableFilter<"EflPayout"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflPayout"> | Date | string
+    updatedAt?: DateTimeFilter<"EflPayout"> | Date | string
+    listing?: XOR<EflListingRelationFilter, EflListingWhereInput>
+    lines?: EflPayoutLineListRelationFilter
+  }, "id" | "listingId_weekStart">
+
+  export type EflPayoutOrderByWithAggregationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    status?: SortOrder
+    cardPence?: SortOrder
+    cashCommissionPence?: SortOrder
+    refundsPence?: SortOrder
+    carriedInPence?: SortOrder
+    amountPence?: SortOrder
+    carriedOutPence?: SortOrder
+    stripeTransferId?: SortOrderInput | SortOrder
+    stripePayoutId?: SortOrderInput | SortOrder
+    error?: SortOrderInput | SortOrder
+    attempts?: SortOrder
+    paidAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: EflPayoutCountOrderByAggregateInput
+    _avg?: EflPayoutAvgOrderByAggregateInput
+    _max?: EflPayoutMaxOrderByAggregateInput
+    _min?: EflPayoutMinOrderByAggregateInput
+    _sum?: EflPayoutSumOrderByAggregateInput
+  }
+
+  export type EflPayoutScalarWhereWithAggregatesInput = {
+    AND?: EflPayoutScalarWhereWithAggregatesInput | EflPayoutScalarWhereWithAggregatesInput[]
+    OR?: EflPayoutScalarWhereWithAggregatesInput[]
+    NOT?: EflPayoutScalarWhereWithAggregatesInput | EflPayoutScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflPayout"> | string
+    listingId?: StringWithAggregatesFilter<"EflPayout"> | string
+    weekStart?: DateTimeWithAggregatesFilter<"EflPayout"> | Date | string
+    status?: EnumEflPayoutStatusWithAggregatesFilter<"EflPayout"> | $Enums.EflPayoutStatus
+    cardPence?: IntWithAggregatesFilter<"EflPayout"> | number
+    cashCommissionPence?: IntWithAggregatesFilter<"EflPayout"> | number
+    refundsPence?: IntWithAggregatesFilter<"EflPayout"> | number
+    carriedInPence?: IntWithAggregatesFilter<"EflPayout"> | number
+    amountPence?: IntWithAggregatesFilter<"EflPayout"> | number
+    carriedOutPence?: IntWithAggregatesFilter<"EflPayout"> | number
+    stripeTransferId?: StringNullableWithAggregatesFilter<"EflPayout"> | string | null
+    stripePayoutId?: StringNullableWithAggregatesFilter<"EflPayout"> | string | null
+    error?: StringNullableWithAggregatesFilter<"EflPayout"> | string | null
+    attempts?: IntWithAggregatesFilter<"EflPayout"> | number
+    paidAt?: DateTimeNullableWithAggregatesFilter<"EflPayout"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"EflPayout"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"EflPayout"> | Date | string
+  }
+
+  export type EflPayoutLineWhereInput = {
+    AND?: EflPayoutLineWhereInput | EflPayoutLineWhereInput[]
+    OR?: EflPayoutLineWhereInput[]
+    NOT?: EflPayoutLineWhereInput | EflPayoutLineWhereInput[]
+    id?: StringFilter<"EflPayoutLine"> | string
+    payoutId?: StringFilter<"EflPayoutLine"> | string
+    orderId?: StringFilter<"EflPayoutLine"> | string
+    toShopPence?: IntFilter<"EflPayoutLine"> | number
+    clawedBackPence?: IntFilter<"EflPayoutLine"> | number
+    payout?: XOR<EflPayoutRelationFilter, EflPayoutWhereInput>
+  }
+
+  export type EflPayoutLineOrderByWithRelationInput = {
+    id?: SortOrder
+    payoutId?: SortOrder
+    orderId?: SortOrder
+    toShopPence?: SortOrder
+    clawedBackPence?: SortOrder
+    payout?: EflPayoutOrderByWithRelationInput
+    _relevance?: EflPayoutLineOrderByRelevanceInput
+  }
+
+  export type EflPayoutLineWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    orderId?: string
+    AND?: EflPayoutLineWhereInput | EflPayoutLineWhereInput[]
+    OR?: EflPayoutLineWhereInput[]
+    NOT?: EflPayoutLineWhereInput | EflPayoutLineWhereInput[]
+    payoutId?: StringFilter<"EflPayoutLine"> | string
+    toShopPence?: IntFilter<"EflPayoutLine"> | number
+    clawedBackPence?: IntFilter<"EflPayoutLine"> | number
+    payout?: XOR<EflPayoutRelationFilter, EflPayoutWhereInput>
+  }, "id" | "orderId">
+
+  export type EflPayoutLineOrderByWithAggregationInput = {
+    id?: SortOrder
+    payoutId?: SortOrder
+    orderId?: SortOrder
+    toShopPence?: SortOrder
+    clawedBackPence?: SortOrder
+    _count?: EflPayoutLineCountOrderByAggregateInput
+    _avg?: EflPayoutLineAvgOrderByAggregateInput
+    _max?: EflPayoutLineMaxOrderByAggregateInput
+    _min?: EflPayoutLineMinOrderByAggregateInput
+    _sum?: EflPayoutLineSumOrderByAggregateInput
+  }
+
+  export type EflPayoutLineScalarWhereWithAggregatesInput = {
+    AND?: EflPayoutLineScalarWhereWithAggregatesInput | EflPayoutLineScalarWhereWithAggregatesInput[]
+    OR?: EflPayoutLineScalarWhereWithAggregatesInput[]
+    NOT?: EflPayoutLineScalarWhereWithAggregatesInput | EflPayoutLineScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"EflPayoutLine"> | string
+    payoutId?: StringWithAggregatesFilter<"EflPayoutLine"> | string
+    orderId?: StringWithAggregatesFilter<"EflPayoutLine"> | string
+    toShopPence?: IntWithAggregatesFilter<"EflPayoutLine"> | number
+    clawedBackPence?: IntWithAggregatesFilter<"EflPayoutLine"> | number
   }
 
   export type EflStatementSendWhereInput = {
@@ -254684,6 +257373,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutEflListingInput
     adCampaign?: EflAdCampaignCreateNestedOneWithoutListingInput
+    payouts?: EflPayoutCreateNestedManyWithoutListingInput
   }
 
   export type EflListingUncheckedCreateInput = {
@@ -254713,6 +257403,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     adCampaign?: EflAdCampaignUncheckedCreateNestedOneWithoutListingInput
+    payouts?: EflPayoutUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type EflListingUpdateInput = {
@@ -254742,6 +257433,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutEflListingNestedInput
     adCampaign?: EflAdCampaignUpdateOneWithoutListingNestedInput
+    payouts?: EflPayoutUpdateManyWithoutListingNestedInput
   }
 
   export type EflListingUncheckedUpdateInput = {
@@ -254771,6 +257463,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     adCampaign?: EflAdCampaignUncheckedUpdateOneWithoutListingNestedInput
+    payouts?: EflPayoutUncheckedUpdateManyWithoutListingNestedInput
   }
 
   export type EflListingCreateManyInput = {
@@ -255161,6 +257854,204 @@ export namespace Prisma {
     sentAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflPayoutCreateInput = {
+    id?: string
+    weekStart: Date | string
+    status?: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId?: string | null
+    stripePayoutId?: string | null
+    error?: string | null
+    attempts?: number
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listing: EflListingCreateNestedOneWithoutPayoutsInput
+    lines?: EflPayoutLineCreateNestedManyWithoutPayoutInput
+  }
+
+  export type EflPayoutUncheckedCreateInput = {
+    id?: string
+    listingId: string
+    weekStart: Date | string
+    status?: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId?: string | null
+    stripePayoutId?: string | null
+    error?: string | null
+    attempts?: number
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lines?: EflPayoutLineUncheckedCreateNestedManyWithoutPayoutInput
+  }
+
+  export type EflPayoutUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listing?: EflListingUpdateOneRequiredWithoutPayoutsNestedInput
+    lines?: EflPayoutLineUpdateManyWithoutPayoutNestedInput
+  }
+
+  export type EflPayoutUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lines?: EflPayoutLineUncheckedUpdateManyWithoutPayoutNestedInput
+  }
+
+  export type EflPayoutCreateManyInput = {
+    id?: string
+    listingId: string
+    weekStart: Date | string
+    status?: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId?: string | null
+    stripePayoutId?: string | null
+    error?: string | null
+    attempts?: number
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflPayoutUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflPayoutUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflPayoutLineCreateInput = {
+    id?: string
+    orderId: string
+    toShopPence: number
+    clawedBackPence?: number
+    payout: EflPayoutCreateNestedOneWithoutLinesInput
+  }
+
+  export type EflPayoutLineUncheckedCreateInput = {
+    id?: string
+    payoutId: string
+    orderId: string
+    toShopPence: number
+    clawedBackPence?: number
+  }
+
+  export type EflPayoutLineUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    toShopPence?: IntFieldUpdateOperationsInput | number
+    clawedBackPence?: IntFieldUpdateOperationsInput | number
+    payout?: EflPayoutUpdateOneRequiredWithoutLinesNestedInput
+  }
+
+  export type EflPayoutLineUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payoutId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    toShopPence?: IntFieldUpdateOperationsInput | number
+    clawedBackPence?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type EflPayoutLineCreateManyInput = {
+    id?: string
+    payoutId: string
+    orderId: string
+    toShopPence: number
+    clawedBackPence?: number
+  }
+
+  export type EflPayoutLineUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    toShopPence?: IntFieldUpdateOperationsInput | number
+    clawedBackPence?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type EflPayoutLineUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    payoutId?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    toShopPence?: IntFieldUpdateOperationsInput | number
+    clawedBackPence?: IntFieldUpdateOperationsInput | number
   }
 
   export type EflStatementSendCreateInput = {
@@ -272087,6 +274978,16 @@ export namespace Prisma {
     isNot?: EflAdCampaignWhereInput | null
   }
 
+  export type EflPayoutListRelationFilter = {
+    every?: EflPayoutWhereInput
+    some?: EflPayoutWhereInput
+    none?: EflPayoutWhereInput
+  }
+
+  export type EflPayoutOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type EflListingOrderByRelevanceInput = {
     fields: EflListingOrderByRelevanceFieldEnum | EflListingOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -272404,6 +275305,169 @@ export namespace Prisma {
   export type EflCampaignSumOrderByAggregateInput = {
     targeted?: SortOrder
     delivered?: SortOrder
+  }
+
+  export type EnumEflPayoutStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflPayoutStatus | EnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflPayoutStatus[] | ListEnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflPayoutStatus[] | ListEnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflPayoutStatusFilter<$PrismaModel> | $Enums.EflPayoutStatus
+  }
+
+  export type EflPayoutLineListRelationFilter = {
+    every?: EflPayoutLineWhereInput
+    some?: EflPayoutLineWhereInput
+    none?: EflPayoutLineWhereInput
+  }
+
+  export type EflPayoutLineOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EflPayoutOrderByRelevanceInput = {
+    fields: EflPayoutOrderByRelevanceFieldEnum | EflPayoutOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflPayoutListingIdWeekStartCompoundUniqueInput = {
+    listingId: string
+    weekStart: Date | string
+  }
+
+  export type EflPayoutCountOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    status?: SortOrder
+    cardPence?: SortOrder
+    cashCommissionPence?: SortOrder
+    refundsPence?: SortOrder
+    carriedInPence?: SortOrder
+    amountPence?: SortOrder
+    carriedOutPence?: SortOrder
+    stripeTransferId?: SortOrder
+    stripePayoutId?: SortOrder
+    error?: SortOrder
+    attempts?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflPayoutAvgOrderByAggregateInput = {
+    cardPence?: SortOrder
+    cashCommissionPence?: SortOrder
+    refundsPence?: SortOrder
+    carriedInPence?: SortOrder
+    amountPence?: SortOrder
+    carriedOutPence?: SortOrder
+    attempts?: SortOrder
+  }
+
+  export type EflPayoutMaxOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    status?: SortOrder
+    cardPence?: SortOrder
+    cashCommissionPence?: SortOrder
+    refundsPence?: SortOrder
+    carriedInPence?: SortOrder
+    amountPence?: SortOrder
+    carriedOutPence?: SortOrder
+    stripeTransferId?: SortOrder
+    stripePayoutId?: SortOrder
+    error?: SortOrder
+    attempts?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflPayoutMinOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    weekStart?: SortOrder
+    status?: SortOrder
+    cardPence?: SortOrder
+    cashCommissionPence?: SortOrder
+    refundsPence?: SortOrder
+    carriedInPence?: SortOrder
+    amountPence?: SortOrder
+    carriedOutPence?: SortOrder
+    stripeTransferId?: SortOrder
+    stripePayoutId?: SortOrder
+    error?: SortOrder
+    attempts?: SortOrder
+    paidAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EflPayoutSumOrderByAggregateInput = {
+    cardPence?: SortOrder
+    cashCommissionPence?: SortOrder
+    refundsPence?: SortOrder
+    carriedInPence?: SortOrder
+    amountPence?: SortOrder
+    carriedOutPence?: SortOrder
+    attempts?: SortOrder
+  }
+
+  export type EnumEflPayoutStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflPayoutStatus | EnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflPayoutStatus[] | ListEnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflPayoutStatus[] | ListEnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflPayoutStatusWithAggregatesFilter<$PrismaModel> | $Enums.EflPayoutStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEflPayoutStatusFilter<$PrismaModel>
+    _max?: NestedEnumEflPayoutStatusFilter<$PrismaModel>
+  }
+
+  export type EflPayoutRelationFilter = {
+    is?: EflPayoutWhereInput
+    isNot?: EflPayoutWhereInput
+  }
+
+  export type EflPayoutLineOrderByRelevanceInput = {
+    fields: EflPayoutLineOrderByRelevanceFieldEnum | EflPayoutLineOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type EflPayoutLineCountOrderByAggregateInput = {
+    id?: SortOrder
+    payoutId?: SortOrder
+    orderId?: SortOrder
+    toShopPence?: SortOrder
+    clawedBackPence?: SortOrder
+  }
+
+  export type EflPayoutLineAvgOrderByAggregateInput = {
+    toShopPence?: SortOrder
+    clawedBackPence?: SortOrder
+  }
+
+  export type EflPayoutLineMaxOrderByAggregateInput = {
+    id?: SortOrder
+    payoutId?: SortOrder
+    orderId?: SortOrder
+    toShopPence?: SortOrder
+    clawedBackPence?: SortOrder
+  }
+
+  export type EflPayoutLineMinOrderByAggregateInput = {
+    id?: SortOrder
+    payoutId?: SortOrder
+    orderId?: SortOrder
+    toShopPence?: SortOrder
+    clawedBackPence?: SortOrder
+  }
+
+  export type EflPayoutLineSumOrderByAggregateInput = {
+    toShopPence?: SortOrder
+    clawedBackPence?: SortOrder
   }
 
   export type EflStatementSendOrderByRelevanceInput = {
@@ -285468,10 +288532,24 @@ export namespace Prisma {
     connect?: EflAdCampaignWhereUniqueInput
   }
 
+  export type EflPayoutCreateNestedManyWithoutListingInput = {
+    create?: XOR<EflPayoutCreateWithoutListingInput, EflPayoutUncheckedCreateWithoutListingInput> | EflPayoutCreateWithoutListingInput[] | EflPayoutUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: EflPayoutCreateOrConnectWithoutListingInput | EflPayoutCreateOrConnectWithoutListingInput[]
+    createMany?: EflPayoutCreateManyListingInputEnvelope
+    connect?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+  }
+
   export type EflAdCampaignUncheckedCreateNestedOneWithoutListingInput = {
     create?: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
     connectOrCreate?: EflAdCampaignCreateOrConnectWithoutListingInput
     connect?: EflAdCampaignWhereUniqueInput
+  }
+
+  export type EflPayoutUncheckedCreateNestedManyWithoutListingInput = {
+    create?: XOR<EflPayoutCreateWithoutListingInput, EflPayoutUncheckedCreateWithoutListingInput> | EflPayoutCreateWithoutListingInput[] | EflPayoutUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: EflPayoutCreateOrConnectWithoutListingInput | EflPayoutCreateOrConnectWithoutListingInput[]
+    createMany?: EflPayoutCreateManyListingInputEnvelope
+    connect?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
   }
 
   export type EnumEflListingStatusFieldUpdateOperationsInput = {
@@ -285505,6 +288583,20 @@ export namespace Prisma {
     update?: XOR<XOR<EflAdCampaignUpdateToOneWithWhereWithoutListingInput, EflAdCampaignUpdateWithoutListingInput>, EflAdCampaignUncheckedUpdateWithoutListingInput>
   }
 
+  export type EflPayoutUpdateManyWithoutListingNestedInput = {
+    create?: XOR<EflPayoutCreateWithoutListingInput, EflPayoutUncheckedCreateWithoutListingInput> | EflPayoutCreateWithoutListingInput[] | EflPayoutUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: EflPayoutCreateOrConnectWithoutListingInput | EflPayoutCreateOrConnectWithoutListingInput[]
+    upsert?: EflPayoutUpsertWithWhereUniqueWithoutListingInput | EflPayoutUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: EflPayoutCreateManyListingInputEnvelope
+    set?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+    disconnect?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+    delete?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+    connect?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+    update?: EflPayoutUpdateWithWhereUniqueWithoutListingInput | EflPayoutUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: EflPayoutUpdateManyWithWhereWithoutListingInput | EflPayoutUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: EflPayoutScalarWhereInput | EflPayoutScalarWhereInput[]
+  }
+
   export type EflAdCampaignUncheckedUpdateOneWithoutListingNestedInput = {
     create?: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
     connectOrCreate?: EflAdCampaignCreateOrConnectWithoutListingInput
@@ -285513,6 +288605,20 @@ export namespace Prisma {
     delete?: EflAdCampaignWhereInput | boolean
     connect?: EflAdCampaignWhereUniqueInput
     update?: XOR<XOR<EflAdCampaignUpdateToOneWithWhereWithoutListingInput, EflAdCampaignUpdateWithoutListingInput>, EflAdCampaignUncheckedUpdateWithoutListingInput>
+  }
+
+  export type EflPayoutUncheckedUpdateManyWithoutListingNestedInput = {
+    create?: XOR<EflPayoutCreateWithoutListingInput, EflPayoutUncheckedCreateWithoutListingInput> | EflPayoutCreateWithoutListingInput[] | EflPayoutUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: EflPayoutCreateOrConnectWithoutListingInput | EflPayoutCreateOrConnectWithoutListingInput[]
+    upsert?: EflPayoutUpsertWithWhereUniqueWithoutListingInput | EflPayoutUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: EflPayoutCreateManyListingInputEnvelope
+    set?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+    disconnect?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+    delete?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+    connect?: EflPayoutWhereUniqueInput | EflPayoutWhereUniqueInput[]
+    update?: EflPayoutUpdateWithWhereUniqueWithoutListingInput | EflPayoutUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: EflPayoutUpdateManyWithWhereWithoutListingInput | EflPayoutUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: EflPayoutScalarWhereInput | EflPayoutScalarWhereInput[]
   }
 
   export type EflListingCreateNestedOneWithoutAdCampaignInput = {
@@ -285527,6 +288633,80 @@ export namespace Prisma {
     upsert?: EflListingUpsertWithoutAdCampaignInput
     connect?: EflListingWhereUniqueInput
     update?: XOR<XOR<EflListingUpdateToOneWithWhereWithoutAdCampaignInput, EflListingUpdateWithoutAdCampaignInput>, EflListingUncheckedUpdateWithoutAdCampaignInput>
+  }
+
+  export type EflListingCreateNestedOneWithoutPayoutsInput = {
+    create?: XOR<EflListingCreateWithoutPayoutsInput, EflListingUncheckedCreateWithoutPayoutsInput>
+    connectOrCreate?: EflListingCreateOrConnectWithoutPayoutsInput
+    connect?: EflListingWhereUniqueInput
+  }
+
+  export type EflPayoutLineCreateNestedManyWithoutPayoutInput = {
+    create?: XOR<EflPayoutLineCreateWithoutPayoutInput, EflPayoutLineUncheckedCreateWithoutPayoutInput> | EflPayoutLineCreateWithoutPayoutInput[] | EflPayoutLineUncheckedCreateWithoutPayoutInput[]
+    connectOrCreate?: EflPayoutLineCreateOrConnectWithoutPayoutInput | EflPayoutLineCreateOrConnectWithoutPayoutInput[]
+    createMany?: EflPayoutLineCreateManyPayoutInputEnvelope
+    connect?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+  }
+
+  export type EflPayoutLineUncheckedCreateNestedManyWithoutPayoutInput = {
+    create?: XOR<EflPayoutLineCreateWithoutPayoutInput, EflPayoutLineUncheckedCreateWithoutPayoutInput> | EflPayoutLineCreateWithoutPayoutInput[] | EflPayoutLineUncheckedCreateWithoutPayoutInput[]
+    connectOrCreate?: EflPayoutLineCreateOrConnectWithoutPayoutInput | EflPayoutLineCreateOrConnectWithoutPayoutInput[]
+    createMany?: EflPayoutLineCreateManyPayoutInputEnvelope
+    connect?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+  }
+
+  export type EnumEflPayoutStatusFieldUpdateOperationsInput = {
+    set?: $Enums.EflPayoutStatus
+  }
+
+  export type EflListingUpdateOneRequiredWithoutPayoutsNestedInput = {
+    create?: XOR<EflListingCreateWithoutPayoutsInput, EflListingUncheckedCreateWithoutPayoutsInput>
+    connectOrCreate?: EflListingCreateOrConnectWithoutPayoutsInput
+    upsert?: EflListingUpsertWithoutPayoutsInput
+    connect?: EflListingWhereUniqueInput
+    update?: XOR<XOR<EflListingUpdateToOneWithWhereWithoutPayoutsInput, EflListingUpdateWithoutPayoutsInput>, EflListingUncheckedUpdateWithoutPayoutsInput>
+  }
+
+  export type EflPayoutLineUpdateManyWithoutPayoutNestedInput = {
+    create?: XOR<EflPayoutLineCreateWithoutPayoutInput, EflPayoutLineUncheckedCreateWithoutPayoutInput> | EflPayoutLineCreateWithoutPayoutInput[] | EflPayoutLineUncheckedCreateWithoutPayoutInput[]
+    connectOrCreate?: EflPayoutLineCreateOrConnectWithoutPayoutInput | EflPayoutLineCreateOrConnectWithoutPayoutInput[]
+    upsert?: EflPayoutLineUpsertWithWhereUniqueWithoutPayoutInput | EflPayoutLineUpsertWithWhereUniqueWithoutPayoutInput[]
+    createMany?: EflPayoutLineCreateManyPayoutInputEnvelope
+    set?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+    disconnect?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+    delete?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+    connect?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+    update?: EflPayoutLineUpdateWithWhereUniqueWithoutPayoutInput | EflPayoutLineUpdateWithWhereUniqueWithoutPayoutInput[]
+    updateMany?: EflPayoutLineUpdateManyWithWhereWithoutPayoutInput | EflPayoutLineUpdateManyWithWhereWithoutPayoutInput[]
+    deleteMany?: EflPayoutLineScalarWhereInput | EflPayoutLineScalarWhereInput[]
+  }
+
+  export type EflPayoutLineUncheckedUpdateManyWithoutPayoutNestedInput = {
+    create?: XOR<EflPayoutLineCreateWithoutPayoutInput, EflPayoutLineUncheckedCreateWithoutPayoutInput> | EflPayoutLineCreateWithoutPayoutInput[] | EflPayoutLineUncheckedCreateWithoutPayoutInput[]
+    connectOrCreate?: EflPayoutLineCreateOrConnectWithoutPayoutInput | EflPayoutLineCreateOrConnectWithoutPayoutInput[]
+    upsert?: EflPayoutLineUpsertWithWhereUniqueWithoutPayoutInput | EflPayoutLineUpsertWithWhereUniqueWithoutPayoutInput[]
+    createMany?: EflPayoutLineCreateManyPayoutInputEnvelope
+    set?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+    disconnect?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+    delete?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+    connect?: EflPayoutLineWhereUniqueInput | EflPayoutLineWhereUniqueInput[]
+    update?: EflPayoutLineUpdateWithWhereUniqueWithoutPayoutInput | EflPayoutLineUpdateWithWhereUniqueWithoutPayoutInput[]
+    updateMany?: EflPayoutLineUpdateManyWithWhereWithoutPayoutInput | EflPayoutLineUpdateManyWithWhereWithoutPayoutInput[]
+    deleteMany?: EflPayoutLineScalarWhereInput | EflPayoutLineScalarWhereInput[]
+  }
+
+  export type EflPayoutCreateNestedOneWithoutLinesInput = {
+    create?: XOR<EflPayoutCreateWithoutLinesInput, EflPayoutUncheckedCreateWithoutLinesInput>
+    connectOrCreate?: EflPayoutCreateOrConnectWithoutLinesInput
+    connect?: EflPayoutWhereUniqueInput
+  }
+
+  export type EflPayoutUpdateOneRequiredWithoutLinesNestedInput = {
+    create?: XOR<EflPayoutCreateWithoutLinesInput, EflPayoutUncheckedCreateWithoutLinesInput>
+    connectOrCreate?: EflPayoutCreateOrConnectWithoutLinesInput
+    upsert?: EflPayoutUpsertWithoutLinesInput
+    connect?: EflPayoutWhereUniqueInput
+    update?: XOR<XOR<EflPayoutUpdateToOneWithWhereWithoutLinesInput, EflPayoutUpdateWithoutLinesInput>, EflPayoutUncheckedUpdateWithoutLinesInput>
   }
 
   export type EnumEflApplicationStatusFieldUpdateOperationsInput = {
@@ -288064,6 +291244,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
     _max?: NestedEnumEflDeliveryModeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumEflPayoutStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflPayoutStatus | EnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflPayoutStatus[] | ListEnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflPayoutStatus[] | ListEnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflPayoutStatusFilter<$PrismaModel> | $Enums.EflPayoutStatus
+  }
+
+  export type NestedEnumEflPayoutStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.EflPayoutStatus | EnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.EflPayoutStatus[] | ListEnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.EflPayoutStatus[] | ListEnumEflPayoutStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumEflPayoutStatusWithAggregatesFilter<$PrismaModel> | $Enums.EflPayoutStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumEflPayoutStatusFilter<$PrismaModel>
+    _max?: NestedEnumEflPayoutStatusFilter<$PrismaModel>
   }
 
   export type NestedEnumEflApplicationStatusFilter<$PrismaModel = never> = {
@@ -297546,6 +300743,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     adCampaign?: EflAdCampaignCreateNestedOneWithoutListingInput
+    payouts?: EflPayoutCreateNestedManyWithoutListingInput
   }
 
   export type EflListingUncheckedCreateWithoutLocationInput = {
@@ -297574,6 +300772,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     adCampaign?: EflAdCampaignUncheckedCreateNestedOneWithoutListingInput
+    payouts?: EflPayoutUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type EflListingCreateOrConnectWithoutLocationInput = {
@@ -299123,6 +302322,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     adCampaign?: EflAdCampaignUpdateOneWithoutListingNestedInput
+    payouts?: EflPayoutUpdateManyWithoutListingNestedInput
   }
 
   export type EflListingUncheckedUpdateWithoutLocationInput = {
@@ -299151,6 +302351,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     adCampaign?: EflAdCampaignUncheckedUpdateOneWithoutListingNestedInput
+    payouts?: EflPayoutUncheckedUpdateManyWithoutListingNestedInput
   }
 
   export type LoyaltyCardUpsertWithoutLocationInput = {
@@ -331311,6 +334512,56 @@ export namespace Prisma {
     create: XOR<EflAdCampaignCreateWithoutListingInput, EflAdCampaignUncheckedCreateWithoutListingInput>
   }
 
+  export type EflPayoutCreateWithoutListingInput = {
+    id?: string
+    weekStart: Date | string
+    status?: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId?: string | null
+    stripePayoutId?: string | null
+    error?: string | null
+    attempts?: number
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lines?: EflPayoutLineCreateNestedManyWithoutPayoutInput
+  }
+
+  export type EflPayoutUncheckedCreateWithoutListingInput = {
+    id?: string
+    weekStart: Date | string
+    status?: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId?: string | null
+    stripePayoutId?: string | null
+    error?: string | null
+    attempts?: number
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    lines?: EflPayoutLineUncheckedCreateNestedManyWithoutPayoutInput
+  }
+
+  export type EflPayoutCreateOrConnectWithoutListingInput = {
+    where: EflPayoutWhereUniqueInput
+    create: XOR<EflPayoutCreateWithoutListingInput, EflPayoutUncheckedCreateWithoutListingInput>
+  }
+
+  export type EflPayoutCreateManyListingInputEnvelope = {
+    data: EflPayoutCreateManyListingInput | EflPayoutCreateManyListingInput[]
+    skipDuplicates?: boolean
+  }
+
   export type LocationUpsertWithoutEflListingInput = {
     update: XOR<LocationUpdateWithoutEflListingInput, LocationUncheckedUpdateWithoutEflListingInput>
     create: XOR<LocationCreateWithoutEflListingInput, LocationUncheckedCreateWithoutEflListingInput>
@@ -331555,6 +334806,45 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type EflPayoutUpsertWithWhereUniqueWithoutListingInput = {
+    where: EflPayoutWhereUniqueInput
+    update: XOR<EflPayoutUpdateWithoutListingInput, EflPayoutUncheckedUpdateWithoutListingInput>
+    create: XOR<EflPayoutCreateWithoutListingInput, EflPayoutUncheckedCreateWithoutListingInput>
+  }
+
+  export type EflPayoutUpdateWithWhereUniqueWithoutListingInput = {
+    where: EflPayoutWhereUniqueInput
+    data: XOR<EflPayoutUpdateWithoutListingInput, EflPayoutUncheckedUpdateWithoutListingInput>
+  }
+
+  export type EflPayoutUpdateManyWithWhereWithoutListingInput = {
+    where: EflPayoutScalarWhereInput
+    data: XOR<EflPayoutUpdateManyMutationInput, EflPayoutUncheckedUpdateManyWithoutListingInput>
+  }
+
+  export type EflPayoutScalarWhereInput = {
+    AND?: EflPayoutScalarWhereInput | EflPayoutScalarWhereInput[]
+    OR?: EflPayoutScalarWhereInput[]
+    NOT?: EflPayoutScalarWhereInput | EflPayoutScalarWhereInput[]
+    id?: StringFilter<"EflPayout"> | string
+    listingId?: StringFilter<"EflPayout"> | string
+    weekStart?: DateTimeFilter<"EflPayout"> | Date | string
+    status?: EnumEflPayoutStatusFilter<"EflPayout"> | $Enums.EflPayoutStatus
+    cardPence?: IntFilter<"EflPayout"> | number
+    cashCommissionPence?: IntFilter<"EflPayout"> | number
+    refundsPence?: IntFilter<"EflPayout"> | number
+    carriedInPence?: IntFilter<"EflPayout"> | number
+    amountPence?: IntFilter<"EflPayout"> | number
+    carriedOutPence?: IntFilter<"EflPayout"> | number
+    stripeTransferId?: StringNullableFilter<"EflPayout"> | string | null
+    stripePayoutId?: StringNullableFilter<"EflPayout"> | string | null
+    error?: StringNullableFilter<"EflPayout"> | string | null
+    attempts?: IntFilter<"EflPayout"> | number
+    paidAt?: DateTimeNullableFilter<"EflPayout"> | Date | string | null
+    createdAt?: DateTimeFilter<"EflPayout"> | Date | string
+    updatedAt?: DateTimeFilter<"EflPayout"> | Date | string
+  }
+
   export type EflListingCreateWithoutAdCampaignInput = {
     id?: string
     brandId?: string | null
@@ -331581,6 +334871,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     location: LocationCreateNestedOneWithoutEflListingInput
+    payouts?: EflPayoutCreateNestedManyWithoutListingInput
   }
 
   export type EflListingUncheckedCreateWithoutAdCampaignInput = {
@@ -331609,6 +334900,7 @@ export namespace Prisma {
     approvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    payouts?: EflPayoutUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type EflListingCreateOrConnectWithoutAdCampaignInput = {
@@ -331653,6 +334945,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     location?: LocationUpdateOneRequiredWithoutEflListingNestedInput
+    payouts?: EflPayoutUpdateManyWithoutListingNestedInput
   }
 
   export type EflListingUncheckedUpdateWithoutAdCampaignInput = {
@@ -331679,6 +334972,286 @@ export namespace Prisma {
     stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
     stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
     approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payouts?: EflPayoutUncheckedUpdateManyWithoutListingNestedInput
+  }
+
+  export type EflListingCreateWithoutPayoutsInput = {
+    id?: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
+    statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    location: LocationCreateNestedOneWithoutEflListingInput
+    adCampaign?: EflAdCampaignCreateNestedOneWithoutListingInput
+  }
+
+  export type EflListingUncheckedCreateWithoutPayoutsInput = {
+    id?: string
+    locationId: string
+    brandId?: string | null
+    listed?: boolean
+    status?: $Enums.EflListingStatus
+    hiddenReason?: string | null
+    commissionPercent?: Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: $Enums.EflDeliveryMode
+    acceptsDelivery?: boolean
+    acceptsCollection?: boolean
+    description?: string | null
+    heroImageUrl?: string | null
+    logoUrl?: string | null
+    cuisines?: EflListingCreatecuisinesInput | string[]
+    fsaEstablishmentId?: string | null
+    hygieneRating?: string | null
+    hygieneCheckedAt?: Date | string | null
+    lastDeviceSeenAt?: Date | string | null
+    offlineSince?: Date | string | null
+    statementEmail?: string | null
+    stripeAccountId?: string | null
+    stripePayoutsEnabled?: boolean
+    approvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    adCampaign?: EflAdCampaignUncheckedCreateNestedOneWithoutListingInput
+  }
+
+  export type EflListingCreateOrConnectWithoutPayoutsInput = {
+    where: EflListingWhereUniqueInput
+    create: XOR<EflListingCreateWithoutPayoutsInput, EflListingUncheckedCreateWithoutPayoutsInput>
+  }
+
+  export type EflPayoutLineCreateWithoutPayoutInput = {
+    id?: string
+    orderId: string
+    toShopPence: number
+    clawedBackPence?: number
+  }
+
+  export type EflPayoutLineUncheckedCreateWithoutPayoutInput = {
+    id?: string
+    orderId: string
+    toShopPence: number
+    clawedBackPence?: number
+  }
+
+  export type EflPayoutLineCreateOrConnectWithoutPayoutInput = {
+    where: EflPayoutLineWhereUniqueInput
+    create: XOR<EflPayoutLineCreateWithoutPayoutInput, EflPayoutLineUncheckedCreateWithoutPayoutInput>
+  }
+
+  export type EflPayoutLineCreateManyPayoutInputEnvelope = {
+    data: EflPayoutLineCreateManyPayoutInput | EflPayoutLineCreateManyPayoutInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type EflListingUpsertWithoutPayoutsInput = {
+    update: XOR<EflListingUpdateWithoutPayoutsInput, EflListingUncheckedUpdateWithoutPayoutsInput>
+    create: XOR<EflListingCreateWithoutPayoutsInput, EflListingUncheckedCreateWithoutPayoutsInput>
+    where?: EflListingWhereInput
+  }
+
+  export type EflListingUpdateToOneWithWhereWithoutPayoutsInput = {
+    where?: EflListingWhereInput
+    data: XOR<EflListingUpdateWithoutPayoutsInput, EflListingUncheckedUpdateWithoutPayoutsInput>
+  }
+
+  export type EflListingUpdateWithoutPayoutsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    location?: LocationUpdateOneRequiredWithoutEflListingNestedInput
+    adCampaign?: EflAdCampaignUpdateOneWithoutListingNestedInput
+  }
+
+  export type EflListingUncheckedUpdateWithoutPayoutsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    locationId?: StringFieldUpdateOperationsInput | string
+    brandId?: NullableStringFieldUpdateOperationsInput | string | null
+    listed?: BoolFieldUpdateOperationsInput | boolean
+    status?: EnumEflListingStatusFieldUpdateOperationsInput | $Enums.EflListingStatus
+    hiddenReason?: NullableStringFieldUpdateOperationsInput | string | null
+    commissionPercent?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    deliveryMode?: EnumEflDeliveryModeFieldUpdateOperationsInput | $Enums.EflDeliveryMode
+    acceptsDelivery?: BoolFieldUpdateOperationsInput | boolean
+    acceptsCollection?: BoolFieldUpdateOperationsInput | boolean
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    heroImageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    cuisines?: EflListingUpdatecuisinesInput | string[]
+    fsaEstablishmentId?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneRating?: NullableStringFieldUpdateOperationsInput | string | null
+    hygieneCheckedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastDeviceSeenAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    offlineSince?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    statementEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    stripeAccountId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutsEnabled?: BoolFieldUpdateOperationsInput | boolean
+    approvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    adCampaign?: EflAdCampaignUncheckedUpdateOneWithoutListingNestedInput
+  }
+
+  export type EflPayoutLineUpsertWithWhereUniqueWithoutPayoutInput = {
+    where: EflPayoutLineWhereUniqueInput
+    update: XOR<EflPayoutLineUpdateWithoutPayoutInput, EflPayoutLineUncheckedUpdateWithoutPayoutInput>
+    create: XOR<EflPayoutLineCreateWithoutPayoutInput, EflPayoutLineUncheckedCreateWithoutPayoutInput>
+  }
+
+  export type EflPayoutLineUpdateWithWhereUniqueWithoutPayoutInput = {
+    where: EflPayoutLineWhereUniqueInput
+    data: XOR<EflPayoutLineUpdateWithoutPayoutInput, EflPayoutLineUncheckedUpdateWithoutPayoutInput>
+  }
+
+  export type EflPayoutLineUpdateManyWithWhereWithoutPayoutInput = {
+    where: EflPayoutLineScalarWhereInput
+    data: XOR<EflPayoutLineUpdateManyMutationInput, EflPayoutLineUncheckedUpdateManyWithoutPayoutInput>
+  }
+
+  export type EflPayoutLineScalarWhereInput = {
+    AND?: EflPayoutLineScalarWhereInput | EflPayoutLineScalarWhereInput[]
+    OR?: EflPayoutLineScalarWhereInput[]
+    NOT?: EflPayoutLineScalarWhereInput | EflPayoutLineScalarWhereInput[]
+    id?: StringFilter<"EflPayoutLine"> | string
+    payoutId?: StringFilter<"EflPayoutLine"> | string
+    orderId?: StringFilter<"EflPayoutLine"> | string
+    toShopPence?: IntFilter<"EflPayoutLine"> | number
+    clawedBackPence?: IntFilter<"EflPayoutLine"> | number
+  }
+
+  export type EflPayoutCreateWithoutLinesInput = {
+    id?: string
+    weekStart: Date | string
+    status?: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId?: string | null
+    stripePayoutId?: string | null
+    error?: string | null
+    attempts?: number
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    listing: EflListingCreateNestedOneWithoutPayoutsInput
+  }
+
+  export type EflPayoutUncheckedCreateWithoutLinesInput = {
+    id?: string
+    listingId: string
+    weekStart: Date | string
+    status?: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId?: string | null
+    stripePayoutId?: string | null
+    error?: string | null
+    attempts?: number
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflPayoutCreateOrConnectWithoutLinesInput = {
+    where: EflPayoutWhereUniqueInput
+    create: XOR<EflPayoutCreateWithoutLinesInput, EflPayoutUncheckedCreateWithoutLinesInput>
+  }
+
+  export type EflPayoutUpsertWithoutLinesInput = {
+    update: XOR<EflPayoutUpdateWithoutLinesInput, EflPayoutUncheckedUpdateWithoutLinesInput>
+    create: XOR<EflPayoutCreateWithoutLinesInput, EflPayoutUncheckedCreateWithoutLinesInput>
+    where?: EflPayoutWhereInput
+  }
+
+  export type EflPayoutUpdateToOneWithWhereWithoutLinesInput = {
+    where?: EflPayoutWhereInput
+    data: XOR<EflPayoutUpdateWithoutLinesInput, EflPayoutUncheckedUpdateWithoutLinesInput>
+  }
+
+  export type EflPayoutUpdateWithoutLinesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listing?: EflListingUpdateOneRequiredWithoutPayoutsNestedInput
+  }
+
+  export type EflPayoutUncheckedUpdateWithoutLinesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    listingId?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -352434,6 +356007,112 @@ export namespace Prisma {
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
   }
 
+  export type EflPayoutCreateManyListingInput = {
+    id?: string
+    weekStart: Date | string
+    status?: $Enums.EflPayoutStatus
+    cardPence: number
+    cashCommissionPence: number
+    refundsPence: number
+    carriedInPence: number
+    amountPence: number
+    carriedOutPence: number
+    stripeTransferId?: string | null
+    stripePayoutId?: string | null
+    error?: string | null
+    attempts?: number
+    paidAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type EflPayoutUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lines?: EflPayoutLineUpdateManyWithoutPayoutNestedInput
+  }
+
+  export type EflPayoutUncheckedUpdateWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lines?: EflPayoutLineUncheckedUpdateManyWithoutPayoutNestedInput
+  }
+
+  export type EflPayoutUncheckedUpdateManyWithoutListingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    weekStart?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumEflPayoutStatusFieldUpdateOperationsInput | $Enums.EflPayoutStatus
+    cardPence?: IntFieldUpdateOperationsInput | number
+    cashCommissionPence?: IntFieldUpdateOperationsInput | number
+    refundsPence?: IntFieldUpdateOperationsInput | number
+    carriedInPence?: IntFieldUpdateOperationsInput | number
+    amountPence?: IntFieldUpdateOperationsInput | number
+    carriedOutPence?: IntFieldUpdateOperationsInput | number
+    stripeTransferId?: NullableStringFieldUpdateOperationsInput | string | null
+    stripePayoutId?: NullableStringFieldUpdateOperationsInput | string | null
+    error?: NullableStringFieldUpdateOperationsInput | string | null
+    attempts?: IntFieldUpdateOperationsInput | number
+    paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type EflPayoutLineCreateManyPayoutInput = {
+    id?: string
+    orderId: string
+    toShopPence: number
+    clawedBackPence?: number
+  }
+
+  export type EflPayoutLineUpdateWithoutPayoutInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    toShopPence?: IntFieldUpdateOperationsInput | number
+    clawedBackPence?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type EflPayoutLineUncheckedUpdateWithoutPayoutInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    toShopPence?: IntFieldUpdateOperationsInput | number
+    clawedBackPence?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type EflPayoutLineUncheckedUpdateManyWithoutPayoutInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    orderId?: StringFieldUpdateOperationsInput | string
+    toShopPence?: IntFieldUpdateOperationsInput | number
+    clawedBackPence?: IntFieldUpdateOperationsInput | number
+  }
+
   export type MarketingSmsRecipientCreateManyCampaignInput = {
     id?: string
     tenantId: string
@@ -353602,6 +357281,14 @@ export namespace Prisma {
      */
     export type InvoiceCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = InvoiceCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use EflListingCountOutputTypeDefaultArgs instead
+     */
+    export type EflListingCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflListingCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflPayoutCountOutputTypeDefaultArgs instead
+     */
+    export type EflPayoutCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflPayoutCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use MarketingSmsCampaignCountOutputTypeDefaultArgs instead
      */
     export type MarketingSmsCampaignCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = MarketingSmsCampaignCountOutputTypeDefaultArgs<ExtArgs>
@@ -354141,6 +357828,14 @@ export namespace Prisma {
      * @deprecated Use EflCampaignDefaultArgs instead
      */
     export type EflCampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflCampaignDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflPayoutDefaultArgs instead
+     */
+    export type EflPayoutArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflPayoutDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use EflPayoutLineDefaultArgs instead
+     */
+    export type EflPayoutLineArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EflPayoutLineDefaultArgs<ExtArgs>
     /**
      * @deprecated Use EflStatementSendDefaultArgs instead
      */

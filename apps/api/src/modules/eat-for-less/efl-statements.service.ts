@@ -1,13 +1,13 @@
-// Eat For Less — the weekly statement a shop gets every Monday.
+// Eat For Less — the weekly statement a shop gets every Thursday.
 //
 // One week (Mon–Sun, UK time) of a shop's Eat For Less orders: what customers
 // paid, our commission, sponsored-listing spend and what was taken back, and
 // what that leaves the shop. Downloadable as a PDF from OrderHub, emailed on
-// demand, and emailed automatically on Monday morning for last week.
+// demand, and emailed automatically on Thursday, after that week's payout.
 //
-// Money already moved through Stripe as each order was paid (our fee is the
-// application fee on the shop's own account), so a statement is a record,
-// not a bill: there is nothing to pay.
+// The payout block is the money that actually moved (EflSettlementService):
+// the week's card share less cash-order commission, refunds since and
+// anything still owed — paid to the shop's bank that Thursday.
 
 import { BadRequestException, Injectable, Logger, NotFoundException, Optional } from "@nestjs/common";
 import { eflWordmarkHtml } from "./efl-brand";
@@ -37,6 +37,17 @@ export type StatementLine = {
   toShop: number;
 };
 
+export type StatementPayout = {
+  status: string;
+  card: number;
+  cashCommission: number;
+  refunds: number;
+  carriedIn: number;
+  paid: number;
+  carriedOut: number;
+  paidAt: string | null;
+};
+
 export type Statement = {
   listingId: string;
   locationId: string;
@@ -52,6 +63,8 @@ export type Statement = {
   ads: { shows: number; taps: number; spent: number; ordersFromAds: number; recovered: number; stillOwed: number };
   toShop: number;
   refundedOrders: number;
+  /** Null until the week's payout has been worked out (its Thursday). */
+  payout: StatementPayout | null;
   lines: StatementLine[];
 };
 
@@ -69,9 +82,9 @@ export class EflStatementsService {
     @Optional() private readonly email?: EmailService,
   ) {}
 
-  /** Monday mornings, last week's statement to every shop that traded or advertised. */
-  @Cron("0 0 7 * * 1", { timeZone: "Europe/London" })
-  async mondayRun() {
+  /** Thursday, after the 10:00 payouts: last week's statement to every shop that traded or advertised. */
+  @Cron("0 0 11 * * 4", { timeZone: "Europe/London" })
+  async thursdayRun() {
     if (process.env.EFL_STATEMENTS_ENABLED === "false" || this.running) return;
     this.running = true;
     try {
@@ -124,7 +137,7 @@ export class EflStatementsService {
     });
     if (!listing) throw new NotFoundException("This shop isn't on Eat For Less");
 
-    const [rows, refundedOrders, adWeek, owed] = await Promise.all([
+    const [rows, refundedOrders, adWeek, owed, payout] = await Promise.all([
       this.prisma.order.findMany({
         where: {
           locationId,
@@ -158,6 +171,7 @@ export class EflStatementsService {
       }),
       this.ads.weekStats(listing.id, weekStart),
       this.ads.owedPence(listing.id, locationId),
+      this.prisma.eflPayout.findUnique({ where: { listingId_weekStart: { listingId: listing.id, weekStart } } }),
     ]);
 
     const lines: StatementLine[] = rows.map((o) => {
@@ -203,6 +217,18 @@ export class EflStatementsService {
       },
       toShop: sum("toShop"),
       refundedOrders,
+      payout: payout
+        ? {
+            status: payout.status,
+            card: payout.cardPence / 100,
+            cashCommission: payout.cashCommissionPence / 100,
+            refunds: payout.refundsPence / 100,
+            carriedIn: payout.carriedInPence / 100,
+            paid: payout.amountPence / 100,
+            carriedOut: payout.carriedOutPence / 100,
+            paidAt: payout.paidAt?.toISOString() ?? null,
+          }
+        : null,
       lines,
     };
   }
@@ -337,16 +363,21 @@ export class EflStatementsService {
       right(page, value, W - M, y, strong ? 12 : 10.5, strong ? bold : font);
       y -= strong ? 26 : 18;
     }
-    text(
-      page,
-      "Paid into your own Stripe account as each order was paid. Card fees are charged by Stripe on your account and aren't shown here.",
-      M,
-      y,
-      8.5,
-      font,
-      grey,
-    );
+    text(page, "Eat For Less pays the card fees; none come off your share.", M, y, 8.5, font, grey);
     y -= 28;
+
+    // Payout: the money that moved
+    if (s.payout) {
+      text(page, "Paid to your bank", M, y, 12, bold);
+      y -= 18;
+      for (const [label, value, strong] of payoutRows(s.payout)) {
+        if (strong) page.drawLine({ start: { x: M, y: y + 12 }, end: { x: W - M, y: y + 12 }, thickness: 0.8, color: ink });
+        text(page, label, M, y, strong ? 12 : 10.5, strong ? bold : font);
+        right(page, value, W - M, y, strong ? 12 : 10.5, strong ? bold : font);
+        y -= strong ? 26 : 16;
+      }
+      y -= 12;
+    }
 
     // Ads
     text(page, "Sponsored listing", M, y, 12, bold);
@@ -415,6 +446,17 @@ export class EflStatementsService {
   }
 }
 
+/** The payout block, shared by the PDF and the email. */
+function payoutRows(p: StatementPayout): Array<[string, string, boolean?]> {
+  const rows: Array<[string, string, boolean?]> = [["Your share of card orders", money(p.card)]];
+  if (p.cashCommission) rows.push(["Commission on cash orders (you kept the cash)", `- ${money(p.cashCommission)}`]);
+  if (p.refunds) rows.push(["Refunds on earlier orders", `- ${money(p.refunds)}`]);
+  if (p.carriedIn) rows.push(["Owed from last week", `- ${money(p.carriedIn)}`]);
+  rows.push([p.status === "PAID" ? "Paid to your bank" : "To be paid to your bank", money(p.paid), true]);
+  if (p.carriedOut) rows.push(["Still owed, taken from next week", money(p.carriedOut)]);
+  return rows;
+}
+
 function weekLabel(start: Date, end: Date): string {
   const last = new Date(end.getTime() - 3600_000);
   const fmt = (d: Date, withYear: boolean) =>
@@ -444,8 +486,16 @@ ${row("Commission (on food only)", `- ${money(s.commission)}`)}
 ${row("Sponsored listing taken back", `- ${money(s.ads.recovered)}`)}
 ${row("Yours this week", money(s.toShop), true)}
 </table>
+${
+  s.payout
+    ? `<p style="margin:18px 0 6px;font-size:15px;font-weight:800;color:#0B0B0B">Paid to your bank</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:15px">
+${payoutRows(s.payout).map(([l, v, strong]) => row(l, v, !!strong)).join("\n")}
+</table>`
+    : ""
+}
 ${s.ads.taps ? `<p style="margin:16px 0 0;font-size:13px;color:#5E5E5E">Ads: shown ${s.ads.shows} times, ${s.ads.taps} taps, ${s.ads.ordersFromAds} orders, ${money(s.ads.spent)} spent.</p>` : ""}
-<p style="margin:16px 0 0;font-size:13px;color:#5E5E5E">This money was paid into your own Stripe account as each order was paid — there's nothing to pay us. Questions? Just reply.</p>
+<p style="margin:16px 0 0;font-size:13px;color:#5E5E5E">Eat For Less pays your share into your bank every Thursday for the week before. Questions? Just reply.</p>
 </td></tr>
 <tr><td style="padding:14px 24px;background:#0B0B0B;color:#8C8C8C;font-size:11px">${esc(COMPANY_LINE)}</td></tr>
 </table></td></tr></table></body></html>`;

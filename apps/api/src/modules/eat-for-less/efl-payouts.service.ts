@@ -1,8 +1,8 @@
 // Eat For Less — getting a shop paid.
 //
-// Customers pay Eat For Less Ltd; each order's share goes to the shop's
-// Express account on Eat For Less's own Stripe platform and is paid out
-// weekly, on Mondays. This service owns that account: it creates it, hands
+// Customers pay Eat For Less Ltd; each Thursday the shop's share of last
+// week goes to its Express account on Eat For Less's own Stripe platform and
+// straight on to its bank (EflSettlementService). This service owns that account: it creates it, hands
 // the shop Stripe's own form to finish (bank details, ID — Stripe collects
 // them, we never see them) and keeps stripePayoutsEnabled in step with what
 // Stripe says, so an order can't be taken for a shop Stripe can't pay.
@@ -77,8 +77,8 @@ export class EflPayoutsService {
         type: "express",
         country: "GB",
         // Only transfers: Eat For Less takes the card payment, the shop
-        // receives its share. The shop can't change the schedule (set off
-        // in the Connect settings), so every shop is paid the same Monday.
+        // receives its share. Payouts are manual: the Thursday run sends
+        // each shop's money to its bank, so every shop is paid the same day.
         capabilities: { transfers: { requested: true } },
         business_type: "company",
         business_profile: {
@@ -86,7 +86,7 @@ export class EflPayoutsService {
           mcc: "5814",
           product_description: "Takeaway food sold through the Eat For Less app",
         },
-        settings: { payouts: { schedule: { interval: "weekly", weekly_anchor: "monday" } } },
+        settings: { payouts: { schedule: { interval: "manual" } } },
         metadata: { locationId, listingId: listing.id },
       });
       accountId = account.id as string;

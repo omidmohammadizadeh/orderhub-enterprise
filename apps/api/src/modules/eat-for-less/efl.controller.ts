@@ -31,7 +31,9 @@ import { EflAdsService } from "./efl-ads.service";
 import { EflStatementsService } from "./efl-statements.service";
 import { EflCampaignsService } from "./efl-campaigns.service";
 import { EflPayoutsService } from "./efl-payouts.service";
+import { EflSettlementService } from "./efl-settlement.service";
 import { londonDateKey, londonWeekStart, weekStartFromKey } from "./efl-ads-rules";
+import { dueWeekStart } from "./efl-settlement-rules";
 
 
 /** The anonymous viewer an app request comes from, for sponsored places:
@@ -435,6 +437,7 @@ export class EflListingController {
     private readonly ads: EflAdsService,
     private readonly statements: EflStatementsService,
     private readonly payouts: EflPayoutsService,
+    private readonly settlement: EflSettlementService,
   ) {}
 
   /** Getting paid: the shop's Express account on Eat For Less's Stripe. */
@@ -442,6 +445,13 @@ export class EflListingController {
   async payoutStatus(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
     await this.efl.assertLocation(user.tenantId, locationId);
     return this.payouts.status(locationId);
+  }
+
+  /** The shop's Thursday payouts, newest first. */
+  @Get(":locationId/payouts/history")
+  async payoutHistory(@CurrentUser() user: AuthenticatedUser, @Param("locationId") locationId: string) {
+    await this.efl.assertLocation(user.tenantId, locationId);
+    return this.settlement.forLocation(locationId);
   }
 
   @Post(":locationId/payouts/start")
@@ -548,7 +558,21 @@ export class EflAdminController {
     private readonly ads: EflAdsService,
     private readonly statements: EflStatementsService,
     private readonly campaigns: EflCampaignsService,
+    private readonly settlement: EflSettlementService,
   ) {}
+
+  @Get("payouts")
+  @ApiOperation({ summary: "Every shop's Thursday payout for a week (default: the newest due)" })
+  payoutsWeek(@Query("week") week?: string) {
+    const start = (week && weekStartFromKey(week)) || null;
+    return this.settlement.forWeek(start ?? dueWeekStart(new Date()));
+  }
+
+  @Post("payouts/run")
+  @ApiOperation({ summary: "Work out the due week and pay anything unpaid, now" })
+  runPayouts() {
+    return this.settlement.run(new Date());
+  }
 
   @Get("campaigns")
   async listCampaigns() {

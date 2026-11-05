@@ -4612,6 +4612,7 @@ model EflListing {
   updatedAt  DateTime  @updatedAt
 
   adCampaign EflAdCampaign?
+  payouts    EflPayout[]
 
   @@index([status, listed])
   @@map("efl_listings")
@@ -4693,6 +4694,76 @@ model EflCampaign {
 }
 
 /// A weekly statement that has been emailed, so Monday's run sends it once.
+/// Where one shop's weekly payout stands.
+enum EflPayoutStatus {
+  /// Worked out, not yet sent.
+  PENDING
+  /// The money is in the shop's Stripe account; the bank payout isn't made yet.
+  TRANSFERRED
+  /// On its way to the shop's bank.
+  PAID
+  /// The week left the shop owing us (cash commission, refunds); carried on.
+  NOTHING_DUE
+  /// Stripe refused; retried every morning until it goes.
+  FAILED
+}
+
+/// One shop's money for one week (Mon–Sun, UK time), paid on the Thursday
+/// after. Customers' card payments sit in Eat For Less's balance until then;
+/// this row is what was worked out and what moved.
+model EflPayout {
+  id        String          @id @default(cuid())
+  listingId String
+  listing   EflListing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  /// Monday 00:00 UK time.
+  weekStart DateTime
+  status    EflPayoutStatus @default(PENDING)
+
+  /// The shop's share of the week's card orders: what customers paid less
+  /// our commission and ad spend, less anything already refunded.
+  cardPence           Int
+  /// Our commission on the week's cash orders, which the shop kept.
+  cashCommissionPence Int
+  /// The shop's share of orders paid out in earlier weeks and refunded since.
+  refundsPence        Int
+  /// Owed from last week's payout.
+  carriedInPence      Int
+  /// What was sent: card − cash commission − refunds − carried in, if positive.
+  amountPence         Int
+  /// Left owing when that came out negative; next week's carriedInPence.
+  carriedOutPence     Int
+
+  stripeTransferId String?
+  stripePayoutId   String?
+  error            String?
+  attempts         Int       @default(0)
+  paidAt           DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  lines EflPayoutLine[]
+
+  @@unique([listingId, weekStart])
+  @@index([status])
+  @@map("efl_payouts")
+}
+
+/// One card order inside a payout, so a refund that comes later is taken
+/// back once, from the next payout.
+model EflPayoutLine {
+  id              String    @id @default(cuid())
+  payoutId        String
+  payout          EflPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+  orderId         String    @unique
+  /// The shop's share of this order when it was paid out.
+  toShopPence     Int
+  /// Taken back since, for refunds.
+  clawedBackPence Int       @default(0)
+
+  @@index([payoutId])
+  @@map("efl_payout_lines")
+}
+
 model EflStatementSend {
   id        String   @id @default(cuid())
   listingId String
@@ -6203,7 +6274,7 @@ model ContractEvent {
   @@map("contract_events")
 }
 
-// ── Loyalty card ───────────────────��────────────────────────────────────────
+// ── Loyalty card ────────────────────────────────────────────────────────────
 //
 // A stamp card, per LOCATION. Six orders, a free thing — the model every
 // takeaway already runs on paper, which is the point: customers understand it
