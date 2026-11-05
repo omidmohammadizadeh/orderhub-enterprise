@@ -4,7 +4,8 @@
 //
 //   GOOGLE_MAPS_API_KEY_ANDROID / _IOS  Maps SDK keys (the live-tracking map).
 //                                       iOS falls back to Apple Maps without one;
-//                                       Android shows a blank map without one.
+//                                       Android keeps the drawn map without one
+//                                       (the SDK crashes the app with no key).
 //   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID    The Google Sign-In iOS OAuth client for
 //                                       com.eatforless.app. Its reversed id is
 //                                       the URL scheme the Google plugin needs,

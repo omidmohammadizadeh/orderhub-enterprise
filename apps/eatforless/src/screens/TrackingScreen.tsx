@@ -3,7 +3,8 @@
 // delivery PIN. Polls the order every 4 seconds while it's live.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import Constants from "expo-constants";
+import { Alert, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import MapView, { type LatLng as MapLatLng } from "react-native-maps";
 import Animated, {
   Easing,
@@ -35,6 +36,10 @@ import type { RootScreen } from "@/navigation/types";
 import { C, F, shadow } from "@/theme";
 
 const SHEET_H = 384;
+
+// Google's map SDK kills the app on Android when the build carries no Maps
+// key, so without one the screen keeps the drawn map. iOS uses Apple Maps.
+const NATIVE_MAP = Platform.OS === "ios" || !!Constants.expoConfig?.android?.config?.googleMaps?.apiKey;
 
 // ── Status wording ─────────────────────────────────────────────────────────
 
@@ -167,7 +172,7 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
   // The route in map coordinates: the sample streets in mock mode, otherwise
   // shop → (driver) → door as straight legs until the API sends a real route.
   const geoRoute: LatLng[] | null = useMemo(() => {
-    if (!order || order.fulfillmentType !== "DELIVERY") return null;
+    if (!NATIVE_MAP || !order || order.fulfillmentType !== "DELIVERY") return null;
     if (MOCK) return MOCK_ROUTE;
     if (order.shop && order.destination) return [order.shop, order.destination];
     return null;
