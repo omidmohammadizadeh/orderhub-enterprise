@@ -39,7 +39,7 @@ const SHEET_H = 384;
 
 // Google's map SDK kills the app on Android when the build carries no Maps
 // key, so without one the screen keeps the drawn map. iOS uses Apple Maps.
-const NATIVE_MAP = Platform.OS === "ios" || !!Constants.expoConfig?.android?.config?.googleMaps?.apiKey;
+const NATIVE_MAP = Platform.OS === "ios" || Constants.expoConfig?.extra?.nativeMaps === true;
 
 // Google's map, quietened the way delivery apps do it: no shops, bus stops or
 // labels competing with the route, soft greys, white roads.

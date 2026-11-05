@@ -27,6 +27,9 @@ module.exports = ({ config }) => {
 
   return {
     ...config,
+    // Expo strips android.config from the config the app can read, so the
+    // app learns whether its build carries a Maps key from here.
+    extra: { ...config.extra, nativeMaps: !!androidMapsKey },
     plugins: [
       ...(config.plugins ?? []),
       ...(googleScheme
