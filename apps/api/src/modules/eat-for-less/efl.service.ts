@@ -488,7 +488,13 @@ export class EflService {
       status.fulfillmentType === "DELIVERY" && status.shop && status.destination && !isFinishedStatus(order.status)
         ? await this.roads.forOrder(order.id, status.shop, status.destination, driverAt)
         : null;
-    const left = road && driverAt ? roadLeft(road, driverAt) : null;
+    // On the road with no ping yet (no driver app, or it hasn't reported):
+    // the whole road from the shop, as Uber does before the car moves.
+    const left = road && onRoad
+      ? driverAt
+        ? roadLeft(road, driverAt)
+        : { metersLeft: road.distanceMeters, secondsLeft: road.durationSeconds, offRouteMeters: 0 }
+      : null;
     return {
       ...status,
       // Never the driver's own number: the customer calls through the
