@@ -30,7 +30,21 @@ interface DeviceState {
   printerByLocation: Record<string, string>;
   setCardMachine: (locationId: string, terminalId: string | null) => void;
   setPrinter: (locationId: string, printerId: string | null) => void;
+  /**
+   * The till's own on-screen keyboard. "auto" = on for a touch screen, off
+   * where there is a mouse (and so, almost always, a real keyboard).
+   */
+  keyboardMode: KeyboardMode;
+  /** Languages the globe key cycles through, in order. */
+  keyboardLanguages: string[];
+  /** The one showing now. */
+  keyboardLanguage: string;
+  setKeyboardMode: (mode: KeyboardMode) => void;
+  setKeyboardLanguages: (codes: string[]) => void;
+  setKeyboardLanguage: (code: string) => void;
 }
+
+export type KeyboardMode = "auto" | "on" | "off";
 
 const without = (map: Record<string, string>, key: string) => {
   const next = { ...map };
@@ -43,6 +57,9 @@ export const useDeviceStore = create<DeviceState>()(
     (set) => ({
       cardMachineByLocation: {},
       printerByLocation: {},
+      keyboardMode: "auto",
+      keyboardLanguages: ["en"],
+      keyboardLanguage: "en",
       setCardMachine: (locationId, terminalId) =>
         set((s) => ({
           cardMachineByLocation: terminalId
@@ -55,6 +72,19 @@ export const useDeviceStore = create<DeviceState>()(
             ? { ...s.printerByLocation, [locationId]: printerId }
             : without(s.printerByLocation, locationId),
         })),
+      setKeyboardMode: (keyboardMode) => set({ keyboardMode }),
+      // Never empty, and the language showing stays one of the chosen ones.
+      setKeyboardLanguages: (codes) =>
+        set((s) => {
+          const keyboardLanguages = codes.length > 0 ? codes : ["en"];
+          return {
+            keyboardLanguages,
+            keyboardLanguage: keyboardLanguages.includes(s.keyboardLanguage)
+              ? s.keyboardLanguage
+              : keyboardLanguages[0]!,
+          };
+        }),
+      setKeyboardLanguage: (keyboardLanguage) => set({ keyboardLanguage }),
     }),
     { name: "orderhub-device", storage: createJSONStorage(() => localStorage) },
   ),

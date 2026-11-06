@@ -27,6 +27,7 @@ const SETTING_TOOL_KEYS = new Set([
   "pin",
   "service",
   "promos",
+  "keyboard",
 ]);
 import { useCurrency } from "@/hooks/use-currency";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -43,6 +44,7 @@ import {
   RotateCcw,
   Camera,
   Gift,
+  Keyboard,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -82,6 +84,8 @@ import {
   type CallerIdFill,
 } from "@/components/pos/caller-id-popup";
 import { TileColoursModal, type TileSettings } from "@/components/pos/tile-colours-modal";
+import { OnScreenKeyboard } from "@/components/pos/on-screen-keyboard";
+import { KeyboardSettingsModal } from "@/components/pos/keyboard-settings-modal";
 import { locationsClient } from "@/lib/api/locations.client";
 import { queryKeys } from "@/lib/api/query-keys";
 import {
@@ -1409,6 +1413,7 @@ export default function PosPage() {
   // the API shallow-merges `settings` — sending { pos: { tileColours } } alone
   // would wipe every other pos setting the shop has.
   const [coloursOpen, setColoursOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const locationQuery = useQuery({
     queryKey: queryKeys.locationDetail(selectedLocationId ?? ""),
     queryFn: () => locationsClient.get(selectedLocationId!),
@@ -1855,6 +1860,14 @@ export default function PosPage() {
       disabled: !selectedLocationId,
       // Required: the array is filtered by `show` below, so an entry without
       // it is silently dropped rather than rendered.
+      show: true,
+    },
+    {
+      key: "keyboard",
+      label: "Keyboard",
+      title: "Use the Order Hub keyboard on this device, and pick its languages",
+      icon: Keyboard,
+      onClick: () => setKeyboardOpen(true),
       show: true,
     },
     {
@@ -2590,6 +2603,9 @@ export default function PosPage() {
       )}
       {/* Incoming-call popup is now mounted globally in the dashboard layout
           (GlobalCallerIdPopup) so it shows on every screen, not just POS. */}
+
+      <KeyboardSettingsModal open={keyboardOpen} onClose={() => setKeyboardOpen(false)} />
+      <OnScreenKeyboard />
 
       <TileColoursModal
         open={coloursOpen}
