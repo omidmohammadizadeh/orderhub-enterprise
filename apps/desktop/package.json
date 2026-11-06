@@ -37,8 +37,8 @@
       ]
     },
     "appx": {
-      "identityName": "REPLACE_WITH_PACKAGE_IDENTITY_NAME",
-      "publisher": "CN=REPLACE_WITH_PUBLISHER_ID",
+      "identityName": "OrderHubPOSLtd.OrderHubSolutions",
+      "publisher": "CN=00000000-0000-0000-0000-000000000000",
       "publisherDisplayName": "Order Hub POS Ltd",
       "displayName": "Order Hub Solutions",
       "applicationId": "OrderHubSolutions",
