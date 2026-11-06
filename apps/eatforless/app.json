@@ -3,7 +3,7 @@
     "name": "Eat For Less",
     "slug": "eat-for-less",
     "scheme": "eatforless",
-    "version": "0.1.11",
+    "version": "0.1.12",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/icon.png",

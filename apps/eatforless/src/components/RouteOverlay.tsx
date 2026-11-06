@@ -1,5 +1,5 @@
 // The animated layer over the tracking map: the route (black), the part
-// already driven (grey), the shop and home markers, and our own top-down car
+// already driven (grey), the shop and house markers, and our own top-down car
 // that drives the route and turns at each corner. Everything is positioned in
 // screen points, on the UI thread.
 
@@ -38,6 +38,19 @@ export function CarArt({ width = 44 }: { width?: number }) {
   );
 }
 
+const HOME = 36;
+const HOME_GREY = "#5F6670";
+
+/** The customer's door: a small house, roof and doorway. Our own drawing. */
+function HouseArt() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 20 20">
+      <Path d="M10 2.5 2 9.2h2.4V17h11.2V9.2H18z" fill={C.white} strokeLinejoin="round" />
+      <Rect x={8.2} y={11.5} width={3.6} height={5.5} rx={0.8} fill={HOME_GREY} />
+    </Svg>
+  );
+}
+
 function Pulse({ at }: { at: Pt }) {
   const t = useSharedValue(0);
   useEffect(() => {
@@ -45,9 +58,11 @@ function Pulse({ at }: { at: Pt }) {
   }, [t]);
   const ring = useAnimatedStyle(() => ({ opacity: 0.55 * (1 - t.value), transform: [{ scale: 0.5 + t.value * 1.7 }] }));
   return (
-    <View pointerEvents="none" style={[styles.homeWrap, { left: at.x - 14, top: at.y - 14 }]}>
+    <View pointerEvents="none" style={[styles.homeWrap, { left: at.x - HOME / 2, top: at.y - HOME / 2 }]}>
       <Animated.View style={[styles.homeRing, ring]} />
-      <View style={styles.home} />
+      <View style={styles.home}>
+        <HouseArt />
+      </View>
     </View>
   );
 }
@@ -131,9 +146,23 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
   },
-  homeWrap: { position: "absolute", width: 28, height: 28 },
-  homeRing: { position: "absolute", width: 28, height: 28, borderRadius: 14, backgroundColor: C.ink },
-  home: { position: "absolute", left: 4, top: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: C.white, borderWidth: 6, borderColor: C.ink },
+  homeWrap: { position: "absolute", width: HOME, height: HOME },
+  homeRing: { position: "absolute", width: HOME, height: HOME, borderRadius: 10, backgroundColor: HOME_GREY },
+  home: {
+    position: "absolute",
+    width: HOME,
+    height: HOME,
+    borderRadius: 10,
+    backgroundColor: HOME_GREY,
+    borderWidth: 2,
+    borderColor: C.white,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
   car: {
     position: "absolute",
     left: 0,
