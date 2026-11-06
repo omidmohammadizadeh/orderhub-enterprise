@@ -1,0 +1,41 @@
+# Builds the Windows app (apps/desktop) on a Windows runner — the Microsoft
+# Store package (.appx/MSIX) can only be made on Windows.
+#
+# Two files come out, both as workflow artifacts:
+#   * Order Hub Solutions *.appx  — upload this to Partner Center (Microsoft
+#                                   signs it; no certificate needed from us)
+#   * OrderHub-Setup-*.exe        — direct-download installer (unsigned, so
+#                                   Windows SmartScreen warns on first run)
+#
+# Run it from Actions → "desktop release" → Run workflow, or push a tag
+# like `desktop-v1.0.0`.
+
+name: desktop release
+
+on:
+  push:
+    tags:
+      - "desktop-v*"
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    defaults:
+      run:
+        working-directory: apps/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+      - run: npm ci
+      - run: npx electron-builder --win appx nsis --x64 --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: orderhub-windows
+          path: |
+            dist/desktop/*.appx
+            dist/desktop/*.exe

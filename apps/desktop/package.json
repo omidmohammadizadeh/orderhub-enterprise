@@ -1,0 +1,58 @@
+{
+  "name": "@orderhub/desktop",
+  "productName": "Order Hub Solutions",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Order Hub POS for Windows — desktop shell around the web dashboard.",
+  "author": "Order Hub POS Ltd",
+  "homepage": "https://www.orderhubsolutions.com",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64",
+    "build:store": "electron-builder --win appx --x64",
+    "build:installer": "electron-builder --win nsis --x64"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.orderhubsolutions.pos",
+    "productName": "Order Hub Solutions",
+    "copyright": "Copyright © 2026 Order Hub POS Ltd",
+    "directories": {
+      "output": "../../dist/desktop",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "appx",
+        "nsis"
+      ]
+    },
+    "appx": {
+      "identityName": "REPLACE_WITH_PACKAGE_IDENTITY_NAME",
+      "publisher": "CN=REPLACE_WITH_PUBLISHER_ID",
+      "publisherDisplayName": "Order Hub POS Ltd",
+      "displayName": "Order Hub Solutions",
+      "applicationId": "OrderHubSolutions",
+      "backgroundColor": "#FFFFFF",
+      "languages": [
+        "en-GB"
+      ],
+      "showNameOnTiles": true
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "OrderHub-Setup-${version}.${ext}",
+      "shortcutName": "Order Hub Solutions"
+    }
+  }
+}

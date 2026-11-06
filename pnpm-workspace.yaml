@@ -7,3 +7,4 @@ packages:
   - "!apps/driver"
   - "!apps/eatforless"
   - "!apps/caller-id"
+  - "!apps/desktop"
