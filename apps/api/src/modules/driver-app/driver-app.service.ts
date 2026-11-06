@@ -22,6 +22,7 @@ import {
   coordsFromDeliveryAddress,
   resolveDeliveryAddress,
 } from "../orders/delivery-address";
+import { cleanVehicle, driverVehicle } from "../../common/courier-card";
 import type { AuthenticatedUser } from "../auth/interfaces/jwt-payload.interface";
 
 export interface PingDto {
@@ -298,8 +299,24 @@ export class DriverAppService {
       lastName: driver.lastName,
       phone: driver.phone,
       vehicleType: driver.vehicleType,
+      vehicle: driverVehicle(driver),
       presence,
     };
+  }
+
+  /** The driver's own car details, shown to customers on the tracking card.
+   *  Blank fields clear; a driver who enters nothing is shown by name only. */
+  async setVehicle(user: AuthenticatedUser, input: unknown) {
+    const driver = await this.resolveDriver(user);
+    const { type, ...vehicle } = cleanVehicle(input);
+    const updated = await this.prisma.driver.update({
+      where: { id: driver.id },
+      data: {
+        ...(type !== null || (input as any)?.type === "" ? { vehicleType: type } : {}),
+        metadata: { ...((driver.metadata as any) ?? {}), vehicle },
+      },
+    });
+    return { vehicleType: updated.vehicleType, vehicle: driverVehicle(updated) };
   }
 
   /** Today's active jobs + recent history + a cash-up summary for today. */

@@ -33,6 +33,13 @@ export class DriverAppController {
     return this.driverApp.me(user);
   }
 
+  @Post("vehicle")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Save the driver's car details for the customer's tracking card" })
+  setVehicle(@CurrentUser() user: AuthenticatedUser, @Body() body: unknown) {
+    return this.driverApp.setVehicle(user, body);
+  }
+
   @Get("my-day")
   @ApiOperation({ summary: "Today's active jobs + history + cash-up summary" })
   myDay(@CurrentUser() user: AuthenticatedUser) {

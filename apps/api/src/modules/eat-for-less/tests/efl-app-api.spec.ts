@@ -3,10 +3,22 @@ import { EflAccountService, isExpoPushToken } from "../efl-account.service";
 import { deliveryWindow, travelMinutes } from "../efl-rules";
 
 describe("myOrder", () => {
-  function setup(driver: any) {
+  function setup(driver: any, extra: Record<string, unknown> = {}) {
     const prisma: any = {
       order: {
-        findFirst: jest.fn(async () => ({ id: "o1", deliveryPin: "4821", deliveryPinVerifiedAt: null })),
+        findFirst: jest.fn(async () => ({
+          id: "o1",
+          status: "OUT_FOR_DELIVERY",
+          deliveryPin: "4821",
+          deliveryPinVerifiedAt: null,
+          courierName: null,
+          courierLat: null,
+          courierLng: null,
+          courierLocationAt: null,
+          metadata: {},
+          driverAssignment: null,
+          ...extra,
+        })),
       },
     };
     const ordering: any = {
@@ -22,8 +34,50 @@ describe("myOrder", () => {
 
   it("never returns the driver's own phone number", async () => {
     const res: any = await setup({ name: "Dan", phone: "+447700900111", lat: 54.98, lng: -1.62 }).myOrder({ id: "c1" }, "o1");
-    expect(res.driver).toEqual({ name: "Dan", lat: 54.98, lng: -1.62 });
+    expect(res.driver).toEqual({
+      name: "Dan",
+      lat: 54.98,
+      lng: -1.62,
+      lastPingAt: null,
+      photoUrl: null,
+      vehicle: null,
+      rating: null,
+      viaApp: true,
+    });
     expect(JSON.stringify(res)).not.toContain("+447700900111");
+  });
+
+  it("shows the car our driver entered in the driver app", async () => {
+    const res: any = await setup(
+      { name: "Ali", phone: "x", lat: 54.98, lng: -1.62 },
+      { driverAssignment: { driver: { vehicleType: "Car", metadata: { vehicle: { make: "Toyota", model: "Prius", colour: "Silver", plate: "AB12 CDE" } } } } },
+    ).myOrder({ id: "c1" }, "o1");
+    expect(res.driver.vehicle).toEqual({ type: "Car", make: "Toyota", model: "Prius", colour: "Silver", plate: "AB12 CDE" });
+  });
+
+  it("shows an Uber Direct courier with Uber's photo and car, and a JET Go courier by name", async () => {
+    const uber: any = await setup(null, {
+      courierName: "Maria",
+      courierLat: 54.99,
+      courierLng: -1.6,
+      courierLocationAt: new Date(),
+      courierPhone: "+447700900222",
+      metadata: { courier: { name: "Maria", photoUrl: "https://x/m.jpg", vehicle: { make: "Ford" }, rating: 4.9 } },
+    }).myOrder({ id: "c1" }, "o1");
+    expect(uber.driver).toMatchObject({ name: "Maria", photoUrl: "https://x/m.jpg", rating: 4.9, lat: 54.99 });
+    expect(JSON.stringify(uber)).not.toContain("+447700900222");
+
+    const jet: any = await setup(null, { courierName: "Sam" }).myOrder({ id: "c1" }, "o1");
+    expect(jet.driver).toEqual({
+      name: "Sam",
+      photoUrl: null,
+      vehicle: null,
+      rating: null,
+      lat: null,
+      lng: null,
+      lastPingAt: null,
+      viaApp: false,
+    });
   });
 
   it("estimates the driver's arrival from their last position", async () => {

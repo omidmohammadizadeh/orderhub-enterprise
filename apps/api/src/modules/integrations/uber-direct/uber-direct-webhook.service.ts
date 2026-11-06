@@ -7,6 +7,7 @@
 
 import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../../infrastructure/database/prisma.service";
+import { uberCourierDetails } from "../../../common/courier-card";
 import { OrdersService } from "../../orders/orders.service";
 
 @Injectable()
@@ -107,6 +108,10 @@ export class UberDirectWebhookService {
     if (status) updates.courierStatus = status;
     if (courier?.name) updates.courierName = courier.name;
     if (courier?.phone_number) updates.courierPhone = courier.phone_number;
+    // Photo, car and rating for the customer's tracking card, kept with the
+    // courier's name so a replacement courier never shows this one's face.
+    const card = uberCourierDetails(courier);
+    if (card) updates.metadata = { ...((order.metadata as any) ?? {}), courier: card };
 
     // Courier position, when the network sends one. Same reasoning as the
     // Deliveroo path: store the point with the time it was taken, never

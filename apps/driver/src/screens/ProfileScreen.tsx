@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { DriverProfile, changePassword, deleteMyAccount, getMe } from "@/services/auth";
+import { DriverProfile, changePassword, deleteMyAccount, getMe, setVehicle } from "@/services/auth";
 import { Button, Header, Icon } from "@/components/ui";
 import { C, R, initials } from "@/theme";
 
@@ -19,10 +19,32 @@ export function ProfileScreen({ onBack, onSignOut }: { onBack: () => void; onSig
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [car, setCar] = useState({ make: "", model: "", colour: "", plate: "" });
+  const [carBusy, setCarBusy] = useState(false);
 
   useEffect(() => {
-    getMe().then(setMe).catch(() => {});
+    getMe()
+      .then((p) => {
+        setMe(p);
+        const v = p.vehicle;
+        setCar({ make: v?.make ?? "", model: v?.model ?? "", colour: v?.colour ?? "", plate: v?.plate ?? "" });
+      })
+      .catch(() => {});
   }, []);
+
+  async function saveCar() {
+    setCarBusy(true);
+    try {
+      const saved = await setVehicle(car);
+      const v = saved.vehicle;
+      setCar({ make: v?.make ?? "", model: v?.model ?? "", colour: v?.colour ?? "", plate: v?.plate ?? "" });
+      Alert.alert("Saved", v ? "Customers will see your car while you're on the way." : "Customers will see your name only.");
+    } catch (err) {
+      Alert.alert("Couldn't save your car", apiMessage(err));
+    } finally {
+      setCarBusy(false);
+    }
+  }
 
   async function savePassword() {
     if (newPassword.length < 8) {
@@ -88,6 +110,51 @@ export function ProfileScreen({ onBack, onSignOut }: { onBack: () => void; onSig
             )}
           </View>
         </View>
+
+        <Text style={styles.section}>YOUR CAR</Text>
+        <Text style={styles.note}>
+          Customers see this while you're on the way to them, so they know which car to look for. Leave it blank and they
+          see your first name only.
+        </Text>
+        <View style={styles.row}>
+          <TextInput
+            style={[styles.input, styles.half]}
+            placeholder="Make (Toyota)"
+            placeholderTextColor={C.textMute}
+            autoCapitalize="words"
+            value={car.make}
+            onChangeText={(make) => setCar((c) => ({ ...c, make }))}
+          />
+          <TextInput
+            style={[styles.input, styles.half]}
+            placeholder="Model (Prius)"
+            placeholderTextColor={C.textMute}
+            autoCapitalize="words"
+            value={car.model}
+            onChangeText={(model) => setCar((c) => ({ ...c, model }))}
+          />
+        </View>
+        <View style={styles.row}>
+          <TextInput
+            style={[styles.input, styles.half]}
+            placeholder="Colour (Silver)"
+            placeholderTextColor={C.textMute}
+            autoCapitalize="words"
+            value={car.colour}
+            onChangeText={(colour) => setCar((c) => ({ ...c, colour }))}
+          />
+          <TextInput
+            style={[styles.input, styles.half, styles.plate]}
+            placeholder="Reg (AB12 CDE)"
+            placeholderTextColor={C.textMute}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            maxLength={10}
+            value={car.plate}
+            onChangeText={(plate) => setCar((c) => ({ ...c, plate: plate.toUpperCase() }))}
+          />
+        </View>
+        <Button label="Save car" icon="car-sport" tone="light" busy={carBusy} onPress={saveCar} />
 
         <Text style={styles.section}>CHANGE PASSWORD</Text>
         <TextInput
@@ -155,4 +222,8 @@ const styles = StyleSheet.create({
     borderColor: C.border,
   },
   dangerNote: { color: C.textMute, fontSize: 12, marginTop: 8 },
+  note: { color: C.textDim, fontSize: 13, lineHeight: 18, marginBottom: 12 },
+  row: { flexDirection: "row", gap: 10 },
+  half: { flex: 1 },
+  plate: { fontWeight: "800", letterSpacing: 1 },
 });

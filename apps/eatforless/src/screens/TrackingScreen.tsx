@@ -26,6 +26,7 @@ import type { LatLng, OrderDetail } from "@/api/types";
 import { RoundButton } from "@/components/Bits";
 import { Icon } from "@/components/Icon";
 import { PressScale } from "@/components/PressScale";
+import { DriverCard } from "@/components/DriverCard";
 import { RouteOverlay } from "@/components/RouteOverlay";
 import { T } from "@/components/T";
 import { MOCK } from "@/config";
@@ -302,6 +303,9 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
   const head = order ? headline(order, now) : { title: "Loading your order…", sub: "" };
   const steps = order ? stepsFor(order) : [];
   const driverName = order?.driver?.name ?? null;
+  // Older servers don't say: treat that as our own driver, as before.
+  const viaApp = order?.driver?.viaApp !== false;
+  const shopName = order?.location?.name ?? "the shop";
 
   return (
     <View style={styles.root}>
@@ -374,28 +378,27 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
 
           {driverName && live ? (
             <Animated.View entering={fadeUp(0)} style={{ gap: 10 }}>
-              <View style={styles.driver}>
-                <View style={styles.avatar}>
-                  <T style={styles.avatarText}>{driverName[0]?.toUpperCase()}</T>
-                </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <T v="item">{driverName}</T>
-                  <T v="sub">Your driver</T>
-                </View>
-              </View>
+              <DriverCard
+                name={driverName}
+                photoUrl={order?.driver?.photoUrl}
+                vehicle={order?.driver?.vehicle}
+                rating={order?.driver?.rating}
+              />
               <View style={styles.actions}>
-                <PressScale onPress={() => navigation.navigate("Call", { orderId, name: driverName })} style={styles.action} haptic>
+                <PressScale onPress={() => navigation.navigate("Call", { orderId, name: viaApp ? driverName : shopName })} style={styles.action} haptic>
                   <Icon name="phone" size={18} />
-                  <T v="label" style={{ fontSize: 15 }}>Call</T>
+                  <T v="label" style={{ fontSize: 15 }}>{viaApp ? "Call" : "Call the shop"}</T>
                 </PressScale>
-                <PressScale
-                  onPress={() => navigation.navigate("Messages", { orderId, name: driverName })}
-                  style={styles.action}
-                  haptic
-                >
-                  <Icon name="message" size={18} />
-                  <T v="label" style={{ fontSize: 15 }}>Message</T>
-                </PressScale>
+                {viaApp ? (
+                  <PressScale
+                    onPress={() => navigation.navigate("Messages", { orderId, name: driverName })}
+                    style={styles.action}
+                    haptic
+                  >
+                    <Icon name="message" size={18} />
+                    <T v="label" style={{ fontSize: 15 }}>Message</T>
+                  </PressScale>
+                ) : null}
               </View>
               <View style={styles.privacy}>
                 <Icon name="lock" size={14} color={C.grey600} />
@@ -472,9 +475,6 @@ const styles = StyleSheet.create({
   seg: { flex: 1, height: 5, borderRadius: 3, overflow: "hidden" },
   glint: { position: "absolute", top: 0, bottom: 0, width: 40, backgroundColor: C.lime, opacity: 0.9 },
   segLabel: { flex: 1, fontFamily: F.semibold, fontSize: 11, color: C.grey500 },
-  driver: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderWidth: 1, borderColor: C.grey200, borderRadius: 18 },
-  avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: "#E9E9E9", alignItems: "center", justifyContent: "center" },
-  avatarText: { fontFamily: F.display, fontSize: 20, color: C.ink },
   actions: { flexDirection: "row", gap: 10 },
   action: { flex: 1, height: 52, borderRadius: 26, backgroundColor: C.grey100, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   privacy: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: -2 },

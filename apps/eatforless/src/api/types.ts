@@ -226,7 +226,20 @@ export type OrderDetail = {
   destination: LatLng | null;
   shop: LatLng | null;
   /** Never carries a phone number: calls go through Eat For Less (Phase 4). */
-  driver: { name?: string | null; lat?: number | null; lng?: number | null; lastPingAt?: string | null } | null;
+  driver: {
+    name?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+    lastPingAt?: string | null;
+    /** Uber Direct sends a photo and rating; our own drivers have neither. */
+    photoUrl?: string | null;
+    /** What the driver entered in the driver app, or what Uber sent. */
+    vehicle?: CourierVehicle | null;
+    rating?: number | null;
+    /** On our driver app: calls and messages reach them. Otherwise (a JET Go
+     *  or Uber courier) the line rings the shop and there's no chat. */
+    viaApp?: boolean;
+  } | null;
   /** Driving minutes from the driver's last position to the door. */
   driverEtaMinutes: number | null;
   /** The streets from the shop (or the driver, after a detour) to the door.
@@ -239,6 +252,14 @@ export type OrderDetail = {
   /** Our private-line number and this customer's code, while the line is
    *  open (until 2h after delivery). Null before calls are set up. */
   privateLine?: { number: string; code: string } | null;
+};
+
+export type CourierVehicle = {
+  type: string | null;
+  make: string | null;
+  model: string | null;
+  colour: string | null;
+  plate: string | null;
 };
 
 /** GET/POST efl/me/orders/:id/messages — one message with the driver. */

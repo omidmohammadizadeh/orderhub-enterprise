@@ -8,6 +8,7 @@
 // shop's own website doesn't (a verified phone, a capped first order, a PIN
 // at the door, our commission).
 
+import { courierCard, driverVehicle, type CourierCard } from "../../common/courier-card";
 import {
   BadRequestException,
   ForbiddenException,
@@ -475,15 +476,22 @@ export class EflService {
         updatedAt: true,
         deliveryPin: true,
         deliveryPinVerifiedAt: true,
+        // A third-party courier (Uber Direct, JET Go…) and what they sent about
+        // themselves; our own driver's car comes from the driver app.
+        courierName: true,
+        courierLat: true,
+        courierLng: true,
+        courierLocationAt: true,
+        metadata: true,
+        driverAssignment: { select: { driver: { select: { vehicleType: true, metadata: true } } } },
       },
     });
     if (!order) throw new NotFoundException("Order not found");
     const status: any = await this.ordering.getOrderStatus(order.id);
     const onRoad = ["OUT_FOR_DELIVERY", "RIDER_ARRIVED"].includes(order.status);
+    const driver = onRoad ? whoIsDriving(status.driver, order) : null;
     const driverAt =
-      onRoad && status.driver?.lat != null && status.driver?.lng != null
-        ? { lat: Number(status.driver.lat), lng: Number(status.driver.lng) }
-        : null;
+      driver?.lat != null && driver?.lng != null ? { lat: Number(driver.lat), lng: Number(driver.lng) } : null;
     const road =
       status.fulfillmentType === "DELIVERY" && status.shop && status.destination && !isFinishedStatus(order.status)
         ? await this.roads.forOrder(order.id, status.shop, status.destination, driverAt)
@@ -499,10 +507,10 @@ export class EflService {
       ...status,
       // Never the driver's own number: the customer calls through the
       // private line, and the driver never sees theirs either.
-      driver: status.driver ? withoutPhone(status.driver) : null,
+      driver,
       // Google's time along the streets once there's a road; a straight-line
       // guess until then.
-      driverEtaMinutes: left ? Math.max(1, Math.ceil(left.secondsLeft / 60)) : driverEta(status.driver, status.destination),
+      driverEtaMinutes: left ? Math.max(1, Math.ceil(left.secondsLeft / 60)) : driverEta(driver, status.destination),
       route: road,
       metersLeft: left?.metersLeft ?? null,
       deliveryPin: order.deliveryPinVerifiedAt ? null : order.deliveryPin,
@@ -960,9 +968,53 @@ function isFinishedStatus(status: string): boolean {
   return ["DELIVERED", "COMPLETED", "COLLECTED", "CANCELLED", "REJECTED", "FAILED"].includes(status);
 }
 
-function withoutPhone<T extends Record<string, unknown>>(driver: T) {
-  const { phone: _phone, ...rest } = driver as any;
-  return rest as Omit<T, "phone">;
+/** A courier position older than this is where they were, not where they are. */
+const STALE_COURIER_MS = 10 * 60_000;
+
+/** The person on the road, for the tracking card: our own driver (name,
+ *  live GPS, the car they entered in the driver app) or else the courier a
+ *  delivery network sent (name, their last position, and Uber's photo/car/
+ *  rating when it's this courier's). Never a phone number. */
+function whoIsDriving(
+  own: Record<string, any> | null | undefined,
+  order: {
+    courierName: string | null;
+    courierLat: number | null;
+    courierLng: number | null;
+    courierLocationAt: Date | null;
+    metadata: unknown;
+    driverAssignment: { driver: { vehicleType: string | null; metadata: unknown } | null } | null;
+  },
+): (CourierCard & { lat: number | null; lng: number | null; lastPingAt: string | null; viaApp: boolean }) | null {
+  if (own) {
+    const car = order.driverAssignment?.driver ? driverVehicle(order.driverAssignment.driver) : null;
+    return {
+      name: own.name ?? "Your driver",
+      lat: own.lat ?? null,
+      lng: own.lng ?? null,
+      lastPingAt: own.lastPingAt ?? null,
+      photoUrl: null,
+      vehicle: car,
+      rating: null,
+      // On our driver app: the private line and chat reach them.
+      viaApp: true,
+    };
+  }
+  const card = courierCard(order.courierName, (order.metadata as any)?.courier);
+  if (!card) return null;
+  const fresh =
+    order.courierLat != null &&
+    order.courierLng != null &&
+    order.courierLocationAt != null &&
+    Date.now() - order.courierLocationAt.getTime() < STALE_COURIER_MS;
+  return {
+    ...card,
+    lat: fresh ? order.courierLat : null,
+    lng: fresh ? order.courierLng : null,
+    lastPingAt: fresh ? order.courierLocationAt!.toISOString() : null,
+    // A network's courier: our line rings the shop, and there's no chat.
+    viaApp: false,
+  };
 }
 
 /** Minutes until the driver reaches the customer, from the driver's last GPS

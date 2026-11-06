@@ -251,7 +251,17 @@ export interface DriverProfile {
   lastName: string;
   phone: string | null;
   vehicleType: string | null;
+  /** The car customers see on their tracking card. Null = name only. */
+  vehicle?: Vehicle | null;
   presence: { status: "OFFLINE" | "ONLINE" | "ON_JOB"; locationId: string | null } | null;
+}
+
+export interface Vehicle {
+  type: string | null;
+  make: string | null;
+  model: string | null;
+  colour: string | null;
+  plate: string | null;
 }
 
 export interface JobOrder {
@@ -318,6 +328,10 @@ export interface MyDay {
 
 export async function getMe() {
   const res = await api.get<DriverProfile>("/v1/driver/me");
+  return res.data;
+}
+export async function setVehicle(v: { make: string; model: string; colour: string; plate: string }) {
+  const res = await api.post<{ vehicleType: string | null; vehicle: Vehicle | null }>("/v1/driver/vehicle", v);
   return res.data;
 }
 export async function getMyDay() {
