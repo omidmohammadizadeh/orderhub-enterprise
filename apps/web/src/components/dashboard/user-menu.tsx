@@ -8,6 +8,7 @@ import { humaniseRole } from "@/lib/api/team.client";
 import { Avatar } from "@/components/ui/avatar";
 import { cn, getInitials } from "@/lib/utils";
 import { ProfileDialog, DeleteAccountDialog } from "./account-dialogs";
+import { TABLET_ROLE } from "./kiosk-route-guard";
 
 export function UserMenu() {
   const [open, setOpen] = useState(false);
@@ -45,6 +46,10 @@ export function UserMenu() {
   };
 
   if (!user) return null;
+
+  // A shop tablet login is shared by the whole shift: it can sign out, but
+  // never edit the login's profile or delete it.
+  const isTablet = user.role === TABLET_ROLE;
 
   return (
     <div ref={menuRef} className="relative">
@@ -93,39 +98,45 @@ export function UserMenu() {
           </div>
 
           {/* Menu items */}
-          <div className="py-1">
-            <MenuItem
-              icon={User}
-              label="Your profile"
-              onClick={() => {
-                setOpen(false);
-                setShowProfile(true);
-              }}
-            />
-          </div>
+          {!isTablet && (
+            <div className="py-1">
+              <MenuItem
+                icon={User}
+                label="Your profile"
+                onClick={() => {
+                  setOpen(false);
+                  setShowProfile(true);
+                }}
+              />
+            </div>
+          )}
 
-          <div className="border-t border-zinc-100 py-1">
+          <div className={cn("py-1", !isTablet && "border-t border-zinc-100")}>
             <MenuItem
               icon={LogOut}
               label="Sign out"
               onClick={handleLogout}
               className="text-red-600 hover:bg-red-50"
             />
-            <MenuItem
-              icon={Trash2}
-              label="Delete my account"
-              onClick={() => {
-                setOpen(false);
-                setShowDelete(true);
-              }}
-              className="text-red-600 hover:bg-red-50"
-            />
+            {!isTablet && (
+              <MenuItem
+                icon={Trash2}
+                label="Delete my account"
+                onClick={() => {
+                  setOpen(false);
+                  setShowDelete(true);
+                }}
+                className="text-red-600 hover:bg-red-50"
+              />
+            )}
           </div>
         </div>
       )}
 
-      {showProfile && <ProfileDialog onClose={() => setShowProfile(false)} />}
-      {showDelete && (
+      {showProfile && !isTablet && (
+        <ProfileDialog onClose={() => setShowProfile(false)} />
+      )}
+      {showDelete && !isTablet && (
         <DeleteAccountDialog onClose={() => setShowDelete(false)} />
       )}
     </div>
