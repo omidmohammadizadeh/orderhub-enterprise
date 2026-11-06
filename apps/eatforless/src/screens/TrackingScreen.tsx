@@ -335,6 +335,7 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
           progress={progress}
           showCar={!!order && order.fulfillmentType === "DELIVERY" && !delivered && (live || !geoRoute)}
           showRoute={!delivered}
+          shopName={order?.location?.name ?? null}
         />
       </View>
 

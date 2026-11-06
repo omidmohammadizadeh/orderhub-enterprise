@@ -4,7 +4,7 @@
 // screen points, on the UI thread.
 
 import { useEffect, useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Animated, {
   Easing,
   useAnimatedProps,
@@ -39,6 +39,7 @@ export function CarArt({ width = 44 }: { width?: number }) {
 }
 
 const HOME = 36;
+const LABEL_MAX = 170;
 const HOME_GREY = "#5F6670";
 
 /** The customer's door: a small house, roof and doorway. Our own drawing. */
@@ -75,10 +76,13 @@ type Props = {
   /** Off once delivered: there's no journey left to draw. */
   showRoute?: boolean;
   showShop?: boolean;
+  /** Written beside the shop pin, as Uber does. */
+  shopName?: string | null;
   showHome?: boolean;
 };
 
-export function RouteOverlay({ points, progress, showCar, showRoute = true, showShop = true, showHome = true }: Props) {
+export function RouteOverlay({ points, progress, showCar, showRoute = true, showShop = true, shopName, showHome = true }: Props) {
+  const { width: screenW } = useWindowDimensions();
   const cum = useMemo(() => cumulative(points), [points]);
   const total = cum[cum.length - 1] ?? 0;
   const d = useMemo(() => pathD(points), [points]);
@@ -122,6 +126,20 @@ export function RouteOverlay({ points, progress, showCar, showRoute = true, show
           <Icon name="cutlery" size={18} color={C.lime} />
         </View>
       ) : null}
+      {showShop && shopName ? (
+        // Beside the pin, on whichever side has room.
+        <View
+          style={[
+            styles.label,
+            start.x + 24 + LABEL_MAX > screenW ? { right: screenW - start.x + 24 } : { left: start.x + 24 },
+            { top: start.y - 37 },
+          ]}
+        >
+          <Text style={styles.labelText} numberOfLines={1}>
+            {shopName}
+          </Text>
+        </View>
+      ) : null}
       {showHome ? <Pulse at={end} /> : null}
       {showCar ? (
         <Animated.View style={[styles.car, carStyle]}>
@@ -146,6 +164,21 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
   },
+  label: {
+    position: "absolute",
+    maxWidth: LABEL_MAX,
+    height: 30,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: C.white,
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  labelText: { color: C.ink, fontSize: 13, fontWeight: "700" },
   homeWrap: { position: "absolute", width: HOME, height: HOME },
   homeRing: { position: "absolute", width: HOME, height: HOME, borderRadius: 10, backgroundColor: HOME_GREY },
   home: {
