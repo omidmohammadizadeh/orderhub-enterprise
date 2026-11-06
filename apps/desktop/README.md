@@ -36,7 +36,7 @@ Output lands in `dist/desktop/` at the repo root.
 2. Partner Center → Apps and games → **New product → MSIX or PWA app** →
    reserve the name **Order Hub Solutions**.
 3. Product → **Product identity**. Copy three values into `package.json → build.appx`
-   (the ones there now are placeholders — the Store rejects a package that doesn't match):
+   (already filled in for Store ID 9PP78NF6F9KK, https://apps.microsoft.com/detail/9PP78NF6F9KK):
    - `Package/Identity/Name` → `identityName`
    - `Package/Identity/Publisher` (`CN=…`) → `publisher`
    - `Package/Properties/PublisherDisplayName` → `publisherDisplayName`

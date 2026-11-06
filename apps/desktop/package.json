@@ -37,9 +37,9 @@
       ]
     },
     "appx": {
-      "identityName": "OrderHubPOSLtd.OrderHubSolutions",
-      "publisher": "CN=00000000-0000-0000-0000-000000000000",
-      "publisherDisplayName": "Order Hub POS Ltd",
+      "identityName": "ORDERHUBSOLUTIONS.OrderHubSolutions",
+      "publisher": "CN=3DB5132B-1C9B-4635-A542-296036305914",
+      "publisherDisplayName": "ORDER HUB SOLUTIONS",
       "displayName": "Order Hub Solutions",
       "applicationId": "OrderHubSolutions",
       "backgroundColor": "#FFFFFF",
