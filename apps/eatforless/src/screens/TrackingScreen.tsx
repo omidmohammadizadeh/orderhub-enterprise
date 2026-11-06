@@ -333,7 +333,8 @@ export function TrackingScreen({ navigation, route }: RootScreen<"Tracking">) {
         <RouteOverlay
           points={geoRoute ? screenRoute ?? [] : DRAWN_ROUTE.map((p) => ({ x: (p.x / 390) * width, y: (p.y / 500) * mapH }))}
           progress={progress}
-          showCar={!!order && order.fulfillmentType === "DELIVERY" && (live || delivered || !geoRoute)}
+          showCar={!!order && order.fulfillmentType === "DELIVERY" && !delivered && (live || !geoRoute)}
+          showRoute={!delivered}
         />
       </View>
 

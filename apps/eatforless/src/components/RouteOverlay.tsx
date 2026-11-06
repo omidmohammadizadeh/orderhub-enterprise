@@ -57,11 +57,13 @@ type Props = {
   /** 0–1 along the route. */
   progress: SharedValue<number>;
   showCar: boolean;
+  /** Off once delivered: there's no journey left to draw. */
+  showRoute?: boolean;
   showShop?: boolean;
   showHome?: boolean;
 };
 
-export function RouteOverlay({ points, progress, showCar, showShop = true, showHome = true }: Props) {
+export function RouteOverlay({ points, progress, showCar, showRoute = true, showShop = true, showHome = true }: Props) {
   const cum = useMemo(() => cumulative(points), [points]);
   const total = cum[cum.length - 1] ?? 0;
   const d = useMemo(() => pathD(points), [points]);
@@ -84,20 +86,22 @@ export function RouteOverlay({ points, progress, showCar, showShop = true, showH
 
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <Svg style={StyleSheet.absoluteFill}>
-        <Path d={d} stroke={C.ink} strokeWidth={6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        {/* The driven part, drawn back-to-front so it grows from the shop. */}
-        <APath
-          d={d}
-          stroke="#A9A9A9"
-          strokeWidth={6}
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeDasharray={[total, total]}
-          animatedProps={doneProps}
-        />
-      </Svg>
+      {showRoute ? (
+        <Svg style={StyleSheet.absoluteFill}>
+          <Path d={d} stroke={C.ink} strokeWidth={6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          {/* The driven part, drawn back-to-front so it grows from the shop. */}
+          <APath
+            d={d}
+            stroke="#A9A9A9"
+            strokeWidth={6}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray={[total, total]}
+            animatedProps={doneProps}
+          />
+        </Svg>
+      ) : null}
       {showShop ? (
         <View style={[styles.shop, { left: start.x - 18, top: start.y - 40 }]}>
           <Icon name="cutlery" size={18} color={C.lime} />
