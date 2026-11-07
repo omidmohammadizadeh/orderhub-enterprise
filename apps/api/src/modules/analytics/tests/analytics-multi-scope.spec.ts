@@ -132,6 +132,7 @@ describe("Analytics brand picker — only brands that trade at the chosen shop",
     // Assignment OR history: a brand whose assignment was removed still owns
     // its past orders and must stay filterable, or last month's report breaks.
     expect(brandWhere.OR).toEqual([
+      { primaryLocationId: { in: ["loc-1"] } },
       { id: { in: ["b-assigned"] } },
       { orders: { some: { tenantId: "t1", locationId: { in: ["loc-1"] } } } },
     ]);
@@ -195,6 +196,44 @@ describe("Analytics filterOptions — what the pickers are allowed to offer", ()
     expect(res.filterOptions.locations).toEqual([
       { id: "loc-1", name: "Mulgrave" },
     ]);
+  });
+});
+
+describe("Analytics brand picker — a shop's own brands only", () => {
+  it("does not offer a brand whose home is another shop, even with orders here", async () => {
+    // Clifton picker showed "monster burgerz-soundwell": one stray order at
+    // Clifton matched the history half of the OR. A brand with a home shop is
+    // offered at that shop only; a franchise parent (no home) still shows.
+    const prisma: any = {
+      order: { findMany: jest.fn().mockResolvedValue([]) },
+      brand: {
+        findMany: jest.fn().mockResolvedValue([
+          { id: "b-clifton", name: "GREEK GYROS-CLIFTON", primaryLocationId: "loc-clifton" },
+          { id: "b-soundwell", name: "monster burgerz-soundwell", primaryLocationId: "loc-soundwell" },
+          { id: "b-parent", name: "Franchise", primaryLocationId: null },
+        ]),
+      },
+      menuChannelAssignment: { findMany: jest.fn().mockResolvedValue([]) },
+      location: { findMany: jest.fn().mockResolvedValue([]) },
+      userLocation: { findMany: jest.fn().mockResolvedValue([]) },
+      userBrand: { findMany: jest.fn().mockResolvedValue([]) },
+    };
+
+    const res: any = await new AnalyticsService(prisma).getOverview("t1", {
+      from: new Date("2026-10-07T00:00:00Z"),
+      to: new Date("2026-10-08T00:00:00Z"),
+      role: "TENANT_OWNER",
+      locationIds: ["loc-clifton"],
+    } as any);
+
+    expect(res.filterOptions.brands.map((b: any) => b.id)).toEqual([
+      "b-clifton",
+      "b-parent",
+    ]);
+    // A home-shop brand with no orders or menu yet is still offered there.
+    expect(prisma.brand.findMany.mock.calls[0][0].where.OR).toContainEqual({
+      primaryLocationId: { in: ["loc-clifton"] },
+    });
   });
 });
 

@@ -1227,6 +1227,7 @@ export class AnalyticsService {
           ...(effectiveLocationIds
             ? {
                 OR: [
+                  { primaryLocationId: { in: effectiveLocationIds } },
                   { id: { in: assignedBrandIds } },
                   {
                     orders: {
@@ -1237,7 +1238,7 @@ export class AnalyticsService {
               }
             : {}),
         },
-        select: { id: true, name: true },
+        select: { id: true, name: true, primaryLocationId: true },
       }),
       this.prisma.location.findMany({
         where: {
@@ -1647,9 +1648,23 @@ export class AnalyticsService {
       // stops the brand list offering brands that never trade there; both
       // lists are access-scoped, so a manager never sees a shop or a brand
       // outside their own locations.
+      //
+      // A brand with a home shop (primaryLocationId) is only offered at that
+      // shop. A stray order or menu assignment elsewhere — "monster burgerz-
+      // soundwell" with one order rung up at Clifton — must not put it in
+      // Clifton's picker. It stays in `brands` so byBrand still names it.
+      // Brands with no home shop (franchise parents) trade wherever they are
+      // assigned or have orders, as before.
       filterOptions: {
         locations: locations.map((l) => ({ id: l.id, name: l.name })),
-        brands: brands.map((b) => ({ id: b.id, name: b.name })),
+        brands: brands
+          .filter(
+            (b) =>
+              !effectiveLocationIds ||
+              !b.primaryLocationId ||
+              effectiveLocationIds.includes(b.primaryLocationId),
+          )
+          .map((b) => ({ id: b.id, name: b.name })),
       },
     };
   }
